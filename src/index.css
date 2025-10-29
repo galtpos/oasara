@@ -1,13 +1,100 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-base text-cream antialiased;
+    font-family: 'Open Sans', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@layer utilities {
+  .glass-morphism {
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(217, 121, 37, 0.1);
+  }
+
+  .glass-morphism-hover {
+    @apply glass-morphism transition-all duration-300;
+  }
+
+  .glass-morphism-hover:hover {
+    background: rgba(15, 15, 15, 0.8);
+    border-color: rgba(217, 121, 37, 0.3);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(217, 121, 37, 0.2);
+  }
+
+  .gradient-cta {
+    background: linear-gradient(135deg, #D97925 0%, #D4AF37 100%);
+    transition: all 0.3s ease;
+  }
+
+  .gradient-cta:hover {
+    background: linear-gradient(135deg, #D4AF37 0%, #D97925 100%);
+    transform: scale(0.98);
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(217, 121, 37, 0.1) 0%,
+      rgba(217, 121, 37, 0.3) 50%,
+      rgba(217, 121, 37, 0.1) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+}
+
+/* Mapbox GL overrides for dark theme */
+.mapboxgl-popup-content {
+  @apply glass-morphism text-cream;
+  padding: 0;
+  border-radius: 12px;
+}
+
+.mapboxgl-popup-close-button {
+  @apply text-cream;
+  font-size: 24px;
+  padding: 8px;
+}
+
+.mapboxgl-popup-close-button:hover {
+  @apply text-ignition-amber;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-dark-base;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-warm-clay rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-ignition-amber;
 }

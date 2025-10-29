@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Bumrungrad International Hospital",
+    "city": "Bangkok",
+    "country": "Thailand",
+    "type": "Hospital",
+    "jci_accredited": true,
+    "accreditation_date": "2024"
+  },
+  {
+    "name": "Apollo Hospitals",
+    "city": "Chennai",
+    "country": "India",
+    "type": "Hospital",
+    "jci_accredited": true,
+    "accreditation_date": "2024"
+  },
+  {
+    "name": "Acibadem Maslak Hospital",
+    "city": "Istanbul",
+    "country": "Turkey",
+    "type": "Hospital",
+    "jci_accredited": true,
+    "accreditation_date": "2024"
+  },
+  {
+    "name": "Mount Elizabeth Hospital",
+    "city": "Singapore",
+    "country": "Singapore",
+    "type": "Hospital",
+    "jci_accredited": true,
+    "accreditation_date": "2024"
+  },
+  {
+    "name": "Cleveland Clinic Abu Dhabi",
+    "city": "Abu Dhabi",
+    "country": "United Arab Emirates",
+    "type": "Hospital",
+    "jci_accredited": true,
+    "accreditation_date": "2024"
+  }
+]
