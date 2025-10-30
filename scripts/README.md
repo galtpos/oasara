@@ -307,15 +307,39 @@ client.from('facilities').select('count').then(console.log);
 - Review `data/failed-facilities.json` for errors
 - See main SKILLS.md for troubleshooting
 
+## Deep Data Enrichment
+
+After importing facilities, enrich them with deep data extraction:
+
+**📚 See [ENRICHMENT-README.md](./ENRICHMENT-README.md) for complete guide**
+
+### Quick Start
+```bash
+# Enrich 10 facilities with all data (doctors, pricing, packages, testimonials)
+node scripts/runFullEnrichment.js --limit=10
+
+# Enrich all 276 facilities with websites
+node scripts/runFullEnrichment.js --all
+```
+
+**What gets extracted:**
+- 👨‍⚕️ Doctor profiles with qualifications
+- 💰 Real procedure pricing
+- 📦 Package deals
+- 💬 Patient testimonials
+- 📊 Success metrics
+
 ## Next Steps
 
 After importing all 661 facilities:
 
-1. **Optimize map clustering**: See `src/components/Map/GlobalFacilityMap.tsx`
-2. **Add facility details**: Manually enrich top 50 with procedure pricing
+1. **Deep Enrichment**: Run enrichment scripts to extract doctor profiles, pricing, packages
+   - See `ENRICHMENT-README.md` for detailed guide
+   - Start with `node scripts/runFullEnrichment.js --limit=10`
+2. **Optimize map clustering**: See `src/components/Map/GlobalFacilityMap.tsx`
 3. **Begin Zano outreach**: Email facilities about cryptocurrency payments
 4. **Launch marketing**: "661 JCI-Certified Facilities Worldwide"
 
 ---
 
-**Ready to scale from 10 to 661 facilities!** 🚀
+**Ready to scale from 10 to 661 facilities and enrich with deep data!** 🚀

@@ -7,11 +7,14 @@ import ProcedureSearch from './components/Search/ProcedureSearch';
 import CountryFilter from './components/Filters/CountryFilter';
 import SpecialtyFilter from './components/Filters/SpecialtyFilter';
 import ZanoFilter from './components/Filters/ZanoFilter';
+import MainNav from './components/Navigation/MainNav';
+import MedicalTourismHub from './pages/MedicalTourismHub';
 import { getFacilities, getCountries, getSpecialties, Facility } from './lib/supabase';
 
 const queryClient = new QueryClient();
 
 function AppContent() {
+  const [currentView, setCurrentView] = useState<'map' | 'hub'>('map');
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
@@ -97,41 +100,21 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-dark-base">
-      {/* Header */}
-      <header className="glass-morphism sticky top-0 z-50 border-b border-ignition-amber/10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="font-serif text-3xl text-champagne-gold font-bold">
-                OASARA
-              </h1>
-              <p className="text-sm text-cream/70 mt-1">
-                Your Oasis for Medical Sovereignty
-              </p>
-            </div>
+      {/* Navigation */}
+      <MainNav
+        currentView={currentView}
+        onViewChange={setCurrentView}
+        facilitiesCount={filteredFacilities.length}
+        countriesCount={countries.length}
+        zanoCount={facilities.filter(f => f.accepts_zano).length}
+      />
 
-            {/* Stats */}
-            <div className="flex items-center gap-6 text-sm">
-              <div className="text-center">
-                <p className="text-2xl font-serif text-ignition-amber font-bold">
-                  {filteredFacilities.length}
-                </p>
-                <p className="text-cream/60">Facilities</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-serif text-champagne-gold font-bold">
-                  {countries.length}
-                </p>
-                <p className="text-cream/60">Countries</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-serif text-warm-clay font-bold">
-                  {facilities.filter(f => f.accepts_zano).length}
-                </p>
-                <p className="text-cream/60">Zano Ready</p>
-              </div>
-            </div>
-          </div>
+      {/* Conditional View Rendering */}
+      {currentView === 'hub' ? (
+        <MedicalTourismHub />
+      ) : (
+        <>
+          <div className="max-w-7xl mx-auto px-6 py-4">
 
           {/* Search */}
           <div className="mb-4">
@@ -172,8 +155,7 @@ function AppContent() {
               </button>
             )}
           </div>
-        </div>
-      </header>
+          </div>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-6">
@@ -261,6 +243,8 @@ function AppContent() {
           </p>
         </div>
       </footer>
+        </>
+      )}
     </div>
   );
 }

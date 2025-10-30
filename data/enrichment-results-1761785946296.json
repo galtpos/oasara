@@ -1,0 +1,78 @@
+{
+  "success": 0,
+  "partial": 0,
+  "failed": 5,
+  "details": [
+    {
+      "facility": "West China Hospital",
+      "country": "China",
+      "website": "http://www.cd120.com/",
+      "doctors": 0,
+      "prices": 0,
+      "testimonials": 0,
+      "packages": 0,
+      "totalItems": 0,
+      "status": "failed",
+      "errors": [
+        "socket hang up"
+      ]
+    },
+    {
+      "facility": "Mount Elizabeth Hospital",
+      "country": "Singapore",
+      "website": "https://www.mountelizabeth.com.sg/",
+      "doctors": 0,
+      "prices": 0,
+      "testimonials": 0,
+      "packages": 0,
+      "totalItems": 0,
+      "status": "failed",
+      "errors": [
+        "socket hang up"
+      ]
+    },
+    {
+      "facility": "Samsung Medical Center",
+      "country": "South Korea",
+      "website": "http://www.samsunghospital.com/home/main/index.do",
+      "doctors": 0,
+      "prices": 0,
+      "testimonials": 0,
+      "packages": 0,
+      "totalItems": 0,
+      "status": "failed",
+      "errors": [
+        "socket hang up"
+      ]
+    },
+    {
+      "facility": "Taipei Medical University Hospital",
+      "country": "Taiwan",
+      "website": "https://www.tmuh.org.tw/",
+      "doctors": 0,
+      "prices": 0,
+      "testimonials": 0,
+      "packages": 0,
+      "totalItems": 0,
+      "status": "failed",
+      "errors": [
+        "socket hang up"
+      ]
+    },
+    {
+      "facility": "Bangkok Hospital",
+      "country": "Thailand",
+      "website": "https://www.bangkokhospital.com/",
+      "doctors": 0,
+      "prices": 0,
+      "testimonials": 0,
+      "packages": 0,
+      "totalItems": 0,
+      "status": "failed",
+      "errors": [
+        "socket hang up"
+      ]
+    }
+  ],
+  "startTime": 1761785882796
+}

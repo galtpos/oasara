@@ -1,248 +1,143 @@
 # OASARA Deployment Checklist
 
-Print this or keep it open while deploying. Check off each item as you complete it.
+## ✅ COMPLETED - Infrastructure & Enriched Data
 
----
+### Database & Scraping
+- [x] Supabase database: 518 JCI facilities, 39 countries
+- [x] Enrichment tables: doctors, testimonials, procedure_pricing
+- [x] RLS policies fixed (INSERT operations working)
+- [x] Full scraper running (PID 14794, 16-17 hours remaining)
+- [x] **282 doctors** extracted and saved
+- [x] **75 testimonials** with ratings
+- [x] Expandable facility cards with "View" button
 
-## Pre-Deployment (5 minutes)
+### UI Components
+- [x] getFacilities() updated with enriched data joins
+- [x] FacilityCard with expandable sections
+- [x] Badges displaying doctor/testimonial counts
+- [x] Smooth animations with framer-motion
 
-- [ ] Read through SETUP-INSTRUCTIONS.md
-- [ ] Have a browser ready
-- [ ] Have Terminal open to: `/Users/aaronday/Documents/medicaltourism/oasara-marketplace`
-- [ ] Have a text file ready to save API keys
+### Early Access Integration
+- [x] Mailchimp Edge Function deployed
+- [x] Telegram service created and configured
+- [x] Environment variables added to .env.local
+- [x] CLAUDE.md and integration docs updated
 
----
+## ⏳ MANUAL STEPS REQUIRED
 
-## Step 1: Supabase Setup (10 minutes)
+### 1. Set Mailchimp Secrets (5 minutes)
+The Mailchimp API keys need to be copied from DaylightFreedom to OASARA:
 
-- [ ] Go to https://supabase.com
-- [ ] Sign up / Sign in
-- [ ] Create new project named "oasara-marketplace"
-- [ ] Wait for project to initialize
-- [ ] Copy Project URL → Save in text file
-- [ ] Copy anon/public key → Save in text file
-- [ ] Open SQL Editor
-- [ ] Paste contents of `database/schema.sql`
-- [ ] Run the schema SQL
-- [ ] Paste contents of `database/seeds/initial-facilities.sql`
-- [ ] Run the seed SQL
-- [ ] Verify 50 facilities in Table Editor
-- [ ] ✅ Supabase complete!
+```bash
+# Option A: Get from DaylightFreedom Supabase Dashboard
+# 1. Go to https://supabase.com/dashboard (DaylightFreedom project)
+# 2. Settings > Edge Functions > Secrets
+# 3. Copy: MAILCHIMP_API_KEY, MAILCHIMP_LIST_ID, MAILCHIMP_SERVER_PREFIX
 
-**Saved:**
-- Supabase URL: ________________
-- Supabase Key: ________________
+# Option B: Get from Mailchimp directly
+# 1. Mailchimp Dashboard > Account > Extras > API Keys
+# 2. Audience > Settings > Audience name and defaults (for LIST_ID)
+# 3. Server prefix in API endpoint (e.g., us1, us2, us21)
 
----
+# Then set for OASARA:
+cd /Users/aaronday/Documents/medicaltourism/oasara-marketplace
+supabase secrets set MAILCHIMP_API_KEY="your-actual-key"
+supabase secrets set MAILCHIMP_LIST_ID="your-list-id"
+supabase secrets set MAILCHIMP_SERVER_PREFIX="us21"  # or your prefix
+```
 
-## Step 2: Mapbox Setup (5 minutes)
+### 2. Test Mailchimp Integration
+```bash
+curl -X POST https://whklrclzrtijneqdjmiy.supabase.co/functions/v1/mailchimp-subscribe-oasara \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@oasara.com","name":"Test User"}'
+```
 
-- [ ] Go to https://account.mapbox.com/auth/signup/
-- [ ] Sign up / Sign in
-- [ ] Copy "Default public token" from Account page
-- [ ] Save token in text file
-- [ ] ✅ Mapbox complete!
+Expected: `{"success":true,"message":"Successfully joined OASARA early access list!"}`
 
-**Saved:**
-- Mapbox Token: ________________
+### 3. Verify Telegram (Should Work Immediately)
+Check Telegram chat (1537771744) for notification after Mailchimp test.
 
----
+### 4. Build Early Access Landing Page (30-60 min)
+Create `/src/pages/EarlyAccess.tsx` with:
+- OASARA hero section
+- Email capture form
+- Benefits list
+- Calls mailchimp-subscribe-oasara Edge Function
+- Triggers Telegram notification
 
-## Step 3: EmailJS Setup (10 minutes)
+### 5. Push to GitHub & Deploy
+```bash
+git add .
+git commit -m "Add early access integration with Mailchimp and Telegram"
+git push origin main
+# Auto-deploys to Netlify if configured
+```
 
-- [ ] Go to https://dashboard.emailjs.com/sign-up
-- [ ] Sign up / Sign in
-- [ ] Add Email Service (choose Gmail)
-- [ ] Connect your Gmail account
-- [ ] Copy Service ID → Save in text file
-- [ ] Create new Email Template
-- [ ] Name it "Zano Payment Request"
-- [ ] Paste template from SETUP-INSTRUCTIONS.md
-- [ ] Save template
-- [ ] Copy Template ID → Save in text file
-- [ ] Go to Account > General
-- [ ] Copy Public Key → Save in text file
-- [ ] ✅ EmailJS complete!
+## 🎯 TONIGHT'S DEMO - FULLY READY
 
-**Saved:**
-- Service ID: ________________
-- Template ID: ________________
-- Public Key: ________________
+### Local Demo (100% Functional)
+**URL**: http://localhost:3000
 
----
+**Working Features**:
+- ✅ 518 JCI facilities with map clustering
+- ✅ Search by name, city, procedure
+- ✅ Filter by country (39) and specialty
+- ✅ **Enriched data visible**: 10+ facilities with doctor/testimonial badges
+- ✅ **Click "View"** to expand and see doctor names, specialties, reviews
+- ✅ Clickable website and phone buttons (512 facilities)
+- ✅ Glass morphism cards with OASARA branding
+- ✅ Dark theme with champagne gold accents
 
-## Step 4: Configure Environment (2 minutes)
+**Demo Flow**:
+1. Show map with 518 facilities
+2. Search for "India" or "Thailand"
+3. Click facility card - map flies to location
+4. Show enriched data: "Apollo Hospitals - 8 Doctors, 10 Reviews"
+5. Click "View" button - expands to show actual doctor names and patient testimonials
+6. Click "Visit Website" or "Call" buttons
 
-- [ ] Open Terminal
-- [ ] Navigate to: `cd /Users/aaronday/Documents/medicaltourism/oasara-marketplace`
-- [ ] Run: `nano .env.local`
-- [ ] Replace ALL values with your saved credentials
-- [ ] Save file (Ctrl+X, Y, Enter)
-- [ ] ✅ Environment configured!
+## 📊 What's Ready vs What's Next
 
----
+### ✅ Ready for Demo Tonight
+- Full marketplace with 518 facilities
+- Map, search, filters all working
+- Enriched data displaying (282 doctors, 75 testimonials)
+- Professional UI with OASARA branding
 
-## Step 5: Test Locally (5 minutes)
+### ⏭️ Next Session (Early Access Page)
+- Set Mailchimp API keys (5 min)
+- Build landing page UI (30-60 min)
+- Test sign-up flow
+- Deploy to production
 
-- [ ] Run: `npm start`
-- [ ] Browser opens to localhost:3000
-- [ ] Map loads with facilities ✓
-- [ ] Click facility marker - popup shows ✓
-- [ ] Search for "Bangkok" - filters work ✓
-- [ ] Country filter works ✓
-- [ ] Click facility card - map flies to it ✓
-- [ ] Click "Request Zano" button ✓
-- [ ] Enter email and send ✓
-- [ ] Check email inbox for test email ✓
-- [ ] Stop server (Ctrl+C)
-- [ ] ✅ Local testing complete!
+## 🔑 Important URLs
 
----
+- **Local Site**: http://localhost:3000
+- **Supabase**: https://supabase.com/dashboard/project/whklrclzrtijneqdjmiy
+- **Mailchimp Function**: https://whklrclzrtijneqdjmiy.supabase.co/functions/v1/mailchimp-subscribe-oasara
+- **Telegram Chat**: 1537771744
+- **Scraper Logs**: `/Users/aaronday/Documents/medicaltourism/oasara-marketplace/scraper-full-run.log`
 
-## Step 6: GitHub Setup (5 minutes)
+## 📝 Session Summary
 
-- [ ] Go to https://github.com/new
-- [ ] Repository name: "oasara-marketplace"
-- [ ] Choose Private
-- [ ] DO NOT add README
-- [ ] Create repository
-- [ ] Copy the repository URL
-- [ ] In Terminal, run:
-  ```bash
-  git add .
-  git commit -m "Initial commit: OASARA Phase 1"
-  git remote add origin [YOUR_REPO_URL]
-  git branch -M main
-  git push -u origin main
-  ```
-- [ ] Enter GitHub credentials when prompted
-- [ ] Refresh GitHub page - code should be there
-- [ ] ✅ GitHub complete!
+**Completed Today**:
+1. ✅ Fixed RLS policies for enrichment data
+2. ✅ Fixed scraper database saves
+3. ✅ Added enriched data badges to facility cards
+4. ✅ Built expandable sections for doctors/testimonials
+5. ✅ Updated getFacilities() to fetch enriched data
+6. ✅ Launched full scraper on 494 facilities
+7. ✅ Created Mailchimp Edge Function for OASARA
+8. ✅ Created Telegram service
+9. ✅ Updated all documentation (CLAUDE.md, integration guide)
 
----
+**Ready for Tonight**:
+- Demo the fully functional local marketplace
+- Show enriched data (doctors, testimonials) on real facilities
+- Explain early access strategy (infrastructure ready, needs landing page)
 
-## Step 7: Netlify Deploy (10 minutes)
-
-- [ ] Go to https://app.netlify.com/signup
-- [ ] Sign up with GitHub
-- [ ] Click "Add new site" > "Import an existing project"
-- [ ] Choose GitHub
-- [ ] Select "oasara-marketplace" repository
-- [ ] Build settings auto-detected (verify: `npm run build` and `build`)
-- [ ] Click "Show advanced"
-- [ ] Add environment variables (all 6):
-  - [ ] REACT_APP_SUPABASE_URL
-  - [ ] REACT_APP_SUPABASE_ANON_KEY
-  - [ ] REACT_APP_MAPBOX_TOKEN
-  - [ ] REACT_APP_EMAILJS_SERVICE_ID
-  - [ ] REACT_APP_EMAILJS_TEMPLATE_ID
-  - [ ] REACT_APP_EMAILJS_PUBLIC_KEY
-- [ ] Click "Deploy site"
-- [ ] Wait for build to complete (2-3 minutes)
-- [ ] Build successful (green checkmark) ✓
-- [ ] Copy your site URL
-- [ ] ✅ Deployed to Netlify!
-
-**Your Live URL:** ________________
-
----
-
-## Step 8: Test Live Site (5 minutes)
-
-- [ ] Open your Netlify URL in browser
-- [ ] Map loads properly ✓
-- [ ] Facilities display correctly ✓
-- [ ] Search works ✓
-- [ ] Filters work ✓
-- [ ] Facility cards look good ✓
-- [ ] Click "Request Zano" and test email ✓
-- [ ] Test on mobile phone ✓
-- [ ] ✅ Live site working!
-
----
-
-## Step 9: Final Checks (5 minutes)
-
-- [ ] Open browser DevTools Console - no errors ✓
-- [ ] Check Netlify deploy logs - all green ✓
-- [ ] Check Supabase logs - queries working ✓
-- [ ] Test from different device/network ✓
-- [ ] Share URL with a friend for feedback ✓
-- [ ] ✅ Everything working!
-
----
-
-## Optional: Custom Domain
-
-- [ ] Purchase domain (e.g., oasara.com)
-- [ ] In Netlify: Domain settings > Add custom domain
-- [ ] Enter your domain
-- [ ] Update DNS records at domain registrar
-- [ ] Wait for DNS propagation (5-60 minutes)
-- [ ] Netlify auto-provisions SSL certificate
-- [ ] ✅ Custom domain live!
-
-**Your Domain:** ________________
-
----
-
-## Post-Launch Tasks
-
-### Today
-- [ ] Share site with 3 people for feedback
-- [ ] Monitor Netlify logs for any errors
-- [ ] Check Supabase for any issues
-- [ ] Document any bugs found
-
-### This Week
-- [ ] Add 10 more facilities to database
-- [ ] Gather user feedback
-- [ ] Make minor UI improvements
-- [ ] Test all email functionality
-
-### This Month
-- [ ] Expand to 100+ facilities
-- [ ] Reach out to facilities about Zano
-- [ ] Track which procedures are most searched
-- [ ] Plan Phase 2 features
-
----
-
-## Success! 🎉
-
-**Your live medical tourism marketplace is ready!**
-
-- **Live URL:** [Your URL]
-- **Facilities:** 50 (expand to 661)
-- **Cost:** $0/month (free tiers)
-- **Status:** LIVE & ACCEPTING USERS
-
-### Share Your Success!
-
-Tweet about it, share with friends, or email:
-"Just launched OASARA - a privacy-preserving medical tourism marketplace connecting patients with 661+ JCI-certified facilities globally! Check it out: [your URL]"
-
----
-
-## Quick Reference: Dashboards
-
-- **Live Site:** [Your Netlify URL]
-- **Netlify Dashboard:** https://app.netlify.com
-- **Supabase Dashboard:** https://app.supabase.com
-- **GitHub Repo:** https://github.com/[username]/oasara-marketplace
-- **EmailJS Dashboard:** https://dashboard.emailjs.com
-- **Mapbox Dashboard:** https://account.mapbox.com
-
----
-
-## Need Help?
-
-1. Check SETUP-INSTRUCTIONS.md for detailed steps
-2. Check browser console for errors
-3. Review Netlify deploy logs
-4. Check Supabase logs
-5. Refer to README.md or DEPLOYMENT.md
-
----
-
-Built with medical sovereignty in mind. Powered by [Zano](https://zano.org).
+**Next Steps** (When you're ready):
+1. Set Mailchimp secrets (manual step - 5 min)
+2. Build early access page (I can do this - 30-60 min)
+3. Test and deploy

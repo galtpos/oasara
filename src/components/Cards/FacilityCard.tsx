@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Facility } from '../../lib/supabase';
 import RequestZanoButton from '../Outreach/RequestZanoButton';
 
@@ -9,6 +9,13 @@ interface FacilityCardProps {
 }
 
 const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
+  const [showEnrichedData, setShowEnrichedData] = useState(false);
+
+  const hasEnrichedData =
+    (facility.doctors?.length || 0) > 0 ||
+    (facility.procedure_pricing?.length || 0) > 0 ||
+    (facility.testimonials?.length || 0) > 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -95,6 +102,187 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Enriched Data Badges */}
+      {hasEnrichedData && (
+        <div className="mb-4 pb-4 border-b border-cream/10">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              {facility.doctors && facility.doctors.length > 0 && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded bg-champagne-gold/10 text-champagne-gold text-xs">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+                  </svg>
+                  {facility.doctors.length} Doctors
+                </div>
+              )}
+              {facility.procedure_pricing && facility.procedure_pricing.length > 0 && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded bg-green-500/10 text-green-400 text-xs">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
+                  </svg>
+                  {facility.procedure_pricing.length} Prices
+                </div>
+              )}
+              {facility.testimonials && facility.testimonials.length > 0 && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded bg-ignition-amber/10 text-ignition-amber text-xs">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd"/>
+                  </svg>
+                  {facility.testimonials.length} Reviews
+                </div>
+              )}
+            </div>
+
+            {/* Toggle Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowEnrichedData(!showEnrichedData);
+              }}
+              className="flex items-center gap-1 px-2 py-1 rounded bg-cream/10 hover:bg-cream/20 text-cream text-xs transition-colors"
+            >
+              {showEnrichedData ? 'Hide' : 'View'}
+              <svg
+                className={`w-3 h-3 transition-transform ${showEnrichedData ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Expandable Enriched Data Details */}
+          <AnimatePresence>
+            {showEnrichedData && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="overflow-hidden"
+              >
+                <div className="mt-4 space-y-4">
+                  {/* Doctors List */}
+                  {facility.doctors && facility.doctors.length > 0 && (
+                    <div>
+                      <h5 className="text-xs text-champagne-gold uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
+                        </svg>
+                        Medical Staff
+                      </h5>
+                      <div className="space-y-2">
+                        {facility.doctors.slice(0, 5).map((doctor) => (
+                          <div key={doctor.id} className="bg-cream/5 rounded-lg p-2">
+                            <p className="text-sm text-cream font-medium">{doctor.name}</p>
+                            {doctor.specialty && (
+                              <p className="text-xs text-cream/60">{doctor.specialty}</p>
+                            )}
+                            {doctor.qualifications && (
+                              <p className="text-xs text-cream/50 mt-1">{doctor.qualifications}</p>
+                            )}
+                          </div>
+                        ))}
+                        {facility.doctors.length > 5 && (
+                          <p className="text-xs text-cream/60 italic">
+                            +{facility.doctors.length - 5} more doctors
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Pricing List */}
+                  {facility.procedure_pricing && facility.procedure_pricing.length > 0 && (
+                    <div>
+                      <h5 className="text-xs text-green-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
+                        </svg>
+                        Procedure Pricing
+                      </h5>
+                      <div className="space-y-2">
+                        {facility.procedure_pricing.slice(0, 5).map((pricing) => (
+                          <div key={pricing.id} className="flex justify-between items-start bg-cream/5 rounded-lg p-2">
+                            <div className="flex-1">
+                              <p className="text-sm text-cream font-medium">{pricing.procedure_name}</p>
+                              {pricing.description && (
+                                <p className="text-xs text-cream/60 mt-1">{pricing.description}</p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              {pricing.price ? (
+                                <p className="text-sm text-green-400 font-semibold">
+                                  {pricing.currency || '$'}{pricing.price.toLocaleString()}
+                                </p>
+                              ) : pricing.price_min && pricing.price_max ? (
+                                <p className="text-sm text-green-400 font-semibold">
+                                  {pricing.currency || '$'}{pricing.price_min.toLocaleString()} - {pricing.price_max.toLocaleString()}
+                                </p>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))}
+                        {facility.procedure_pricing.length > 5 && (
+                          <p className="text-xs text-cream/60 italic">
+                            +{facility.procedure_pricing.length - 5} more procedures
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Testimonials List */}
+                  {facility.testimonials && facility.testimonials.length > 0 && (
+                    <div>
+                      <h5 className="text-xs text-ignition-amber uppercase tracking-wide mb-2 flex items-center gap-1">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd"/>
+                        </svg>
+                        Patient Reviews
+                      </h5>
+                      <div className="space-y-2">
+                        {facility.testimonials.slice(0, 3).map((testimonial) => (
+                          <div key={testimonial.id} className="bg-cream/5 rounded-lg p-2">
+                            <div className="flex items-center justify-between mb-1">
+                              {testimonial.patient_name && (
+                                <p className="text-sm text-cream font-medium">{testimonial.patient_name}</p>
+                              )}
+                              {testimonial.rating && (
+                                <div className="flex items-center gap-1">
+                                  <svg className="w-3 h-3 text-ignition-amber" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                  </svg>
+                                  <span className="text-xs text-ignition-amber">{testimonial.rating}</span>
+                                </div>
+                              )}
+                            </div>
+                            {testimonial.procedure && (
+                              <p className="text-xs text-cream/60 mb-1">Procedure: {testimonial.procedure}</p>
+                            )}
+                            {testimonial.review_text && (
+                              <p className="text-xs text-cream/70">{testimonial.review_text}</p>
+                            )}
+                          </div>
+                        ))}
+                        {facility.testimonials.length > 3 && (
+                          <p className="text-xs text-cream/60 italic">
+                            +{facility.testimonials.length - 3} more reviews
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
