@@ -6,20 +6,23 @@
 
 @layer base {
   body {
-    @apply bg-dark-base text-cream antialiased;
+    background: #FFF8F0 !important; /* Cream - warm oasis background */
+    @apply text-deep-teal antialiased;
     font-family: 'Open Sans', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Playfair Display', serif;
+    @apply text-deep-teal;
   }
 }
 
 @layer utilities {
   .glass-morphism {
-    background: rgba(10, 10, 10, 0.7);
+    background: rgba(255, 255, 255, 0.9) !important;
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(217, 121, 37, 0.1);
+    border: 1px solid rgba(193, 119, 84, 0.15) !important;
+    box-shadow: 0 2px 8px rgba(193, 119, 84, 0.1) !important;
   }
 
   .glass-morphism-hover {
@@ -27,10 +30,10 @@
   }
 
   .glass-morphism-hover:hover {
-    background: rgba(15, 15, 15, 0.8);
+    background: rgba(255, 255, 255, 1) !important;
     border-color: rgba(217, 121, 37, 0.3);
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(217, 121, 37, 0.2);
+    box-shadow: 0 8px 24px rgba(217, 121, 37, 0.15) !important;
   }
 
   .gradient-cta {
@@ -64,15 +67,15 @@
   }
 }
 
-/* Mapbox GL overrides for dark theme */
+/* Mapbox GL overrides for warm theme */
 .mapboxgl-popup-content {
-  @apply glass-morphism text-cream;
+  @apply glass-morphism text-deep-teal;
   padding: 0;
-  border-radius: 12px;
+  border-radius: 16px;
 }
 
 .mapboxgl-popup-close-button {
-  @apply text-cream;
+  @apply text-warm-clay;
   font-size: 24px;
   padding: 8px;
 }
@@ -88,7 +91,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-dark-base;
+  @apply bg-desert-sand;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -97,4 +100,38 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-ignition-amber;
+}
+
+/* Warm Oasis Theme Enhancements */
+
+/* Make prices SHINE */
+[class*="price"], [class*="cost"], .price, .cost {
+  color: #D97925 !important;
+  font-weight: 700 !important;
+  font-size: 120% !important;
+}
+
+/* Map inset styling */
+.map-container {
+  border: 2px solid rgba(193, 119, 84, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(193, 119, 84, 0.15);
+}
+
+/* Keep specific colors for branded elements */
+.text-ignition-amber, [class*="amber"] {
+  color: #D97925 !important;
+}
+
+.text-champagne-gold, [class*="gold"] {
+  color: #D4AF37 !important;
+}
+
+.text-deep-teal {
+  color: #0B697A !important;
+}
+
+.text-warm-clay {
+  color: #C17754 !important;
 }

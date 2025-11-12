@@ -31,28 +31,11 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
       className="relative w-full"
     >
       <div className={`
-        glass-morphism rounded-xl p-4 transition-all duration-300
-        ${isFocused ? 'border-ignition-amber/50' : 'border-ignition-amber/10'}
+        bg-white rounded-2xl p-5 transition-all duration-300
+        ${isFocused ? 'border-2 border-warm-clay shadow-lg' : 'border-2 border-desert-sand'}
       `}>
-        <div className="flex items-center gap-3">
-          {/* Search Icon */}
-          <svg
-            className={`w-5 h-5 transition-colors duration-300 ${
-              isFocused || query ? 'text-ignition-amber' : 'text-cream/50'
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
-
-          {/* Input */}
+        <div className="flex items-center gap-4">
+          {/* Input - No icon, just clean text */}
           <input
             type="text"
             value={query}
@@ -60,10 +43,10 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder={placeholder}
-            className="flex-1 bg-transparent text-cream placeholder-cream/50 focus:outline-none text-sm"
+            className="flex-1 bg-transparent text-deep-teal placeholder-warm-clay/60 focus:outline-none text-lg font-normal"
           />
 
-          {/* Clear Button */}
+          {/* Clear Button - Text only */}
           <AnimatePresence>
             {query && (
               <motion.button
@@ -71,15 +54,9 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={handleClear}
-                className="p-1 rounded-full hover:bg-cream/10 transition-colors"
+                className="px-3 py-1 text-sm text-warm-clay hover:text-deep-teal transition-colors font-medium"
               >
-                <svg className="w-4 h-4 text-cream/70" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                Clear
               </motion.button>
             )}
           </AnimatePresence>
@@ -92,9 +69,9 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-3 pt-3 border-t border-cream/10"
+              className="mt-4 pt-4 border-t border-warm-clay/15"
             >
-              <p className="text-xs text-cream/60 mb-2">Try searching for:</p>
+              <p className="text-sm text-warm-clay mb-3 font-medium">Try searching for:</p>
               <div className="flex flex-wrap gap-2">
                 {[
                   'Hip Replacement',
@@ -110,7 +87,7 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
                       setQuery(suggestion);
                       onSearch(suggestion);
                     }}
-                    className="px-2 py-1 rounded-lg bg-ignition-amber/10 text-ignition-amber text-xs hover:bg-ignition-amber/20 transition-colors"
+                    className="px-4 py-2 rounded-lg bg-champagne-gold/10 text-champagne-gold text-sm hover:bg-champagne-gold/20 transition-colors border border-champagne-gold/20 font-medium"
                   >
                     {suggestion}
                   </button>

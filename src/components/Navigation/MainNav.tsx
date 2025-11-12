@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface MainNavProps {
-  currentView: 'map' | 'hub';
-  onViewChange: (view: 'map' | 'hub') => void;
+  currentView: 'map' | 'hub' | 'early-access';
+  onViewChange: (view: 'map' | 'hub' | 'early-access') => void;
   facilitiesCount?: number;
   countriesCount?: number;
   zanoCount?: number;
@@ -27,6 +27,18 @@ const MainNav: React.FC<MainNavProps> = ({
 
           {/* Navigation Links */}
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => onViewChange('early-access')}
+              className={`
+                px-6 py-2 rounded-lg font-bold transition-all duration-300
+                ${currentView === 'early-access'
+                  ? 'bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white'
+                  : 'text-[#FFF8F0]/70 hover:text-[#D4AF37]'
+                }
+              `}
+            >
+              Early Access
+            </button>
             <button
               onClick={() => onViewChange('map')}
               className={`

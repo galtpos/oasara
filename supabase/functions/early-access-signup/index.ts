@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -79,12 +80,11 @@ serve(async (req) => {
       mailchimpMessage = 'Successfully joined OASARA early access list!'
     } else if (responseData.title === 'Member Exists') {
       // Update existing member with OASARA tags
-      const subscriberHash = await crypto.subtle.digest(
-        'MD5',
-        new TextEncoder().encode(email.toLowerCase().trim())
-      )
-      const hashArray = Array.from(new Uint8Array(subscriberHash))
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+      const encoder = new TextEncoder();
+      const data = encoder.encode(email.toLowerCase().trim());
+      const hashBuffer = await crypto.subtle.digest('MD5', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
       const updateUrl = `https://${MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com/3.0/lists/${MAILCHIMP_LIST_ID}/members/${hashHex}/tags`
 

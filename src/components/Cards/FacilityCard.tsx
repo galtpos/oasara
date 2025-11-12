@@ -22,59 +22,53 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       onClick={onClick}
-      className="glass-morphism-hover rounded-xl p-6 cursor-pointer"
+      className="glass-morphism-hover rounded-2xl p-8 cursor-pointer"
     >
       {/* Header */}
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-5">
         <div className="flex-1">
-          <h3 className="font-serif text-xl text-cream font-semibold mb-1">
+          <h3 className="font-serif text-2xl text-deep-teal font-semibold mb-2">
             {facility.name}
           </h3>
-          <p className="text-sm text-cream/70">
+          <p className="text-sm text-warm-clay font-medium">
             {facility.city}, {facility.country}
           </p>
         </div>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-champagne-gold/20">
-          <svg className="w-4 h-4 text-champagne-gold" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-          </svg>
-          <span className="text-champagne-gold font-semibold text-sm">
+        {/* Rating - Text only */}
+        <div className="px-4 py-2 rounded-full bg-champagne-gold/15 border border-champagne-gold/20">
+          <span className="text-champagne-gold font-bold text-sm">
             {facility.google_rating}
           </span>
-          <span className="text-cream/60 text-xs">
+          <span className="text-deep-teal/50 text-sm ml-1">
             ({facility.review_count})
           </span>
         </div>
       </div>
 
-      {/* Zano Badge */}
+      {/* Zano Badge - Text only */}
       {facility.accepts_zano && (
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-ignition-amber/20 mb-4">
-          <svg className="w-4 h-4 text-ignition-amber" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-          </svg>
-          <span className="text-ignition-amber text-sm font-medium">Zano Payment Ready</span>
+        <div className="inline-flex px-4 py-2 rounded-full bg-champagne-gold text-white mb-5">
+          <span className="text-sm font-semibold">Zano Payment Ready</span>
         </div>
       )}
 
       {/* Specialties */}
-      <div className="mb-4">
-        <h4 className="text-xs text-champagne-gold uppercase tracking-wide mb-2">
+      <div className="mb-5">
+        <h4 className="text-sm text-champagne-gold uppercase tracking-wide mb-3 font-semibold">
           Specialties
         </h4>
         <div className="flex flex-wrap gap-2">
           {facility.specialties.slice(0, 4).map((specialty, index) => (
             <span
               key={index}
-              className="px-3 py-1 rounded-full bg-deep-teal/30 text-cream text-xs border border-deep-teal/50"
+              className="px-4 py-2 rounded-full bg-deep-teal/10 text-deep-teal text-sm font-medium border border-deep-teal/20"
             >
               {specialty}
             </span>
           ))}
           {facility.specialties.length > 4 && (
-            <span className="px-3 py-1 rounded-full bg-warm-clay/30 text-cream text-xs">
+            <span className="px-4 py-2 rounded-full bg-warm-clay/10 text-warm-clay text-sm font-medium">
               +{facility.specialties.length - 4} more
             </span>
           )}
@@ -83,19 +77,19 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
 
       {/* Popular Procedures */}
       {facility.popular_procedures && facility.popular_procedures.length > 0 && (
-        <div className="mb-4 pb-4 border-b border-cream/10">
-          <h4 className="text-xs text-champagne-gold uppercase tracking-wide mb-2">
+        <div className="mb-5 pb-5 border-b border-warm-clay/10">
+          <h4 className="text-sm text-champagne-gold uppercase tracking-wide mb-3 font-semibold">
             Popular Procedures
           </h4>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {facility.popular_procedures.slice(0, 2).map((procedure, index) => (
               <div key={index} className="flex justify-between items-start">
                 <div className="flex-1">
-                  <p className="text-sm text-cream font-medium">{procedure.name}</p>
-                  <p className="text-xs text-cream/60">{procedure.wait_time}</p>
+                  <p className="text-sm text-deep-teal font-semibold">{procedure.name}</p>
+                  <p className="text-sm text-warm-clay/70">{procedure.wait_time}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-warm-clay font-semibold">
+                  <p className="text-base text-ignition-amber font-bold">
                     {procedure.price_range}
                   </p>
                 </div>
@@ -107,11 +101,11 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
 
       {/* Enriched Data Badges */}
       {hasEnrichedData && (
-        <div className="mb-4 pb-4 border-b border-cream/10">
-          <div className="flex items-center justify-between gap-2">
+        <div className="mb-5 pb-5 border-b border-warm-clay/10">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 flex-wrap">
               {facility.doctors && facility.doctors.length > 0 && (
-                <div className="flex items-center gap-1 px-2 py-1 rounded bg-champagne-gold/10 text-champagne-gold text-xs">
+                <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-champagne-gold/10 text-champagne-gold text-sm font-medium border border-champagne-gold/20">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
                   </svg>
@@ -119,7 +113,7 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
                 </div>
               )}
               {facility.procedure_pricing && facility.procedure_pricing.length > 0 && (
-                <div className="flex items-center gap-1 px-2 py-1 rounded bg-green-500/10 text-green-400 text-xs">
+                <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-ignition-amber/10 text-ignition-amber text-sm font-medium border border-ignition-amber/20">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z"/>
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
@@ -128,7 +122,7 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
                 </div>
               )}
               {facility.testimonials && facility.testimonials.length > 0 && (
-                <div className="flex items-center gap-1 px-2 py-1 rounded bg-ignition-amber/10 text-ignition-amber text-xs">
+                <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-deep-teal/10 text-deep-teal text-sm font-medium border border-deep-teal/20">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd"/>
                   </svg>
@@ -143,7 +137,7 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
                 e.stopPropagation();
                 setShowEnrichedData(!showEnrichedData);
               }}
-              className="flex items-center gap-1 px-2 py-1 rounded bg-cream/10 hover:bg-cream/20 text-cream text-xs transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-warm-clay/10 hover:bg-warm-clay/20 text-warm-clay text-sm font-medium transition-colors border border-warm-clay/20"
             >
               {showEnrichedData ? 'Hide' : 'View'}
               <svg
@@ -171,26 +165,26 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
                   {/* Doctors List */}
                   {facility.doctors && facility.doctors.length > 0 && (
                     <div>
-                      <h5 className="text-xs text-champagne-gold uppercase tracking-wide mb-2 flex items-center gap-1">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <h5 className="text-sm text-champagne-gold uppercase tracking-wide mb-3 flex items-center gap-1 font-semibold">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"/>
                         </svg>
                         Medical Staff
                       </h5>
                       <div className="space-y-2">
                         {facility.doctors.slice(0, 5).map((doctor) => (
-                          <div key={doctor.id} className="bg-cream/5 rounded-lg p-2">
-                            <p className="text-sm text-cream font-medium">{doctor.name}</p>
+                          <div key={doctor.id} className="bg-desert-sand/20 rounded-lg p-3 border border-warm-clay/10">
+                            <p className="text-sm text-deep-teal font-semibold">{doctor.name}</p>
                             {doctor.specialty && (
-                              <p className="text-xs text-cream/60">{doctor.specialty}</p>
+                              <p className="text-sm text-warm-clay">{doctor.specialty}</p>
                             )}
                             {doctor.qualifications && (
-                              <p className="text-xs text-cream/50 mt-1">{doctor.qualifications}</p>
+                              <p className="text-sm text-deep-teal/60 mt-1">{doctor.qualifications}</p>
                             )}
                           </div>
                         ))}
                         {facility.doctors.length > 5 && (
-                          <p className="text-xs text-cream/60 italic">
+                          <p className="text-sm text-warm-clay italic">
                             +{facility.doctors.length - 5} more doctors
                           </p>
                         )}
@@ -201,7 +195,7 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
                   {/* Pricing List */}
                   {facility.procedure_pricing && facility.procedure_pricing.length > 0 && (
                     <div>
-                      <h5 className="text-xs text-green-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+                      <h5 className="text-sm text-green-400 uppercase tracking-wide mb-2 flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z" clipRule="evenodd"/>
                         </svg>
@@ -213,7 +207,7 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
                             <div className="flex-1">
                               <p className="text-sm text-cream font-medium">{pricing.procedure_name}</p>
                               {pricing.description && (
-                                <p className="text-xs text-cream/60 mt-1">{pricing.description}</p>
+                                <p className="text-sm text-cream/60 mt-1">{pricing.description}</p>
                               )}
                             </div>
                             <div className="text-right">
@@ -230,7 +224,7 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
                           </div>
                         ))}
                         {facility.procedure_pricing.length > 5 && (
-                          <p className="text-xs text-cream/60 italic">
+                          <p className="text-sm text-cream/60 italic">
                             +{facility.procedure_pricing.length - 5} more procedures
                           </p>
                         )}
@@ -241,11 +235,11 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
                   {/* Testimonials List */}
                   {facility.testimonials && facility.testimonials.length > 0 && (
                     <div>
-                      <h5 className="text-xs text-ignition-amber uppercase tracking-wide mb-2 flex items-center gap-1">
+                      <h5 className="text-sm text-ignition-amber uppercase tracking-wide mb-2 flex items-center gap-1">
                         <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd"/>
                         </svg>
-                        Patient Reviews
+                        Seeker Reviews
                       </h5>
                       <div className="space-y-2">
                         {facility.testimonials.slice(0, 3).map((testimonial) => (
@@ -259,20 +253,20 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
                                   <svg className="w-3 h-3 text-ignition-amber" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                                   </svg>
-                                  <span className="text-xs text-ignition-amber">{testimonial.rating}</span>
+                                  <span className="text-sm text-ignition-amber">{testimonial.rating}</span>
                                 </div>
                               )}
                             </div>
                             {testimonial.procedure && (
-                              <p className="text-xs text-cream/60 mb-1">Procedure: {testimonial.procedure}</p>
+                              <p className="text-sm text-cream/60 mb-1">Procedure: {testimonial.procedure}</p>
                             )}
                             {testimonial.review_text && (
-                              <p className="text-xs text-cream/70">{testimonial.review_text}</p>
+                              <p className="text-sm text-cream/70">{testimonial.review_text}</p>
                             )}
                           </div>
                         ))}
                         {facility.testimonials.length > 3 && (
-                          <p className="text-xs text-cream/60 italic">
+                          <p className="text-sm text-cream/60 italic">
                             +{facility.testimonials.length - 3} more reviews
                           </p>
                         )}
@@ -286,21 +280,18 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
         </div>
       )}
 
-      {/* Contact Information */}
+      {/* Contact Information - Text only buttons */}
       {(facility.website || facility.phone) && (
-        <div className="mb-4 pb-4 border-b border-cream/10">
-          <div className="flex items-center justify-between gap-3">
+        <div className="mb-5 pb-5 border-b border-warm-clay/10">
+          <div className="flex items-center justify-between gap-4">
             {facility.website && (
               <a
                 href={facility.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-ignition-amber/20 hover:bg-ignition-amber/30 text-ignition-amber transition-colors text-sm font-medium"
+                className="flex-1 flex items-center justify-center px-6 py-3 rounded-xl bg-ignition-amber hover:bg-warm-clay text-white transition-all text-base font-semibold"
                 onClick={(e) => e.stopPropagation()}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
                 Visit Website
               </a>
             )}
@@ -308,40 +299,30 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
             {facility.phone && (
               <a
                 href={`tel:${facility.phone}`}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-champagne-gold/20 hover:bg-champagne-gold/30 text-champagne-gold transition-colors text-sm font-medium"
+                className="flex-1 flex items-center justify-center px-6 py-3 rounded-xl bg-white hover:bg-cream text-deep-teal transition-all text-base font-semibold border-2 border-desert-sand"
                 onClick={(e) => e.stopPropagation()}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                </svg>
-                Call
+                Call Facility
               </a>
             )}
           </div>
         </div>
       )}
 
-      {/* Footer */}
+      {/* Footer - Text badges only */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4 text-xs text-cream/60">
+        <div className="flex items-center gap-3 text-sm">
           {/* JCI Badge */}
           {facility.jci_accredited && (
-            <div className="flex items-center gap-1">
-              <svg className="w-4 h-4 text-champagne-gold" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-              </svg>
-              <span>JCI Certified</span>
+            <div className="px-3 py-1 rounded-lg bg-champagne-gold/10 border border-champagne-gold/20">
+              <span className="text-champagne-gold font-semibold">JCI Certified</span>
             </div>
           )}
 
           {/* Distance */}
           {facility.airport_distance && (
-            <div className="flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-              </svg>
-              <span>{facility.airport_distance}</span>
+            <div className="px-3 py-1 rounded-lg bg-desert-sand/30">
+              <span className="text-warm-clay font-medium">{facility.airport_distance}</span>
             </div>
           )}
         </div>

@@ -27,7 +27,7 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
     // Initialize map
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11', // Dark theme
+      style: 'mapbox://styles/mapbox/light-v11', // Light warm theme
       center: [20, 20], // Center of the world roughly
       zoom: 1.5,
       projection: { name: 'mercator' }
@@ -35,12 +35,6 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
 
     map.current.on('load', () => {
       setMapLoaded(true);
-
-      // Add custom styling for better dark theme
-      if (map.current) {
-        map.current.setPaintProperty('water', 'fill-color', '#0A0A0A');
-        map.current.setPaintProperty('land', 'background-color', '#1A1A1A');
-      }
     });
 
     // Add navigation controls
@@ -132,10 +126,13 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
       layout: {
         'text-field': '{point_count_abbreviated}',
         'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-        'text-size': 14
+        'text-size': 16
       },
       paint: {
-        'text-color': '#FFF8F0'
+        'text-color': '#FFFFFF',
+        'text-halo-color': '#0B697A',
+        'text-halo-width': 2,
+        'text-halo-blur': 1
       }
     });
 
@@ -266,35 +263,31 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
       )}
 
       {/* Legend */}
-      <div className="absolute bottom-6 left-6 glass-morphism p-4 rounded-lg">
-        <h4 className="font-serif text-sm text-champagne-gold mb-2">Legend</h4>
-        <div className="space-y-2 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full flex items-center justify-center"
+      <div className="absolute bottom-6 left-6 glass-morphism p-5 rounded-xl border-2 border-warm-clay/20 shadow-lg">
+        <h4 className="font-serif text-base text-champagne-gold mb-3 font-semibold">Legend</h4>
+        <div className="space-y-3 text-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                  style={{background: 'linear-gradient(135deg, #D97925 0%, #D4AF37 100%)'}}>
-              <svg className="w-3 h-3 text-cream" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
-              </svg>
+              <span className="text-white font-bold text-xs">Z</span>
             </div>
-            <span className="text-cream/90">Accepts Zano Payment</span>
+            <span className="text-deep-teal font-medium">Accepts Zano Payment</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full flex items-center justify-center"
-                 style={{background: 'rgba(193, 119, 84, 0.8)', border: '2px solid rgba(217, 121, 37, 0.3)'}}>
-              <svg className="w-3 h-3 text-cream" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/>
-              </svg>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                 style={{background: '#C17754', border: '2px solid rgba(217, 121, 37, 0.5)'}}>
+              <span className="text-white font-bold text-xs">J</span>
             </div>
-            <span className="text-cream/90">JCI-Certified Facility</span>
+            <span className="text-deep-teal font-medium">JCI-Certified Facility</span>
           </div>
         </div>
       </div>
 
       {/* Facility count */}
-      <div className="absolute top-6 left-6 glass-morphism px-4 py-2 rounded-lg">
-        <p className="font-serif text-sm">
-          <span className="text-champagne-gold font-semibold">{facilities.length}</span>
-          <span className="text-cream/80 ml-1">Sanctuaries of Healing</span>
+      <div className="absolute top-6 left-6 glass-morphism px-5 py-3 rounded-xl border-2 border-warm-clay/20 shadow-lg">
+        <p className="font-serif text-base">
+          <span className="text-champagne-gold font-bold text-lg">{facilities.length}</span>
+          <span className="text-deep-teal ml-2 font-medium">Sanctuaries of Healing</span>
         </p>
       </div>
     </div>
