@@ -231,8 +231,8 @@ const DestinationsTab: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-serif text-[#D4AF37] mb-4">Complete Country Intelligence</h2>
-        <p className="text-[#FFF8F0]/80 max-w-3xl mx-auto">
+        <h2 className="text-3xl font-display text-gold-600 mb-4">Complete Country Intelligence</h2>
+        <p className="text-ocean-700/80 max-w-3xl mx-auto">
           Detailed profiles of the world's top medical tourism destinations, including costs, quality metrics, and what makes each unique.
         </p>
       </div>
@@ -246,15 +246,15 @@ const DestinationsTab: React.FC = () => {
             className={`
               p-4 rounded-lg border-2 transition-all duration-300
               ${selectedCountry === country.id
-                ? 'border-[#D4AF37] bg-[#D4AF37]/10'
-                : 'border-[#D4AF37]/20 hover:border-[#D4AF37]/50 bg-[#0B697A]/10'
+                ? 'border-gold-500 bg-gold-500/10'
+                : 'border-gold-500/20 hover:border-gold-500/50 bg-ocean-600/10'
               }
             `}
           >
-            <div className={`text-sm font-bold ${selectedCountry === country.id ? 'text-[#D4AF37]' : 'text-[#FFF8F0]'}`}>
+            <div className={`text-sm font-bold ${selectedCountry === country.id ? 'text-gold-600' : 'text-ocean-700'}`}>
               {country.name}
             </div>
-            <div className="text-xs text-[#FFF8F0]/50 mt-1">{country.facilities} facilities</div>
+            <div className="text-xs text-ocean-600/50 mt-1">{country.facilities} facilities</div>
           </button>
         ))}
       </div>
@@ -268,9 +268,9 @@ const DestinationsTab: React.FC = () => {
         className="space-y-6"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#D97925] to-[#D4AF37] p-8 rounded-lg text-white">
+        <div className="bg-gradient-to-r from-gold-400 to-gold-600 p-8 rounded-lg text-white">
           <div className="mb-4">
-            <h3 className="text-3xl font-serif">{selectedData.name}</h3>
+            <h3 className="text-3xl font-display">{selectedData.name}</h3>
             <p className="text-xl opacity-90">{selectedData.tagline}</p>
           </div>
 
@@ -286,12 +286,12 @@ const DestinationsTab: React.FC = () => {
         </div>
 
         {/* Why This Country Dominates */}
-        <div className="bg-[#0B697A]/20 p-8 rounded-lg border border-[#D4AF37]/20">
-          <h4 className="text-2xl font-serif text-[#D4AF37] mb-4">Why {selectedData.name} Dominates</h4>
+        <div className="bg-ocean-600/10 p-8 rounded-lg border border-gold-500/20">
+          <h4 className="text-2xl font-display text-gold-600 mb-4">Why {selectedData.name} Dominates</h4>
           <ul className="space-y-3">
             {selectedData.whyDominates.map((reason, index) => (
-              <li key={index} className="flex items-start gap-3 text-[#FFF8F0]/80">
-                <span className="text-[#D97925] mt-1">✓</span>
+              <li key={index} className="flex items-start gap-3 text-ocean-700/80">
+                <span className="text-gold-600 mt-1">✓</span>
                 <span>{reason}</span>
               </li>
             ))}
@@ -299,28 +299,28 @@ const DestinationsTab: React.FC = () => {
         </div>
 
         {/* Top Hospitals */}
-        <div className="bg-[#C17754]/20 p-8 rounded-lg border border-[#D4AF37]/20">
-          <h4 className="text-2xl font-serif text-[#D4AF37] mb-4">Top Medical Facilities</h4>
+        <div className="bg-sage-200/50 p-8 rounded-lg border border-gold-500/20">
+          <h4 className="text-2xl font-display text-gold-600 mb-4">Top Medical Facilities</h4>
           <div className="grid md:grid-cols-3 gap-4">
             {selectedData.topHospitals.map((hospital: any, index) => (
-              <div key={index} className="bg-[#0A0A0A]/50 p-4 rounded-lg">
-                <h5 className="text-[#D4AF37] font-bold mb-2">{hospital.name}</h5>
-                {hospital.city && <p className="text-xs text-[#FFF8F0]/50 mb-1">{hospital.city}</p>}
-                {hospital.patients && <p className="text-sm text-[#FFF8F0]/70 mb-2">{hospital.patients}</p>}
-                <p className="text-sm text-[#D97925]">{hospital.note}</p>
+              <div key={index} className="bg-white/80 p-4 rounded-lg border border-sage-200">
+                <h5 className="text-gold-600 font-bold mb-2">{hospital.name}</h5>
+                {hospital.city && <p className="text-xs text-ocean-600/50 mb-1">{hospital.city}</p>}
+                {hospital.patients && <p className="text-sm text-ocean-700/70 mb-2">{hospital.patients}</p>}
+                <p className="text-sm text-gold-600">{hospital.note}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* Best For */}
-        <div className="bg-gradient-to-br from-[#D97925]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20">
-          <h4 className="text-2xl font-serif text-[#D4AF37] mb-4">Best Procedures</h4>
+        <div className="bg-gradient-to-br from-gold-500/10 to-transparent p-8 rounded-lg border border-gold-500/20">
+          <h4 className="text-2xl font-display text-gold-600 mb-4">Best Procedures</h4>
           <div className="grid md:grid-cols-2 gap-3">
             {selectedData.bestFor.map((procedure, index) => (
-              <div key={index} className="flex items-center gap-3 bg-[#0B697A]/20 p-3 rounded">
-                <span className="text-[#D97925]">★</span>
-                <span className="text-[#FFF8F0]/80">{procedure}</span>
+              <div key={index} className="flex items-center gap-3 bg-ocean-600/10 p-3 rounded">
+                <span className="text-gold-600">★</span>
+                <span className="text-ocean-700/80">{procedure}</span>
               </div>
             ))}
           </div>
@@ -328,25 +328,25 @@ const DestinationsTab: React.FC = () => {
 
         {/* Recovery Information */}
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-[#0B697A]/10 p-6 rounded-lg border border-[#D4AF37]/20">
-            <h4 className="text-xl font-serif text-[#D4AF37] mb-4">Recovery Environment</h4>
+          <div className="bg-ocean-600/10 p-6 rounded-lg border border-gold-500/20">
+            <h4 className="text-xl font-display text-gold-600 mb-4">Recovery Environment</h4>
             <dl className="space-y-2">
               {Object.entries(selectedData.recovery).map(([key, value]) => (
                 <div key={key} className="text-sm">
-                  <dt className="text-[#D97925] font-bold capitalize inline">{key}:</dt>
-                  <dd className="text-[#FFF8F0]/80 inline ml-2">{value}</dd>
+                  <dt className="text-gold-600 font-bold capitalize inline">{key}:</dt>
+                  <dd className="text-ocean-700/80 inline ml-2">{value}</dd>
                 </div>
               ))}
             </dl>
           </div>
 
-          <div className="bg-[#0B697A]/10 p-6 rounded-lg border border-[#D4AF37]/20">
-            <h4 className="text-xl font-serif text-[#D4AF37] mb-4">Getting There</h4>
+          <div className="bg-ocean-600/10 p-6 rounded-lg border border-gold-500/20">
+            <h4 className="text-xl font-display text-gold-600 mb-4">Getting There</h4>
             <dl className="space-y-2">
               {Object.entries(selectedData.gettingThere).map(([key, value]) => (
                 <div key={key} className="text-sm">
-                  <dt className="text-[#D97925] font-bold capitalize inline">{key}:</dt>
-                  <dd className="text-[#FFF8F0]/80 inline ml-2">{value}</dd>
+                  <dt className="text-gold-600 font-bold capitalize inline">{key}:</dt>
+                  <dd className="text-ocean-700/80 inline ml-2">{value}</dd>
                 </div>
               ))}
             </dl>
@@ -356,15 +356,15 @@ const DestinationsTab: React.FC = () => {
         {/* Search Facilities Button */}
         <button
           onClick={() => window.location.href = `/?country=${encodeURIComponent(selectedData.name)}`}
-          className="w-full bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white py-4 rounded-lg font-bold text-lg hover:opacity-90 transition-opacity"
+          className="w-full bg-gradient-to-r from-gold-400 to-gold-600 text-white py-4 rounded-lg font-bold text-lg hover:opacity-90 transition-opacity"
         >
           Search {selectedData.facilities} Facilities in {selectedData.name}
         </button>
       </motion.div>
 
       {/* Emerging Destinations */}
-      <div className="bg-gradient-to-br from-[#0B697A]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6">Emerging Destinations</h3>
+      <div className="bg-gradient-to-br from-ocean-600/10 to-transparent p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-6">Emerging Destinations</h3>
         <div className="grid md:grid-cols-4 gap-4">
           {[
             { country: 'Colombia', specialty: 'Cosmetic surgery (71% savings)' },
@@ -372,9 +372,9 @@ const DestinationsTab: React.FC = () => {
             { country: 'Singapore', specialty: 'Mayo Clinic of Asia' },
             { country: 'Poland', specialty: 'EU quality at 50% savings' },
           ].map((dest) => (
-            <div key={dest.country} className="bg-[#0A0A0A]/50 p-4 rounded-lg text-center">
-              <div className="text-[#D4AF37] font-bold mb-1">{dest.country}</div>
-              <div className="text-xs text-[#FFF8F0]/70">{dest.specialty}</div>
+            <div key={dest.country} className="bg-white/80 p-4 rounded-lg text-center border border-sage-200">
+              <div className="text-gold-600 font-bold mb-1">{dest.country}</div>
+              <div className="text-xs text-ocean-700/70">{dest.specialty}</div>
             </div>
           ))}
         </div>

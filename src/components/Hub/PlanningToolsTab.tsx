@@ -59,23 +59,23 @@ const PlanningToolsTab: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-serif text-[#D4AF37] mb-4">Your Complete Medical Tourism Toolkit</h2>
-        <p className="text-[#FFF8F0]/80 max-w-3xl mx-auto">
+        <h2 className="text-3xl font-display text-gold-600 mb-4">Your Complete Medical Tourism Toolkit</h2>
+        <p className="text-ocean-700/80 max-w-3xl mx-auto">
           Essential checklists, insurance guides, quality verification tools, and planning resources for your medical journey abroad.
         </p>
       </div>
 
       {/* Pre-Departure Checklist */}
-      <div className="bg-gradient-to-br from-[#0B697A]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6">Pre-Departure Checklist</h3>
+      <div className="bg-gradient-to-br from-ocean-600/10 to-transparent p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-6">Pre-Departure Checklist</h3>
 
         <div className="space-y-4">
           {checklists.documents.map((item, index) => (
-            <label key={index} className="flex items-start gap-3 p-3 bg-[#0A0A0A]/30 rounded hover:bg-[#0A0A0A]/50 cursor-pointer transition-colors">
-              <input type="checkbox" className="mt-1 w-5 h-5 rounded border-[#D4AF37]/50 text-[#D97925] focus:ring-[#D4AF37]" />
+            <label key={index} className="flex items-start gap-3 p-3 bg-white/50 rounded hover:bg-white/80 cursor-pointer transition-colors">
+              <input type="checkbox" className="mt-1 w-5 h-5 rounded border-gold-500/50 text-gold-600 focus:ring-gold-500" />
               <div className="flex-1">
-                <span className="text-[#FFF8F0]">{item.item}</span>
-                {item.required && <span className="ml-2 text-xs text-red-400">Required</span>}
+                <span className="text-ocean-700">{item.item}</span>
+                {item.required && <span className="ml-2 text-xs text-red-500">Required</span>}
               </div>
             </label>
           ))}
@@ -84,34 +84,34 @@ const PlanningToolsTab: React.FC = () => {
 
       {/* Medical Visa vs Tourist Visa */}
       <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-[#C17754]/20 p-6 rounded-lg border border-[#D4AF37]/20">
-          <h4 className="text-xl font-serif text-[#D4AF37] mb-4">Medical Visa Benefits</h4>
-          <ul className="space-y-2 text-sm text-[#FFF8F0]/80">
+        <div className="bg-sage-200/50 p-6 rounded-lg border border-gold-500/20">
+          <h4 className="text-xl font-display text-gold-600 mb-4">Medical Visa Benefits</h4>
+          <ul className="space-y-2 text-sm text-ocean-700/80">
             <li className="flex items-start gap-2">
-              <span className="text-[#D97925]">✓</span>
+              <span className="text-gold-600">✓</span>
               <span>Extended stay allowed (up to 6 months)</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#D97925]">✓</span>
+              <span className="text-gold-600">✓</span>
               <span>Companion visa available</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#D97925]">✓</span>
+              <span className="text-gold-600">✓</span>
               <span>Legal protection as medical patient</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#D97925]">✓</span>
+              <span className="text-gold-600">✓</span>
               <span>Multiple entry options</span>
             </li>
             <li className="flex items-start gap-2">
-              <span className="text-[#D97925]">✓</span>
+              <span className="text-gold-600">✓</span>
               <span>Can extend if complications</span>
             </li>
           </ul>
 
-          <div className="mt-4 pt-4 border-t border-[#D4AF37]/20">
-            <h5 className="text-[#D4AF37] font-bold mb-2 text-sm">Countries Requiring Medical Visa:</h5>
-            <ul className="text-sm text-[#FFF8F0]/70 space-y-1">
+          <div className="mt-4 pt-4 border-t border-gold-500/20">
+            <h5 className="text-gold-600 font-bold mb-2 text-sm">Countries Requiring Medical Visa:</h5>
+            <ul className="text-sm text-ocean-700/70 space-y-1">
               <li>• India (M visa - quick processing)</li>
               <li>• Thailand (MT visa for stays over 90 days)</li>
               <li>• Turkey (with invitation letter)</li>
@@ -119,57 +119,57 @@ const PlanningToolsTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#D97925]/20 p-6 rounded-lg border border-[#D4AF37]/20">
-          <h4 className="text-xl font-serif text-[#D4AF37] mb-4">Tourist Visa Sufficient</h4>
-          <ul className="space-y-3 text-sm text-[#FFF8F0]/80">
-            <li className="flex items-center justify-between p-3 bg-[#0A0A0A]/30 rounded">
+        <div className="bg-gold-500/10 p-6 rounded-lg border border-gold-500/20">
+          <h4 className="text-xl font-display text-gold-600 mb-4">Tourist Visa Sufficient</h4>
+          <ul className="space-y-3 text-sm text-ocean-700/80">
+            <li className="flex items-center justify-between p-3 bg-white/50 rounded">
               <span>🇲🇽 Mexico</span>
-              <span className="text-[#D4AF37]">180 days on arrival</span>
+              <span className="text-gold-600">180 days on arrival</span>
             </li>
-            <li className="flex items-center justify-between p-3 bg-[#0A0A0A]/30 rounded">
+            <li className="flex items-center justify-between p-3 bg-white/50 rounded">
               <span>🇨🇷 Costa Rica</span>
-              <span className="text-[#D4AF37]">90 days on arrival</span>
+              <span className="text-gold-600">90 days on arrival</span>
             </li>
-            <li className="flex items-center justify-between p-3 bg-[#0A0A0A]/30 rounded">
+            <li className="flex items-center justify-between p-3 bg-white/50 rounded">
               <span>🇨🇴 Colombia</span>
-              <span className="text-[#D4AF37]">90 days on arrival</span>
+              <span className="text-gold-600">90 days on arrival</span>
             </li>
-            <li className="flex items-center justify-between p-3 bg-[#0A0A0A]/30 rounded">
+            <li className="flex items-center justify-between p-3 bg-white/50 rounded">
               <span>🇲🇾 Malaysia</span>
-              <span className="text-[#D4AF37]">90 days visa-free</span>
+              <span className="text-gold-600">90 days visa-free</span>
             </li>
           </ul>
         </div>
       </div>
 
       {/* Insurance Options */}
-      <div className="bg-gradient-to-br from-[#0B697A]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6">Medical Tourism Insurance</h3>
+      <div className="bg-gradient-to-br from-ocean-600/10 to-transparent p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-6">Medical Tourism Insurance</h3>
 
         <div className="space-y-4">
           {checklists.insurance.map((provider, index) => (
-            <div key={index} className="bg-[#0A0A0A]/50 p-6 rounded-lg">
+            <div key={index} className="bg-white/80 p-6 rounded-lg border border-sage-200">
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <h4 className="text-[#D4AF37] font-bold text-lg">{provider.name}</h4>
-                  <p className="text-[#FFF8F0]/70 text-sm mt-1">{provider.coverage}</p>
+                  <h4 className="text-gold-600 font-bold text-lg">{provider.name}</h4>
+                  <p className="text-ocean-700/70 text-sm mt-1">{provider.coverage}</p>
                 </div>
                 <div className="text-right">
-                  <div className="text-[#D97925] font-bold">{provider.cost}</div>
-                  <div className="text-xs text-[#FFF8F0]/50">Cost</div>
+                  <div className="text-gold-600 font-bold">{provider.cost}</div>
+                  <div className="text-xs text-ocean-600/50">Cost</div>
                 </div>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[#FFF8F0]/60">Maximum benefit:</span>
-                <span className="text-green-400 font-bold">{provider.benefit}</span>
+                <span className="text-ocean-600/60">Maximum benefit:</span>
+                <span className="text-green-600 font-bold">{provider.benefit}</span>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-6 p-4 bg-[#D97925]/10 border-l-4 border-[#D97925] rounded">
-          <h5 className="text-[#D4AF37] font-bold mb-2">Getting US Insurance Reimbursement</h5>
-          <ul className="text-sm text-[#FFF8F0]/80 space-y-1">
+        <div className="mt-6 p-4 bg-gold-500/10 border-l-4 border-gold-500 rounded">
+          <h5 className="text-gold-600 font-bold mb-2">Getting US Insurance Reimbursement</h5>
+          <ul className="text-sm text-ocean-700/80 space-y-1">
             <li>• Self-funded employer plans: 8% of Fortune 500 offer medical tourism</li>
             <li>• Walmart, Lowe's, PepsiCo cover specific procedures</li>
             <li>• HSA/FSA eligible - save all receipts</li>
@@ -179,26 +179,26 @@ const PlanningToolsTab: React.FC = () => {
       </div>
 
       {/* Recovery Timeline Calculator */}
-      <div className="bg-gradient-to-br from-[#C17754]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6">Recovery Timeline by Procedure</h3>
+      <div className="bg-gradient-to-br from-sage-200/50 to-transparent p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-6">Recovery Timeline by Procedure</h3>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-[#D4AF37]/30">
-                <th className="text-left py-3 px-4 text-[#D4AF37]">Procedure</th>
-                <th className="text-center py-3 px-4 text-[#D4AF37]">Stay Duration</th>
-                <th className="text-center py-3 px-4 text-[#D4AF37]">Flying Ready</th>
-                <th className="text-center py-3 px-4 text-[#D4AF37]">Return to Work</th>
+              <tr className="border-b border-gold-500/30">
+                <th className="text-left py-3 px-4 text-gold-600">Procedure</th>
+                <th className="text-center py-3 px-4 text-gold-600">Stay Duration</th>
+                <th className="text-center py-3 px-4 text-gold-600">Flying Ready</th>
+                <th className="text-center py-3 px-4 text-gold-600">Return to Work</th>
               </tr>
             </thead>
             <tbody>
               {checklists.recovery.map((item, index) => (
-                <tr key={index} className="border-b border-[#D4AF37]/10 hover:bg-[#D97925]/10 transition-colors">
-                  <td className="py-3 px-4 text-[#FFF8F0]">{item.procedure}</td>
-                  <td className="py-3 px-4 text-center text-[#D4AF37]">{item.days}</td>
-                  <td className="py-3 px-4 text-center text-[#D97925]">{item.flyingReady}</td>
-                  <td className="py-3 px-4 text-center text-[#FFF8F0]/70">{item.returnToWork}</td>
+                <tr key={index} className="border-b border-gold-500/10 hover:bg-gold-500/10 transition-colors">
+                  <td className="py-3 px-4 text-ocean-700">{item.procedure}</td>
+                  <td className="py-3 px-4 text-center text-gold-600">{item.days}</td>
+                  <td className="py-3 px-4 text-center text-gold-600">{item.flyingReady}</td>
+                  <td className="py-3 px-4 text-center text-ocean-600/70">{item.returnToWork}</td>
                 </tr>
               ))}
             </tbody>
@@ -207,18 +207,18 @@ const PlanningToolsTab: React.FC = () => {
       </div>
 
       {/* Questions to Ask Facilities */}
-      <div className="bg-gradient-to-br from-[#0B697A]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6">Essential Questions to Ask Facilities</h3>
+      <div className="bg-gradient-to-br from-ocean-600/10 to-transparent p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-6">Essential Questions to Ask Facilities</h3>
 
         <div className="grid md:grid-cols-3 gap-6">
           <div>
-            <h4 className="text-[#D97925] font-bold mb-3 flex items-center gap-2">
+            <h4 className="text-gold-600 font-bold mb-3 flex items-center gap-2">
               <span>🏥</span> Clinical Questions
             </h4>
-            <ul className="space-y-2 text-sm text-[#FFF8F0]/80">
+            <ul className="space-y-2 text-sm text-ocean-700/80">
               {questions.clinical.map((q, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="text-[#D4AF37] mt-1">•</span>
+                  <span className="text-gold-600 mt-1">•</span>
                   <span>{q}</span>
                 </li>
               ))}
@@ -226,13 +226,13 @@ const PlanningToolsTab: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="text-[#D97925] font-bold mb-3 flex items-center gap-2">
+            <h4 className="text-gold-600 font-bold mb-3 flex items-center gap-2">
               <span>📋</span> Logistical Questions
             </h4>
-            <ul className="space-y-2 text-sm text-[#FFF8F0]/80">
+            <ul className="space-y-2 text-sm text-ocean-700/80">
               {questions.logistical.map((q, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="text-[#D4AF37] mt-1">•</span>
+                  <span className="text-gold-600 mt-1">•</span>
                   <span>{q}</span>
                 </li>
               ))}
@@ -240,13 +240,13 @@ const PlanningToolsTab: React.FC = () => {
           </div>
 
           <div>
-            <h4 className="text-[#D97925] font-bold mb-3 flex items-center gap-2">
+            <h4 className="text-gold-600 font-bold mb-3 flex items-center gap-2">
               <span>💰</span> Financial Questions
             </h4>
-            <ul className="space-y-2 text-sm text-[#FFF8F0]/80">
+            <ul className="space-y-2 text-sm text-ocean-700/80">
               {questions.financial.map((q, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <span className="text-[#D4AF37] mt-1">•</span>
+                  <span className="text-gold-600 mt-1">•</span>
                   <span>{q}</span>
                 </li>
               ))}
@@ -256,16 +256,16 @@ const PlanningToolsTab: React.FC = () => {
       </div>
 
       {/* Quality Verification */}
-      <div className="bg-gradient-to-r from-[#D97925]/30 to-[#D4AF37]/30 p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-4">JCI Accreditation Verification</h3>
+      <div className="bg-gradient-to-r from-gold-500/20 to-gold-400/20 p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-4">JCI Accreditation Verification</h3>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <h4 className="text-[#D97925] font-bold mb-3">What is JCI?</h4>
-            <p className="text-[#FFF8F0]/80 text-sm mb-4">
+            <h4 className="text-gold-600 font-bold mb-3">What is JCI?</h4>
+            <p className="text-ocean-700/80 text-sm mb-4">
               Joint Commission International - same organization that accredits Johns Hopkins, Mayo Clinic, and Cleveland Clinic.
             </p>
-            <h4 className="text-[#D97925] font-bold mb-2">How to Verify:</h4>
-            <ol className="text-sm text-[#FFF8F0]/80 space-y-2">
+            <h4 className="text-gold-600 font-bold mb-2">How to Verify:</h4>
+            <ol className="text-sm text-ocean-700/80 space-y-2">
               <li>1. Visit jointcommissioninternational.org</li>
               <li>2. Click "JCI-Accredited Organizations"</li>
               <li>3. Search by country or facility name</li>
@@ -273,32 +273,32 @@ const PlanningToolsTab: React.FC = () => {
             </ol>
           </div>
 
-          <div className="bg-[#0A0A0A]/50 p-6 rounded">
-            <h4 className="text-[#D97925] font-bold mb-3">Current JCI-Accredited Hospitals:</h4>
+          <div className="bg-white/80 p-6 rounded border border-sage-200">
+            <h4 className="text-gold-600 font-bold mb-3">Current JCI-Accredited Hospitals:</h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-[#FFF8F0]/70">Global:</span>
-                <span className="text-[#D4AF37] font-bold">1,082</span>
+                <span className="text-ocean-600/70">Global:</span>
+                <span className="text-gold-600 font-bold">1,082</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#FFF8F0]/70">Thailand:</span>
-                <span className="text-[#D4AF37] font-bold">64</span>
+                <span className="text-ocean-600/70">Thailand:</span>
+                <span className="text-gold-600 font-bold">64</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#FFF8F0]/70">UAE:</span>
-                <span className="text-[#D4AF37] font-bold">57</span>
+                <span className="text-ocean-600/70">UAE:</span>
+                <span className="text-gold-600 font-bold">57</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#FFF8F0]/70">Turkey:</span>
-                <span className="text-[#D4AF37] font-bold">46</span>
+                <span className="text-ocean-600/70">Turkey:</span>
+                <span className="text-gold-600 font-bold">46</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#FFF8F0]/70">India:</span>
-                <span className="text-[#D4AF37] font-bold">38</span>
+                <span className="text-ocean-600/70">India:</span>
+                <span className="text-gold-600 font-bold">38</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-[#FFF8F0]/70">Mexico:</span>
-                <span className="text-[#D4AF37] font-bold">32</span>
+                <span className="text-ocean-600/70">Mexico:</span>
+                <span className="text-gold-600 font-bold">32</span>
               </div>
             </div>
           </div>
@@ -306,14 +306,14 @@ const PlanningToolsTab: React.FC = () => {
       </div>
 
       {/* Call to Action */}
-      <div className="bg-gradient-to-r from-[#D97925] to-[#D4AF37] p-8 rounded-lg text-center">
-        <h3 className="text-2xl font-serif text-white mb-4">Ready to Plan Your Medical Journey?</h3>
+      <div className="bg-gradient-to-r from-gold-400 to-gold-600 p-8 rounded-lg text-center">
+        <h3 className="text-2xl font-display text-white mb-4">Ready to Plan Your Medical Journey?</h3>
         <p className="text-white/90 mb-6">
           Start by browsing our verified facilities and requesting consultations
         </p>
         <button
           onClick={() => window.location.href = '/'}
-          className="bg-white text-[#D97925] px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#FFF8F0] transition-colors"
+          className="bg-white text-gold-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-sage-50 transition-colors"
         >
           Search Facilities
         </button>

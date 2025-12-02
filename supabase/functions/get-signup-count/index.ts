@@ -6,7 +6,7 @@ const corsHeaders = {
 }
 
 // Milestone thresholds for exclusivity messaging
-const MILESTONES = [250, 500, 1000, 2500, 5000, 10000]
+const MILESTONES = [100, 250, 500, 1000, 2500, 5000, 10000]
 
 function getNextMilestone(currentCount: number): number {
   for (const milestone of MILESTONES) {
@@ -24,7 +24,8 @@ serve(async (req) => {
 
   const responseHeaders = {
     ...corsHeaders,
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate'
   }
 
   try {
@@ -68,12 +69,16 @@ serve(async (req) => {
 
     const data = await response.json()
 
+    // Log total members fetched
+    console.log(`📊 Total subscribed members: ${data.members?.length || 0}`)
+
     // Filter for members with OASARA tag
     const oasaraMembers = data.members.filter((member: any) =>
       member.tags?.some((tag: any) => tag.name === 'OASARA')
     )
 
     const currentCount = oasaraMembers.length
+    console.log(`✅ OASARA tagged members: ${currentCount}`)
     const nextMilestone = getNextMilestone(currentCount)
     const spotsRemaining = nextMilestone - currentCount
     const percentFilled = Math.round((currentCount / nextMilestone) * 100)

@@ -52,7 +52,7 @@ const AdminLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-base flex items-center justify-center px-6 py-12">
+    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -61,17 +61,17 @@ const AdminLogin: React.FC = () => {
       >
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="font-serif text-5xl text-champagne-gold mb-2">OASARA</h1>
-          <p className="text-cream/70 text-sm italic">Admin Access</p>
+          <h1 className="logo-gradient text-5xl mb-2">OASARA</h1>
+          <p className="text-sage-500 text-sm italic">Admin Access</p>
         </div>
 
         {/* Login Form */}
-        <div className="glass-morphism rounded-2xl p-8">
-          <h2 className="font-serif text-2xl text-cream mb-6">Sign In</h2>
+        <div className="bg-white rounded-xl p-8 border-2 border-sage-200 shadow-card">
+          <h2 className="font-display text-2xl text-ocean-700 mb-6">Sign In</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm text-cream/80 mb-2">
+              <label htmlFor="email" className="block text-sm text-ocean-600 mb-2 font-medium">
                 Email
               </label>
               <input
@@ -80,14 +80,14 @@ const AdminLogin: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-lg bg-dark-base/50 border border-cream/20 text-cream placeholder-cream/40 focus:outline-none focus:border-champagne-gold transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-sage-50 border-2 border-sage-200 text-ocean-700 placeholder-sage-400 focus:outline-none focus:border-ocean-400 transition-colors"
                 placeholder="admin@oasara.com"
                 autoComplete="email"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm text-cream/80 mb-2">
+              <label htmlFor="password" className="block text-sm text-ocean-600 mb-2 font-medium">
                 Password
               </label>
               <input
@@ -96,14 +96,14 @@ const AdminLogin: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-lg bg-dark-base/50 border border-cream/20 text-cream placeholder-cream/40 focus:outline-none focus:border-champagne-gold transition-colors"
+                className="w-full px-4 py-3 rounded-lg bg-sage-50 border-2 border-sage-200 text-ocean-700 placeholder-sage-400 focus:outline-none focus:border-ocean-400 transition-colors"
                 placeholder="••••••••"
                 autoComplete="current-password"
               />
             </div>
 
             {error && (
-              <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+              <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
                 {error}
               </div>
             )}
@@ -111,7 +111,7 @@ const AdminLogin: React.FC = () => {
             <button
               type="submit"
               disabled={loading || !email || !password}
-              className="w-full gradient-cta py-3 rounded-lg font-semibold text-dark-base transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full btn-gold py-3 font-semibold transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -120,7 +120,7 @@ const AdminLogin: React.FC = () => {
           <div className="mt-6 text-center">
             <a
               href="/"
-              className="text-sm text-cream/60 hover:text-champagne-gold transition-colors"
+              className="text-sm text-sage-500 hover:text-ocean-600 transition-colors"
             >
               ← Back to site
             </a>
@@ -128,7 +128,7 @@ const AdminLogin: React.FC = () => {
         </div>
 
         {/* Security Notice */}
-        <p className="text-center text-cream/40 text-xs mt-6">
+        <p className="text-center text-sage-400 text-xs mt-6">
           This is a restricted area. All access is logged and monitored.
         </p>
       </motion.div>

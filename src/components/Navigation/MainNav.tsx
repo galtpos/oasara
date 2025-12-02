@@ -16,13 +16,13 @@ const MainNav: React.FC<MainNavProps> = ({
   zanoCount = 0
 }) => {
   return (
-    <nav className="glass-morphism sticky top-0 z-50 border-b border-[#D4AF37]/20">
+    <nav className="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-sage-200">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div>
-            <div className="text-3xl font-serif text-[#D4AF37] font-bold">OASARA</div>
-            <div className="text-sm text-[#FFF8F0]/70 mt-1">Your Oasis for Medical Sovereignty</div>
+            <div className="text-3xl font-display text-gold-600 font-bold">OASARA</div>
+            <div className="text-sm text-ocean-600/70 mt-1">Your Oasis for Medical Sovereignty</div>
           </div>
 
           {/* Navigation Links */}
@@ -32,8 +32,8 @@ const MainNav: React.FC<MainNavProps> = ({
               className={`
                 px-6 py-2 rounded-lg font-bold transition-all duration-300
                 ${currentView === 'early-access'
-                  ? 'bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white'
-                  : 'text-[#FFF8F0]/70 hover:text-[#D4AF37]'
+                  ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-white'
+                  : 'text-ocean-600/70 hover:text-gold-600'
                 }
               `}
             >
@@ -44,8 +44,8 @@ const MainNav: React.FC<MainNavProps> = ({
               className={`
                 px-6 py-2 rounded-lg font-bold transition-all duration-300
                 ${currentView === 'map'
-                  ? 'bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white'
-                  : 'text-[#FFF8F0]/70 hover:text-[#D4AF37]'
+                  ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-white'
+                  : 'text-ocean-600/70 hover:text-gold-600'
                 }
               `}
             >
@@ -56,8 +56,8 @@ const MainNav: React.FC<MainNavProps> = ({
               className={`
                 px-6 py-2 rounded-lg font-bold transition-all duration-300
                 ${currentView === 'hub'
-                  ? 'bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white'
-                  : 'text-[#FFF8F0]/70 hover:text-[#D4AF37]'
+                  ? 'bg-gradient-to-r from-gold-400 to-gold-600 text-white'
+                  : 'text-ocean-600/70 hover:text-gold-600'
                 }
               `}
             >
@@ -69,16 +69,16 @@ const MainNav: React.FC<MainNavProps> = ({
           {currentView === 'map' && (
             <div className="hidden lg:flex items-center gap-6 text-sm">
               <div className="text-center">
-                <p className="text-2xl font-serif text-[#D97925] font-bold">{facilitiesCount}</p>
-                <p className="text-[#FFF8F0]/60">Facilities</p>
+                <p className="text-2xl font-display text-gold-600 font-bold">{facilitiesCount}</p>
+                <p className="text-ocean-600/60">Facilities</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-serif text-[#D4AF37] font-bold">{countriesCount}</p>
-                <p className="text-[#FFF8F0]/60">Countries</p>
+                <p className="text-2xl font-display text-gold-500 font-bold">{countriesCount}</p>
+                <p className="text-ocean-600/60">Countries</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-serif text-[#C17754] font-bold">{zanoCount}</p>
-                <p className="text-[#FFF8F0]/60">Zano Ready</p>
+                <p className="text-2xl font-display text-ocean-600 font-bold">{zanoCount}</p>
+                <p className="text-ocean-600/60">Zano Ready</p>
               </div>
             </div>
           )}

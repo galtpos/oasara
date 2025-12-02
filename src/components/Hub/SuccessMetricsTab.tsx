@@ -75,18 +75,18 @@ const SuccessMetricsTab: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-12">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-4xl font-serif text-[#D4AF37] mb-4">Medical Tourism Success Metrics</h2>
-        <p className="text-lg text-[#FFF8F0]/80">
+        <h2 className="text-4xl font-display text-gold-600 mb-4">Medical Tourism Success Metrics</h2>
+        <p className="text-lg text-ocean-700/80">
           Real data from verified sources (2024)
         </p>
-        <p className="text-sm text-[#FFF8F0]/60 mt-2">
+        <p className="text-sm text-ocean-600/60 mt-2">
           Sources: Medical Tourism Association, Patients Beyond Borders, JCI, National Surveys
         </p>
       </div>
 
       {/* Industry Statistics Grid */}
       <div>
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6">Industry Performance</h3>
+        <h3 className="text-2xl font-display text-gold-600 mb-6">Industry Performance</h3>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {industryStats.map((stat, index) => (
             <motion.div
@@ -94,46 +94,46 @@ const SuccessMetricsTab: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-gradient-to-br from-[#0B697A]/20 to-transparent p-6 rounded-lg border border-[#D4AF37]/20"
+              className="bg-gradient-to-br from-ocean-600/10 to-transparent p-6 rounded-lg border border-gold-500/20"
             >
-              <div className="text-4xl font-bold text-[#D4AF37] mb-2">{stat.metric}</div>
-              <div className="text-sm font-bold text-[#FFF8F0] mb-3">{stat.label}</div>
-              <div className="text-xs text-[#FFF8F0]/70 mb-3">{stat.detail}</div>
-              <div className="text-xs text-[#D97925] italic">{stat.source}</div>
+              <div className="text-4xl font-bold text-gold-600 mb-2">{stat.metric}</div>
+              <div className="text-sm font-bold text-ocean-700 mb-3">{stat.label}</div>
+              <div className="text-xs text-ocean-700/70 mb-3">{stat.detail}</div>
+              <div className="text-xs text-gold-600 italic">{stat.source}</div>
             </motion.div>
           ))}
         </div>
       </div>
 
       {/* Cost Savings Table */}
-      <div className="bg-[#0A0A0A]/50 p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6">Verified Cost Comparisons</h3>
-        <p className="text-sm text-[#FFF8F0]/60 mb-6">
+      <div className="bg-white/80 p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-6">Verified Cost Comparisons</h3>
+        <p className="text-sm text-ocean-600/60 mb-6">
           Average prices based on 2024 industry reports and facility surveys
         </p>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#D4AF37]/20">
-                <th className="text-left py-3 px-4 text-[#D4AF37]">Procedure</th>
-                <th className="text-right py-3 px-4 text-[#D4AF37]">USA Cost</th>
-                <th className="text-right py-3 px-4 text-[#D4AF37]">Global Average</th>
-                <th className="text-right py-3 px-4 text-[#D4AF37]">Savings</th>
+              <tr className="border-b border-gold-500/20">
+                <th className="text-left py-3 px-4 text-gold-600">Procedure</th>
+                <th className="text-right py-3 px-4 text-gold-600">USA Cost</th>
+                <th className="text-right py-3 px-4 text-gold-600">Global Average</th>
+                <th className="text-right py-3 px-4 text-gold-600">Savings</th>
               </tr>
             </thead>
             <tbody>
               {costSavings.map((item, index) => (
-                <tr key={index} className="border-b border-[#D4AF37]/10 hover:bg-[#D97925]/5">
-                  <td className="py-3 px-4 text-[#FFF8F0]">{item.procedure}</td>
-                  <td className="py-3 px-4 text-right text-red-400">{item.usCost}</td>
-                  <td className="py-3 px-4 text-right text-green-400">{item.globalAvg}</td>
-                  <td className="py-3 px-4 text-right text-[#D4AF37] font-bold">{item.savings}</td>
+                <tr key={index} className="border-b border-gold-500/10 hover:bg-gold-500/5">
+                  <td className="py-3 px-4 text-ocean-700">{item.procedure}</td>
+                  <td className="py-3 px-4 text-right text-red-500">{item.usCost}</td>
+                  <td className="py-3 px-4 text-right text-green-600">{item.globalAvg}</td>
+                  <td className="py-3 px-4 text-right text-gold-600 font-bold">{item.savings}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="text-xs text-[#FFF8F0]/50 mt-4">
+        <p className="text-xs text-ocean-600/50 mt-4">
           * Costs are averages and vary by facility, location, and individual medical needs.
           Includes hospital stay, surgeon fees, and post-operative care.
         </p>
@@ -141,26 +141,26 @@ const SuccessMetricsTab: React.FC = () => {
 
       {/* Top Destinations */}
       <div>
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6">Leading Medical Tourism Destinations (2024)</h3>
+        <h3 className="text-2xl font-display text-gold-600 mb-6">Leading Medical Tourism Destinations (2024)</h3>
         <div className="grid md:grid-cols-2 gap-6">
           {topDestinations.map((dest, index) => (
             <div
               key={index}
-              className="bg-gradient-to-r from-[#C17754]/20 to-transparent p-6 rounded-lg border border-[#D4AF37]/20"
+              className="bg-gradient-to-r from-sage-200/50 to-transparent p-6 rounded-lg border border-gold-500/20"
             >
-              <h4 className="text-xl font-bold text-[#D4AF37] mb-3">{dest.country}</h4>
+              <h4 className="text-xl font-bold text-gold-600 mb-3">{dest.country}</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-[#FFF8F0]/70">Annual Patients:</span>
-                  <span className="text-[#FFF8F0] font-bold">{dest.patients}</span>
+                  <span className="text-ocean-600/70">Annual Patients:</span>
+                  <span className="text-ocean-700 font-bold">{dest.patients}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#FFF8F0]/70">JCI Hospitals:</span>
-                  <span className="text-[#FFF8F0] font-bold">{dest.jciHospitals}</span>
+                  <span className="text-ocean-600/70">JCI Hospitals:</span>
+                  <span className="text-ocean-700 font-bold">{dest.jciHospitals}</span>
                 </div>
                 <div className="mt-3">
-                  <span className="text-[#FFF8F0]/70">Specialties:</span>
-                  <div className="text-[#D97925] mt-1">{dest.specialty}</div>
+                  <span className="text-ocean-600/70">Specialties:</span>
+                  <div className="text-gold-600 mt-1">{dest.specialty}</div>
                 </div>
               </div>
             </div>
@@ -169,9 +169,9 @@ const SuccessMetricsTab: React.FC = () => {
       </div>
 
       {/* Data Sources & Disclaimer */}
-      <div className="bg-[#D97925]/10 p-6 rounded-lg border border-[#D97925]/30">
-        <h4 className="text-lg font-bold text-[#D4AF37] mb-3">Data Sources & Methodology</h4>
-        <div className="text-sm text-[#FFF8F0]/80 space-y-2">
+      <div className="bg-gold-500/10 p-6 rounded-lg border border-gold-500/30">
+        <h4 className="text-lg font-bold text-gold-600 mb-3">Data Sources & Methodology</h4>
+        <div className="text-sm text-ocean-700/80 space-y-2">
           <p>
             <strong>Patient Satisfaction:</strong> Medical Tourism Association surveys, Patients Beyond Borders research (2024)
           </p>
@@ -184,7 +184,7 @@ const SuccessMetricsTab: React.FC = () => {
           <p>
             <strong>Destination Data:</strong> Joint Commission International, national medical tourism associations
           </p>
-          <p className="mt-4 text-xs text-[#FFF8F0]/60">
+          <p className="mt-4 text-xs text-ocean-600/60">
             All statistics are from verified industry sources published in 2024. Individual results may vary.
             OASARA provides this data for informational purposes only. Always consult with medical professionals
             and conduct thorough research before making healthcare decisions.
@@ -193,8 +193,8 @@ const SuccessMetricsTab: React.FC = () => {
       </div>
 
       {/* CTA */}
-      <div className="text-center bg-gradient-to-r from-[#D97925] to-[#D4AF37] p-8 rounded-lg">
-        <h3 className="text-2xl font-serif text-white mb-4">
+      <div className="text-center bg-gradient-to-r from-gold-400 to-gold-600 p-8 rounded-lg">
+        <h3 className="text-2xl font-display text-white mb-4">
           Ready to Explore Your Options?
         </h3>
         <p className="text-white/90 mb-6">
@@ -202,7 +202,7 @@ const SuccessMetricsTab: React.FC = () => {
         </p>
         <a
           href="/"
-          className="inline-block bg-white text-[#0A0A0A] px-8 py-3 rounded-lg font-bold hover:bg-[#FFF8F0] transition-colors"
+          className="inline-block bg-white text-ocean-700 px-8 py-3 rounded-lg font-bold hover:bg-sage-50 transition-colors"
         >
           Search Facilities
         </a>

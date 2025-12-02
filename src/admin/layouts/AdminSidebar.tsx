@@ -17,10 +17,12 @@ interface NavItem {
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
   const navItems: NavItem[] = [
     { path: '/admin', icon: 'dashboard', label: 'Dashboard' },
+    { path: '/admin/analytics', icon: 'analytics', label: 'Analytics' },
     { path: '/admin/facilities', icon: 'facilities', label: 'Facilities' },
     { path: '/admin/doctors', icon: 'doctors', label: 'Doctors' },
     { path: '/admin/testimonials', icon: 'testimonials', label: 'Testimonials' },
     { path: '/admin/pricing', icon: 'pricing', label: 'Pricing' },
+    { path: '/admin/affiliates', icon: 'affiliates', label: 'Affiliates' },
     { path: '/admin/claims', icon: 'claims', label: 'Claims' },
     { path: '/admin/users', icon: 'users', label: 'Users' },
     { path: '/admin/tasks', icon: 'tasks', label: 'Tasks' },
@@ -28,13 +30,19 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
   ];
 
   const getIcon = (iconName: string, isActive: boolean) => {
-    const className = `w-5 h-5 ${isActive ? 'text-ignition-amber' : 'text-deep-teal/70 group-hover:text-deep-teal'}`;
+    const className = `w-5 h-5 ${isActive ? 'text-gold-600' : 'text-ocean-600/70 group-hover:text-ocean-600'}`;
 
     switch (iconName) {
       case 'dashboard':
         return (
           <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        );
+      case 'analytics':
+        return (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
         );
       case 'facilities':
@@ -59,6 +67,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
         return (
           <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        );
+      case 'affiliates':
+        return (
+          <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
           </svg>
         );
       case 'claims':
@@ -93,12 +107,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
 
   return (
     <aside
-      className={`fixed left-0 top-0 h-screen bg-white border-r border-warm-clay/20 transition-all duration-300 z-50 ${
+      className={`fixed left-0 top-0 h-screen bg-white border-r border-sage-200 transition-all duration-300 z-50 ${
         collapsed ? 'w-20' : 'w-64'
       }`}
     >
       {/* Logo/Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-warm-clay/20 bg-gradient-to-r from-cream to-desert-sand/30">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-sage-200 bg-gradient-to-r from-white to-sage-50">
         <AnimatePresence mode="wait">
           {!collapsed && (
             <motion.div
@@ -107,8 +121,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
               exit={{ opacity: 0 }}
               className="flex items-center gap-2"
             >
-              <span className="font-serif text-2xl text-deep-teal font-bold">OASARA</span>
-              <span className="px-2 py-0.5 text-xs bg-ignition-amber/20 text-ignition-amber rounded-full border border-ignition-amber/30">
+              <span className="font-display text-2xl text-ocean-600 font-bold">OASARA</span>
+              <span className="px-2 py-0.5 text-xs bg-gold-100 text-gold-700 rounded-full border border-gold-200">
                 ADMIN
               </span>
             </motion.div>
@@ -117,11 +131,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
 
         <button
           onClick={onToggle}
-          className="p-2 hover:bg-ignition-amber/10 rounded-lg transition-colors"
+          className="p-2 hover:bg-ocean-50 rounded-lg transition-colors"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <svg
-            className="w-5 h-5 text-deep-teal transition-transform"
+            className="w-5 h-5 text-ocean-600 transition-transform"
             style={{ transform: collapsed ? 'rotate(180deg)' : 'rotate(0deg)' }}
             fill="none"
             stroke="currentColor"
@@ -142,8 +156,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
                 isActive
-                  ? 'bg-gradient-to-r from-ignition-amber/10 to-champagne-gold/10 text-deep-teal border border-ignition-amber/30'
-                  : 'text-deep-teal/70 hover:text-deep-teal hover:bg-cream/50'
+                  ? 'bg-gradient-to-r from-gold-50 to-gold-100 text-ocean-700 border border-gold-200'
+                  : 'text-ocean-600/70 hover:text-ocean-600 hover:bg-sage-50'
               }`
             }
           >
@@ -164,7 +178,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
                 </AnimatePresence>
 
                 {item.badge && !collapsed && (
-                  <span className="ml-auto px-2 py-0.5 text-xs bg-ignition-amber/30 text-ignition-amber rounded-full border border-ignition-amber/50">
+                  <span className="ml-auto px-2 py-0.5 text-xs bg-gold-100 text-gold-700 rounded-full border border-gold-200">
                     {item.badge}
                   </span>
                 )}
@@ -173,16 +187,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
                 {isActive && (
                   <motion.div
                     layoutId="activeNav"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-ignition-amber rounded-r-full"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gold-500 rounded-r-full"
                   />
                 )}
 
                 {/* Tooltip for collapsed state */}
                 {collapsed && (
-                  <div className="absolute left-full ml-2 px-3 py-1.5 bg-white border border-warm-clay/30 rounded-lg text-sm text-deep-teal shadow-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="absolute left-full ml-2 px-3 py-1.5 bg-white border border-sage-200 rounded-lg text-sm text-ocean-600 shadow-lg whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     {item.label}
                     {item.badge && (
-                      <span className="ml-2 px-2 py-0.5 text-xs bg-ignition-amber/30 text-ignition-amber rounded-full">
+                      <span className="ml-2 px-2 py-0.5 text-xs bg-gold-100 text-gold-700 rounded-full">
                         {item.badge}
                       </span>
                     )}
@@ -195,7 +209,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
       </nav>
 
       {/* Quick Actions (Bottom) */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-warm-clay/20 bg-gradient-to-t from-cream/50 to-transparent">
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-sage-200 bg-gradient-to-t from-sage-50 to-transparent">
         <AnimatePresence mode="wait">
           {!collapsed && (
             <motion.div
@@ -204,13 +218,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ collapsed, onToggle }) => {
               exit={{ opacity: 0 }}
               className="space-y-2"
             >
-              <button className="w-full px-3 py-2 text-sm text-deep-teal/70 hover:text-deep-teal hover:bg-ignition-amber/10 rounded-lg transition-all flex items-center gap-2">
+              <button className="w-full px-3 py-2 text-sm text-ocean-600/70 hover:text-ocean-600 hover:bg-ocean-50 rounded-lg transition-all flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
                 <span>Documentation</span>
               </button>
-              <button className="w-full px-3 py-2 text-sm text-deep-teal/70 hover:text-deep-teal hover:bg-ignition-amber/10 rounded-lg transition-all flex items-center gap-2">
+              <button className="w-full px-3 py-2 text-sm text-ocean-600/70 hover:text-ocean-600 hover:bg-ocean-50 rounded-lg transition-all flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

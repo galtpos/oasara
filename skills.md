@@ -512,6 +512,108 @@ USING (auth.uid() = id);
 
 ---
 
+---
+
+## 21. Brand Design System (December 2025)
+
+### Color Palette
+
+**Primary - Ocean Teal:**
+```
+ocean-50:  #F0F7F8
+ocean-100: #D9ECED
+ocean-200: #B3D9DC
+ocean-300: #7FBFC5
+ocean-400: #5B9AA0  (borders, icons)
+ocean-500: #3D7D85
+ocean-600: #2A6B72  ★ PRIMARY (stats bar, accents)
+ocean-700: #1F525A
+ocean-800: #163C42
+ocean-900: #0E282C
+```
+
+**Accent - Gold:**
+```
+gold-50:  #FFFDF5
+gold-100: #FEF7E0
+gold-200: #FCE9B2
+gold-300: #F5D77A  (stat numbers on dark)
+gold-400: #E5C76B
+gold-500: #D4B86A  ★ LOGO START
+gold-600: #C9A54F
+gold-700: #B8923A  ★ LOGO END
+gold-800: #8B6914  ★ BUTTON SHADOW
+gold-900: #5C4610
+```
+
+### Typography
+
+**Fonts:**
+- Display/Headers: `Cinzel` (Google Fonts) - Bold/Black weight
+- Body: `Inter` (Google Fonts) - Regular/Medium weight
+
+**CSS Import:**
+```css
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+```
+
+### Key CSS Classes
+
+**Logo:**
+```css
+.logo-gradient {
+  font-family: 'Cinzel', serif;
+  font-weight: 800;
+  letter-spacing: 0.5em;
+  background: linear-gradient(180deg, #D4B86A 0%, #A67C00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+```
+
+**Stats Bar:**
+```css
+.stats-bar { background: #2A6B72; }
+.stat-pill {
+  background: rgba(255, 255, 255, 0.15);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+.stat-number {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: #FFD966;
+}
+```
+
+**Gold Button:**
+```css
+.btn-gold {
+  background: linear-gradient(180deg, #D4B86A 0%, #B8923A 100%);
+  color: #1A1A1A;
+  box-shadow: 0 4px 0 #8B6914, 0 6px 16px rgba(139, 105, 20, 0.3);
+  border-radius: 3px;
+}
+```
+
+### Tailwind Classes
+
+- Primary color: `bg-ocean-600`, `text-ocean-600`, `border-ocean-400`
+- Accent color: `bg-gold-500`, `text-gold-500`
+- Headers: `font-display` or `font-serif` (Cinzel)
+- Body: `font-sans` (Inter)
+
+### Design Principles
+
+1. **White backgrounds** with ocean teal accents
+2. **Crisp edges** - 2-4px border radius
+3. **Hard shadows** on buttons (tactile feel)
+4. **Stats bar** as prominent Ocean Teal stripe
+5. **Gold gradient logo** - architectural, bold
+6. **Card borders** in sage-200 (#D1DDD6)
+
+---
+
 ## Summary
 
 This skills.md file contains all the essential commands, procedures, and workflows for working on the OASARA project. Bookmark this file for quick reference!
@@ -523,6 +625,7 @@ This skills.md file contains all the essential commands, procedures, and workflo
 4. `npm start` - Run development server
 5. `git push origin main` - Deploy to production
 
-**Last Updated**: October 29, 2024
+**Last Updated**: December 2, 2025
 **Project**: OASARA Medical Tourism Marketplace
 **Database Password**: FreeRoger!2025
+**Brand Theme**: Ocean Teal & Gold

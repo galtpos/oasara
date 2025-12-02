@@ -15,8 +15,8 @@ const ZanoFilter: React.FC<ZanoFilterProps> = ({ showZanoOnly, onToggle }) => {
       className={`
         px-6 py-3 rounded-lg text-base transition-all font-semibold
         ${showZanoOnly
-          ? 'bg-champagne-gold text-white border-2 border-champagne-gold'
-          : 'bg-white text-deep-teal border-2 border-desert-sand hover:border-warm-clay'
+          ? 'bg-gold-500 text-white border-2 border-gold-500'
+          : 'bg-white text-ocean-600 border-2 border-sage-200 hover:border-ocean-400'
         }
       `}
     >

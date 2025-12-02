@@ -96,11 +96,11 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
         'circle-color': [
           'step',
           ['get', 'point_count'],
-          '#D97925',  // Ignition Amber for small clusters
+          '#C9A54F',  // Gold-600 for small clusters
           10,
-          '#C17754',  // Warm Clay for medium clusters
+          '#B8923A',  // Gold-700 for medium clusters
           30,
-          '#D4AF37'   // Champagne Gold for large clusters
+          '#2A6B72'   // Ocean-600 for large clusters
         ],
         'circle-radius': [
           'step',
@@ -111,9 +111,9 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
           30,
           40   // Large clusters
         ],
-        'circle-opacity': 0.8,
+        'circle-opacity': 0.9,
         'circle-stroke-width': 2,
-        'circle-stroke-color': '#FFF8F0'
+        'circle-stroke-color': '#FFFFFF'
       }
     });
 
@@ -130,7 +130,7 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
       },
       paint: {
         'text-color': '#FFFFFF',
-        'text-halo-color': '#0B697A',
+        'text-halo-color': '#2A6B72',
         'text-halo-width': 2,
         'text-halo-blur': 1
       }
@@ -146,16 +146,16 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
         'circle-color': [
           'case',
           ['get', 'accepts_zano'],
-          '#D4AF37',  // Gold for Zano-accepting
-          '#C17754'   // Warm Clay for regular
+          '#D4B86A',  // Gold-500 for Zano-accepting
+          '#2A6B72'   // Ocean-600 for regular
         ],
         'circle-radius': 8,
         'circle-stroke-width': 2,
         'circle-stroke-color': [
           'case',
           ['get', 'accepts_zano'],
-          '#D97925',
-          'rgba(217, 121, 37, 0.3)'
+          '#B8923A',  // Gold-700 border
+          '#1F525A'   // Ocean-700 border
         ]
       }
     });
@@ -206,12 +206,12 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
       })
         .setLngLat(coordinates)
         .setHTML(`
-          <div class="p-3">
-            <h3 class="font-serif font-semibold text-ignition-amber">${props.name}</h3>
-            <p class="text-sm text-cream/80">${props.city}, ${props.country}</p>
+          <div class="p-3 bg-white rounded-lg">
+            <h3 class="font-display font-semibold text-ocean-700">${props.name}</h3>
+            <p class="text-sm text-ocean-600/80">${props.city}, ${props.country}</p>
             <div class="flex items-center mt-1">
-              <span class="text-champagne-gold text-sm">★ ${props.rating || 'N/A'}</span>
-              ${props.accepts_zano ? '<span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-ignition-amber/20 text-ignition-amber">Zano Ready</span>' : ''}
+              <span class="text-gold-600 text-sm">★ ${props.rating || 'N/A'}</span>
+              ${props.accepts_zano ? '<span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-gold-100 text-gold-700 border border-gold-200">Zano Ready</span>' : ''}
             </div>
           </div>
         `)
@@ -254,40 +254,40 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
 
       {/* Loading overlay */}
       {!mapLoaded && (
-        <div className="absolute inset-0 flex items-center justify-center glass-morphism rounded-lg">
+        <div className="absolute inset-0 flex items-center justify-center bg-white/90 rounded-lg">
           <div className="text-center">
-            <div className="shimmer w-32 h-32 rounded-full mx-auto mb-4"></div>
-            <p className="font-serif text-xl text-ignition-amber">Loading Your Oasis...</p>
+            <div className="shimmer w-32 h-32 rounded-full mx-auto mb-4 bg-gradient-to-r from-gold-400 to-gold-600"></div>
+            <p className="font-display text-xl text-ocean-600">Loading Your Oasis...</p>
           </div>
         </div>
       )}
 
       {/* Legend */}
-      <div className="absolute bottom-6 left-6 glass-morphism p-5 rounded-xl border-2 border-warm-clay/20 shadow-lg">
-        <h4 className="font-serif text-base text-champagne-gold mb-3 font-semibold">Legend</h4>
+      <div className="absolute bottom-6 left-6 bg-white p-5 rounded-xl border-2 border-sage-200 shadow-lg">
+        <h4 className="font-display text-base text-ocean-600 mb-3 font-semibold">Legend</h4>
         <div className="space-y-3 text-sm">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                 style={{background: 'linear-gradient(135deg, #D97925 0%, #D4AF37 100%)'}}>
+                 style={{background: 'linear-gradient(135deg, #D4B86A 0%, #B8923A 100%)'}}>
               <span className="text-white font-bold text-xs">Z</span>
             </div>
-            <span className="text-deep-teal font-medium">Accepts Zano Payment</span>
+            <span className="text-ocean-700 font-medium">Accepts Zano Payment</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                 style={{background: '#C17754', border: '2px solid rgba(217, 121, 37, 0.5)'}}>
+                 style={{background: '#2A6B72', border: '2px solid #1F525A'}}>
               <span className="text-white font-bold text-xs">J</span>
             </div>
-            <span className="text-deep-teal font-medium">JCI-Certified Facility</span>
+            <span className="text-ocean-700 font-medium">JCI-Certified Facility</span>
           </div>
         </div>
       </div>
 
       {/* Facility count */}
-      <div className="absolute top-6 left-6 glass-morphism px-5 py-3 rounded-xl border-2 border-warm-clay/20 shadow-lg">
-        <p className="font-serif text-base">
-          <span className="text-champagne-gold font-bold text-lg">{facilities.length}</span>
-          <span className="text-deep-teal ml-2 font-medium">Sanctuaries of Healing</span>
+      <div className="absolute top-6 left-6 bg-white px-5 py-3 rounded-xl border-2 border-sage-200 shadow-lg">
+        <p className="font-display text-base">
+          <span className="text-gold-600 font-bold text-lg">{facilities.length}</span>
+          <span className="text-ocean-700 ml-2 font-medium tracking-wide uppercase text-sm">Sanctuaries of Healing</span>
         </p>
       </div>
     </div>

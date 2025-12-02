@@ -41,17 +41,24 @@ const RequestZanoButton: React.FC<RequestZanoButtonProps> = ({
         user_email: userEmail,
         facility_city: facility.city,
         facility_country: facility.country,
-        message: `A patient is interested in your facility and would like you to accept Zano cryptocurrency for payment.
+        message: `A potential patient is interested in ${facility.name} and is requesting the option to pay with Zano cryptocurrency.
 
-Zano offers:
-- Zero-fee transactions
-- Complete payment privacy
-- Instant settlement
-- No chargebacks
+Why Medical Facilities Are Accepting Zano:
+• Zero transaction fees (save 2-4% vs credit cards)
+• Complete payment privacy for patients
+• Instant settlement - no waiting for bank transfers
+• No chargebacks or payment disputes
+• Attract privacy-conscious international patients
 
-Please visit https://zano.org to learn more about accepting Zano payments.
+OASARA is connecting patients worldwide with facilities that offer Zano payment options. Learn why hundreds of medical tourists are choosing this payment method:
 
-Patient contact: ${userEmail}`
+https://oasara.com/why-zano
+
+Questions? Contact us at hello@oasara.com
+
+---
+Patient interested in your facility: ${userEmail}
+Request submitted via OASARA Medical Tourism Marketplace`
       };
 
       await emailjs.send(
@@ -87,13 +94,13 @@ Patient contact: ${userEmail}`
           value={userEmail}
           onChange={(e) => setUserEmail(e.target.value)}
           placeholder="Your email (optional)"
-          className="px-3 py-1.5 rounded-lg bg-dark-base/50 border border-ignition-amber/30 text-cream text-sm focus:outline-none focus:border-ignition-amber"
+          className="px-3 py-1.5 rounded-lg bg-sage-50 border border-gold-300 text-ocean-700 text-sm focus:outline-none focus:border-gold-500"
           onClick={(e) => e.stopPropagation()}
         />
         <button
           onClick={handleRequest}
           disabled={!userEmail}
-          className="px-4 py-1.5 rounded-lg gradient-cta text-dark-base text-sm font-medium disabled:opacity-50"
+          className="px-4 py-1.5 rounded-lg bg-gradient-to-r from-gold-400 to-gold-600 text-white text-sm font-medium disabled:opacity-50"
         >
           Send
         </button>
@@ -103,7 +110,7 @@ Patient contact: ${userEmail}`
             setShowEmailInput(false);
             setUserEmail('');
           }}
-          className="px-3 py-1.5 rounded-lg bg-dark-base/50 border border-cream/20 text-cream text-sm"
+          className="px-3 py-1.5 rounded-lg bg-sage-100 border border-sage-200 text-ocean-600 text-sm"
         >
           Cancel
         </button>
@@ -148,7 +155,7 @@ Patient contact: ${userEmail}`
         whileTap={{ scale: 0.98 }}
         onClick={handleRequest}
         disabled={status === 'loading'}
-        className="w-full px-6 py-3 rounded-lg gradient-cta text-dark-base font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+        className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-gold-400 to-gold-600 text-white font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
       >
         {status === 'loading' ? (
           <>
@@ -176,7 +183,7 @@ Patient contact: ${userEmail}`
       whileTap={{ scale: 0.95 }}
       onClick={handleRequest}
       disabled={status === 'loading'}
-      className="px-3 py-1.5 rounded-lg bg-ignition-amber/20 border border-ignition-amber/50 text-ignition-amber text-xs font-medium hover:bg-ignition-amber/30 disabled:opacity-50 transition-all"
+      className="px-3 py-1.5 rounded-lg bg-gold-100 border border-gold-300 text-gold-700 text-xs font-medium hover:bg-gold-200 disabled:opacity-50 transition-all"
     >
       {status === 'loading' ? 'Requesting...' : 'Request Zano'}
     </motion.button>

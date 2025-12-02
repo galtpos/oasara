@@ -32,7 +32,7 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
     >
       <div className={`
         bg-white rounded-2xl p-5 transition-all duration-300
-        ${isFocused ? 'border-2 border-warm-clay shadow-lg' : 'border-2 border-desert-sand'}
+        ${isFocused ? 'border-2 border-ocean-400 shadow-lg' : 'border-2 border-sage-200'}
       `}>
         <div className="flex items-center gap-4">
           {/* Input - No icon, just clean text */}
@@ -43,7 +43,7 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder={placeholder}
-            className="flex-1 bg-transparent text-deep-teal placeholder-warm-clay/60 focus:outline-none text-lg font-normal"
+            className="flex-1 bg-transparent text-ocean-700 placeholder-ocean-400/60 focus:outline-none text-lg font-normal"
           />
 
           {/* Clear Button - Text only */}
@@ -54,7 +54,7 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={handleClear}
-                className="px-3 py-1 text-sm text-warm-clay hover:text-deep-teal transition-colors font-medium"
+                className="px-3 py-1 text-sm text-ocean-400 hover:text-ocean-600 transition-colors font-medium"
               >
                 Clear
               </motion.button>
@@ -69,9 +69,9 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-4 pt-4 border-t border-warm-clay/15"
+              className="mt-4 pt-4 border-t border-sage-200"
             >
-              <p className="text-sm text-warm-clay mb-3 font-medium">Try searching for:</p>
+              <p className="text-sm text-ocean-500 mb-3 font-medium">Try searching for:</p>
               <div className="flex flex-wrap gap-2">
                 {[
                   'Hip Replacement',
@@ -87,7 +87,7 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
                       setQuery(suggestion);
                       onSearch(suggestion);
                     }}
-                    className="px-4 py-2 rounded-lg bg-champagne-gold/10 text-champagne-gold text-sm hover:bg-champagne-gold/20 transition-colors border border-champagne-gold/20 font-medium"
+                    className="px-4 py-2 rounded-lg bg-gold-100 text-gold-700 text-sm hover:bg-gold-200 transition-colors border border-gold-200 font-medium"
                   >
                     {suggestion}
                   </button>

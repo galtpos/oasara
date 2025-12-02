@@ -16,7 +16,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, name } = await req.json()
+    const { email, name, tags: customTags } = await req.json()
 
     if (!email || !email.includes('@')) {
       return new Response(
@@ -43,6 +43,12 @@ serve(async (req) => {
       )
     }
 
+    // Build tags array - always include OASARA, add custom tags if provided
+    const baseTags = ['OASARA']
+    const allTags = customTags && Array.isArray(customTags)
+      ? [...baseTags, ...customTags]
+      : [...baseTags, 'EarlyAccess', 'Website']
+
     // Subscribe to Mailchimp with OASARA tags
     const mailchimpUrl = `https://${MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com/3.0/lists/${MAILCHIMP_LIST_ID}/members`
 
@@ -52,7 +58,7 @@ serve(async (req) => {
       merge_fields: {
         FNAME: name?.trim() || '',
       },
-      tags: ['OASARA', 'EarlyAccess', 'Website'], // OASARA-specific tags
+      tags: allTags,
     }
 
     const mailchimpResponse = await fetch(mailchimpUrl, {
@@ -78,21 +84,24 @@ serve(async (req) => {
         { status: 200, headers: responseHeaders }
       )
     } else if (responseData.title === 'Member Exists') {
-      // If member exists, update their tags to include OASARA
-      const updateUrl = `https://${MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com/3.0/lists/${MAILCHIMP_LIST_ID}/members/${btoa(email.toLowerCase().trim())}`
+      // If member exists, update their tags to include OASARA and custom tags
+      // Use tags endpoint for adding tags to existing member
+      const emailHash = await crypto.subtle.digest('MD5', new TextEncoder().encode(email.toLowerCase().trim()))
+        .then(hash => Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join(''))
 
-      const updateResponse = await fetch(updateUrl, {
-        method: 'PATCH',
+      const tagsUrl = `https://${MAILCHIMP_SERVER_PREFIX}.api.mailchimp.com/3.0/lists/${MAILCHIMP_LIST_ID}/members/${emailHash}/tags`
+
+      // Build tag objects for update
+      const tagObjects = allTags.map(tag => ({ name: tag, status: 'active' }))
+
+      const updateResponse = await fetch(tagsUrl, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${MAILCHIMP_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          tags: [
-            { name: 'OASARA', status: 'active' },
-            { name: 'EarlyAccess', status: 'active' },
-            { name: 'Website', status: 'active' }
-          ]
+          tags: tagObjects
         }),
       })
 

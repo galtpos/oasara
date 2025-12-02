@@ -56,50 +56,50 @@ const WhyLeaveTab: React.FC = () => {
     <div className="space-y-12">
       {/* Section 1: The Price Scandal */}
       <section>
-        <h2 className="text-3xl font-serif text-[#D4AF37] mb-6">The Price Scandal Exposed</h2>
+        <h2 className="text-3xl font-display text-gold-600 mb-6">The Price Scandal Exposed</h2>
 
         {/* The Chargemaster Secret */}
-        <div className="bg-gradient-to-br from-[#0B697A]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20 mb-8">
-          <h3 className="text-2xl font-serif text-[#D97925] mb-4">The Chargemaster Secret</h3>
-          <p className="text-[#FFF8F0]/80 mb-6 leading-relaxed">
+        <div className="bg-gradient-to-br from-ocean-600/10 to-transparent p-8 rounded-lg border border-gold-500/20 mb-8">
+          <h3 className="text-2xl font-display text-gold-500 mb-4">The Chargemaster Secret</h3>
+          <p className="text-ocean-700/80 mb-6 leading-relaxed">
             Every hospital in America operates with a hidden price list called the "chargemaster" - a document that was
             literally illegal to share with patients until 2021. Even now, 95% of hospitals refuse to post real prices,
             choosing to pay the $300 daily fine rather than reveal their markups.
           </p>
 
-          <h4 className="text-xl text-[#D4AF37] mb-4">Real Chargemaster Examples (2024 data)</h4>
+          <h4 className="text-xl text-gold-600 mb-4">Real Chargemaster Examples (2024 data)</h4>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#D4AF37]/30">
-                  <th className="text-left py-3 px-4 text-[#D4AF37]">Item</th>
-                  <th className="text-right py-3 px-4 text-[#D4AF37]">Hospital Charge</th>
-                  <th className="text-right py-3 px-4 text-[#D4AF37]">Actual Cost</th>
-                  <th className="text-right py-3 px-4 text-[#D4AF37]">Markup</th>
+                <tr className="border-b border-gold-500/30">
+                  <th className="text-left py-3 px-4 text-gold-600">Item</th>
+                  <th className="text-right py-3 px-4 text-gold-600">Hospital Charge</th>
+                  <th className="text-right py-3 px-4 text-gold-600">Actual Cost</th>
+                  <th className="text-right py-3 px-4 text-gold-600">Markup</th>
                 </tr>
               </thead>
               <tbody>
                 {chargemasterExamples.map((item, index) => (
-                  <tr key={index} className="border-b border-[#D4AF37]/10 hover:bg-[#D97925]/10 transition-colors">
-                    <td className="py-3 px-4 text-[#FFF8F0]">{item.item}</td>
-                    <td className="py-3 px-4 text-right text-red-400 font-bold">{item.hospital}</td>
-                    <td className="py-3 px-4 text-right text-green-400">{item.actual}</td>
-                    <td className="py-3 px-4 text-right text-[#D97925] font-bold">{item.markup}</td>
+                  <tr key={index} className="border-b border-gold-500/10 hover:bg-gold-500/10 transition-colors">
+                    <td className="py-3 px-4 text-ocean-700">{item.item}</td>
+                    <td className="py-3 px-4 text-right text-red-500 font-bold">{item.hospital}</td>
+                    <td className="py-3 px-4 text-right text-green-600">{item.actual}</td>
+                    <td className="py-3 px-4 text-right text-gold-600 font-bold">{item.markup}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
 
-          <p className="text-xs text-[#FFF8F0]/50 mt-4">
+          <p className="text-xs text-ocean-600/50 mt-4">
             Source: RAND Corporation Hospital Pricing Study 2019-2024, CMS Hospital Price Transparency Data
           </p>
         </div>
 
         {/* Device Markup Conspiracy */}
-        <div className="bg-gradient-to-br from-[#C17754]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20 mb-8">
-          <h3 className="text-2xl font-serif text-[#D97925] mb-4">The Device Markup Conspiracy</h3>
-          <p className="text-[#FFF8F0]/80 mb-6">
+        <div className="bg-gradient-to-br from-sage-300/30 to-transparent p-8 rounded-lg border border-gold-500/20 mb-8">
+          <h3 className="text-2xl font-display text-gold-500 mb-4">The Device Markup Conspiracy</h3>
+          <p className="text-ocean-700/80 mb-6">
             The Medtronic hip implant manufactured in Ireland costs:
           </p>
 
@@ -113,43 +113,43 @@ const WhyLeaveTab: React.FC = () => {
                 className={`p-4 rounded-lg text-center ${
                   index === 3
                     ? 'bg-red-500/20 border-2 border-red-500'
-                    : 'bg-[#0B697A]/20 border border-[#D4AF37]/20'
+                    : 'bg-ocean-600/10 border border-gold-500/20'
                 }`}
               >
-                <div className="text-[#D4AF37] font-bold mb-2">{item.location}</div>
-                <div className={`text-2xl font-bold ${index === 3 ? 'text-red-400' : 'text-[#FFF8F0]'}`}>
+                <div className="text-gold-600 font-bold mb-2">{item.location}</div>
+                <div className={`text-2xl font-bold ${index === 3 ? 'text-red-500' : 'text-ocean-700'}`}>
                   {item.cost}
                 </div>
               </motion.div>
             ))}
           </div>
 
-          <p className="text-[#D97925] font-bold text-center text-lg">
+          <p className="text-gold-600 font-bold text-center text-lg">
             Same factory. Same serial number. Same device.
           </p>
         </div>
 
         {/* Insurance Makes It Worse */}
-        <div className="bg-gradient-to-br from-[#D97925]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20">
-          <h3 className="text-2xl font-serif text-[#D97925] mb-4">Insurance Makes It Worse</h3>
-          <p className="text-[#FFF8F0]/80 mb-6 leading-relaxed">
+        <div className="bg-gradient-to-br from-gold-500/10 to-transparent p-8 rounded-lg border border-gold-500/20">
+          <h3 className="text-2xl font-display text-gold-500 mb-4">Insurance Makes It Worse</h3>
+          <p className="text-ocean-700/80 mb-6 leading-relaxed">
             The Affordable Care Act's 80/20 rule means insurance companies keep 20% of all healthcare spending as profit.
             Higher hospital prices = higher insurance profits. They're not negotiating prices down - they're partners in the markup.
           </p>
 
-          <h4 className="text-xl text-[#D4AF37] mb-4">Real Insurance vs Cash Prices (2024)</h4>
+          <h4 className="text-xl text-gold-600 mb-4">Real Insurance vs Cash Prices (2024)</h4>
           <div className="space-y-4">
             {insuranceVsCash.map((item, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-[#0A0A0A]/50 rounded-lg">
-                <span className="text-[#FFF8F0] font-bold">{item.procedure}</span>
+              <div key={index} className="flex items-center justify-between p-4 bg-white/80 rounded-lg border border-sage-200">
+                <span className="text-ocean-700 font-bold">{item.procedure}</span>
                 <div className="flex gap-4">
                   <div className="text-right">
-                    <div className="text-xs text-[#FFF8F0]/50">Insurance Billed</div>
-                    <div className="text-red-400 font-bold">{item.insurance}</div>
+                    <div className="text-xs text-ocean-600/50">Insurance Billed</div>
+                    <div className="text-red-500 font-bold">{item.insurance}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-[#FFF8F0]/50">Cash Price</div>
-                    <div className="text-green-400 font-bold">{item.cash}</div>
+                    <div className="text-xs text-ocean-600/50">Cash Price</div>
+                    <div className="text-green-600 font-bold">{item.cash}</div>
                   </div>
                 </div>
               </div>
@@ -160,69 +160,69 @@ const WhyLeaveTab: React.FC = () => {
 
       {/* Section 2: The Bankruptcy Epidemic */}
       <section>
-        <h2 className="text-3xl font-serif text-[#D4AF37] mb-6">The Bankruptcy Epidemic</h2>
+        <h2 className="text-3xl font-display text-gold-600 mb-6">The Bankruptcy Epidemic</h2>
 
-        <div className="bg-gradient-to-r from-red-900/30 to-red-700/20 p-8 rounded-lg border-2 border-red-500/50 mb-8">
-          <h3 className="text-2xl font-serif text-red-400 mb-4 text-center">Live Bankruptcy Counter</h3>
+        <div className="bg-gradient-to-r from-red-100 to-red-50 p-8 rounded-lg border-2 border-red-500/50 mb-8">
+          <h3 className="text-2xl font-display text-red-600 mb-4 text-center">Live Bankruptcy Counter</h3>
           <div className="text-center">
-            <div className="text-6xl font-bold text-red-400 mb-2">{bankruptciesCount}</div>
-            <div className="text-[#FFF8F0]/80">Families filed for medical bankruptcy since you opened this page</div>
-            <div className="text-sm text-[#FFF8F0]/50 mt-4">
+            <div className="text-6xl font-bold text-red-600 mb-2">{bankruptciesCount}</div>
+            <div className="text-ocean-700/80">Families filed for medical bankruptcy since you opened this page</div>
+            <div className="text-sm text-ocean-600/50 mt-4">
               530,000 families per year = 1,452 per day = 60 per hour = 1 every minute
             </div>
           </div>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-[#0B697A]/20 p-6 rounded-lg border border-[#D4AF37]/20">
-            <h4 className="text-xl text-[#D4AF37] mb-4">The Numbers That Matter</h4>
-            <ul className="space-y-3 text-[#FFF8F0]/80">
+          <div className="bg-ocean-600/10 p-6 rounded-lg border border-gold-500/20">
+            <h4 className="text-xl text-gold-600 mb-4">The Numbers That Matter</h4>
+            <ul className="space-y-3 text-ocean-700/80">
               <li className="flex items-start gap-2">
-                <span className="text-[#D97925] mt-1">•</span>
-                <span><strong className="text-[#D4AF37]">66.5%</strong> of all US bankruptcies are tied to medical issues</span>
+                <span className="text-gold-600 mt-1">•</span>
+                <span><strong className="text-gold-600">66.5%</strong> of all US bankruptcies are tied to medical issues</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#D97925] mt-1">•</span>
-                <span><strong className="text-[#D4AF37]">530,000</strong> families file annually due to medical bills</span>
+                <span className="text-gold-600 mt-1">•</span>
+                <span><strong className="text-gold-600">530,000</strong> families file annually due to medical bills</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#D97925] mt-1">•</span>
-                <span>Average medical debt at bankruptcy: <strong className="text-[#D4AF37]">$42,000</strong></span>
+                <span className="text-gold-600 mt-1">•</span>
+                <span>Average medical debt at bankruptcy: <strong className="text-gold-600">$42,000</strong></span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#D97925] mt-1">•</span>
-                <span><strong className="text-red-400">78% HAD health insurance</strong> when treatment began</span>
+                <span className="text-gold-600 mt-1">•</span>
+                <span><strong className="text-red-500">78% HAD health insurance</strong> when treatment began</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-[#D97925] mt-1">•</span>
-                <span><strong className="text-[#D4AF37]">45,000</strong> Americans die annually from lack of health insurance (Harvard Medical School)</span>
+                <span className="text-gold-600 mt-1">•</span>
+                <span><strong className="text-gold-600">45,000</strong> Americans die annually from lack of health insurance (Harvard Medical School)</span>
               </li>
             </ul>
-            <p className="text-xs text-[#FFF8F0]/50 mt-4">Source: American Journal of Medicine, 2024</p>
+            <p className="text-xs text-ocean-600/50 mt-4">Source: American Journal of Medicine, 2024</p>
           </div>
 
-          <div className="bg-[#C17754]/20 p-6 rounded-lg border border-[#D4AF37]/20">
-            <h4 className="text-xl text-[#D4AF37] mb-4">Who Goes Bankrupt</h4>
-            <ul className="space-y-3 text-[#FFF8F0]/80">
+          <div className="bg-sage-200/50 p-6 rounded-lg border border-gold-500/20">
+            <h4 className="text-xl text-gold-600 mb-4">Who Goes Bankrupt</h4>
+            <ul className="space-y-3 text-ocean-700/80">
               <li className="flex items-center justify-between">
                 <span>Had health insurance</span>
-                <span className="text-[#D97925] font-bold">75%</span>
+                <span className="text-gold-600 font-bold">75%</span>
               </li>
               <li className="flex items-center justify-between">
                 <span>Had college education</span>
-                <span className="text-[#D97925] font-bold">62%</span>
+                <span className="text-gold-600 font-bold">62%</span>
               </li>
               <li className="flex items-center justify-between">
                 <span>Were homeowners</span>
-                <span className="text-[#D97925] font-bold">77%</span>
+                <span className="text-gold-600 font-bold">77%</span>
               </li>
               <li className="flex items-center justify-between">
                 <span>Median age</span>
-                <span className="text-[#D97925] font-bold">44.9 years</span>
+                <span className="text-gold-600 font-bold">44.9 years</span>
               </li>
               <li className="flex items-center justify-between">
                 <span>Had retirement savings wiped out</span>
-                <span className="text-red-400 font-bold">52%</span>
+                <span className="text-red-500 font-bold">52%</span>
               </li>
             </ul>
           </div>
@@ -231,12 +231,12 @@ const WhyLeaveTab: React.FC = () => {
 
       {/* Section 3: Quality Myth Shattered */}
       <section>
-        <h2 className="text-3xl font-serif text-[#D4AF37] mb-6">Quality Myth Shattered</h2>
+        <h2 className="text-3xl font-display text-gold-600 mb-6">Quality Myth Shattered</h2>
 
         {/* WHO Rankings */}
-        <div className="bg-gradient-to-br from-[#0B697A]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20 mb-8">
-          <h3 className="text-2xl font-serif text-[#D97925] mb-4">WHO Healthcare Rankings</h3>
-          <p className="text-[#FFF8F0]/80 mb-6">World Health Organization Global Rankings:</p>
+        <div className="bg-gradient-to-br from-ocean-600/10 to-transparent p-8 rounded-lg border border-gold-500/20 mb-8">
+          <h3 className="text-2xl font-display text-gold-500 mb-4">WHO Healthcare Rankings</h3>
+          <p className="text-ocean-700/80 mb-6">World Health Organization Global Rankings:</p>
 
           <div className="grid md:grid-cols-3 gap-4">
             {qualityRankings.map((item) => (
@@ -245,21 +245,21 @@ const WhyLeaveTab: React.FC = () => {
                 className={`p-4 rounded-lg text-center ${
                   item.rank === 37
                     ? 'bg-red-500/20 border-2 border-red-500'
-                    : 'bg-[#0B697A]/20 border border-[#D4AF37]/20'
+                    : 'bg-ocean-600/10 border border-gold-500/20'
                 }`}
               >
                 <div className="text-4xl mb-2">{item.flag}</div>
-                <div className="text-[#D4AF37] font-bold">#{item.rank}</div>
-                <div className={`${item.rank === 37 ? 'text-red-400' : 'text-[#FFF8F0]'}`}>{item.country}</div>
+                <div className="text-gold-600 font-bold">#{item.rank}</div>
+                <div className={`${item.rank === 37 ? 'text-red-500' : 'text-ocean-700'}`}>{item.country}</div>
               </div>
             ))}
           </div>
         </div>
 
         {/* Infection Rates */}
-        <div className="bg-gradient-to-br from-[#C17754]/20 to-transparent p-8 rounded-lg border border-[#D4AF37]/20">
-          <h3 className="text-2xl font-serif text-[#D97925] mb-4">Surgical Site Infection Rates</h3>
-          <p className="text-[#FFF8F0]/80 mb-6">Lower is better:</p>
+        <div className="bg-gradient-to-br from-sage-300/30 to-transparent p-8 rounded-lg border border-gold-500/20">
+          <h3 className="text-2xl font-display text-gold-500 mb-4">Surgical Site Infection Rates</h3>
+          <p className="text-ocean-700/80 mb-6">Lower is better:</p>
 
           <div className="space-y-3">
             {infectionRates.map((item, index) => (
@@ -268,34 +268,34 @@ const WhyLeaveTab: React.FC = () => {
                 className={`flex items-center justify-between p-4 rounded-lg ${
                   item.highlight
                     ? 'bg-red-500/20 border-l-4 border-red-500'
-                    : 'bg-[#0B697A]/10 border-l-4 border-green-500'
+                    : 'bg-ocean-600/10 border-l-4 border-green-500'
                 }`}
               >
-                <span className={item.highlight ? 'text-red-400' : 'text-[#FFF8F0]'}>
+                <span className={item.highlight ? 'text-red-500' : 'text-ocean-700'}>
                   {item.facility}
                 </span>
-                <span className={`font-bold text-lg ${item.highlight ? 'text-red-400' : 'text-green-400'}`}>
+                <span className={`font-bold text-lg ${item.highlight ? 'text-red-500' : 'text-green-600'}`}>
                   {item.rate}
                 </span>
               </div>
             ))}
           </div>
 
-          <p className="text-xs text-[#FFF8F0]/50 mt-4">
+          <p className="text-xs text-ocean-600/50 mt-4">
             Source: Joint Commission International Quality Reports 2024, WHO Global Health Observatory
           </p>
         </div>
       </section>
 
       {/* Call to Action */}
-      <div className="bg-gradient-to-r from-[#D97925] to-[#D4AF37] p-8 rounded-lg text-center">
-        <h3 className="text-2xl font-serif text-white mb-4">Ready to Escape the US Healthcare System?</h3>
+      <div className="bg-gradient-to-r from-gold-400 to-gold-600 p-8 rounded-lg text-center">
+        <h3 className="text-2xl font-display text-white mb-4">Ready to Escape the US Healthcare System?</h3>
         <p className="text-white/90 mb-6">
           Search our 518 verified JCI-accredited facilities across 39 countries
         </p>
         <button
           onClick={() => window.location.href = '/'}
-          className="bg-white text-[#D97925] px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#FFF8F0] transition-colors"
+          className="bg-white text-gold-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-sage-50 transition-colors"
         >
           Search Facilities Now
         </button>

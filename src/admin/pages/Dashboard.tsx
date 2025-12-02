@@ -58,28 +58,28 @@ const Dashboard: React.FC = () => {
       title: 'Total Facilities',
       value: metrics?.facilities || 0,
       icon: '',
-      color: 'from-ignition-amber to-champagne-gold',
+      color: 'from-gold-400 to-gold-600',
       change: '+518 JCI-certified'
     },
     {
       title: 'Doctor Profiles',
       value: metrics?.doctors || 0,
       icon: '',
-      color: 'from-deep-teal to-ignition-amber',
+      color: 'from-ocean-500 to-gold-500',
       change: `${Math.round(((metrics?.doctors || 0) / (metrics?.facilities || 1)) * 100)}% enriched`
     },
     {
       title: 'Patient Testimonials',
       value: metrics?.testimonials || 0,
       icon: '',
-      color: 'from-champagne-gold to-warm-clay',
+      color: 'from-gold-500 to-sage-400',
       change: `${Math.round(((metrics?.testimonials || 0) / (metrics?.facilities || 1)) * 100)}% enriched`
     },
     {
       title: 'Procedure Prices',
       value: metrics?.pricing || 0,
       icon: '',
-      color: 'from-warm-clay to-deep-teal',
+      color: 'from-sage-400 to-ocean-600',
       change: `${Math.round(((metrics?.pricing || 0) / (metrics?.facilities || 1)) * 100)}% enriched`
     }
   ];
@@ -88,8 +88,8 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-3xl text-deep-teal mb-2">Dashboard</h1>
-        <p className="text-deep-teal/70">
+        <h1 className="font-display text-3xl text-ocean-600 mb-2">Dashboard</h1>
+        <p className="text-ocean-600/70">
           Welcome to the OASARA Admin Panel. Monitor data quality and manage your medical tourism marketplace.
         </p>
       </div>
@@ -98,7 +98,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white border border-warm-clay/20 shadow-sm rounded-xl p-6 shimmer h-32" />
+            <div key={i} className="bg-white border border-sage-200 shadow-sm rounded-xl p-6 shimmer h-32" />
           ))
         ) : (
           metricCards.map((card, index) => (
@@ -107,125 +107,125 @@ const Dashboard: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white border border-warm-clay/20 shadow-sm rounded-xl p-6 hover:scale-105 hover:shadow-md transition-all cursor-pointer"
+              className="bg-white border border-sage-200 shadow-sm rounded-xl p-6 hover:scale-105 hover:shadow-md transition-all cursor-pointer"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center shadow-md`}>
                   {getIconSvg(card.title)}
                 </div>
                 {card.change && (
-                  <span className="text-xs text-deep-teal/60 bg-ignition-amber/10 px-2 py-1 rounded">
+                  <span className="text-xs text-ocean-600/60 bg-gold-100 px-2 py-1 rounded">
                     {card.change}
                   </span>
                 )}
               </div>
-              <h3 className="text-sm text-deep-teal/60 mb-1">{card.title}</h3>
-              <p className="font-serif text-3xl text-deep-teal font-bold">{card.value.toLocaleString()}</p>
+              <h3 className="text-sm text-ocean-600/60 mb-1">{card.title}</h3>
+              <p className="font-display text-3xl text-ocean-700 font-bold">{card.value.toLocaleString()}</p>
             </motion.div>
           ))
         )}
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white border border-warm-clay/20 shadow-sm rounded-xl p-6">
-        <h2 className="font-serif text-xl text-deep-teal mb-4">Quick Actions</h2>
+      <div className="bg-white border border-sage-200 shadow-sm rounded-xl p-6">
+        <h2 className="font-display text-xl text-ocean-600 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <a
             href="/admin/facilities/new"
-            className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-ignition-amber/10 to-champagne-gold/10 border border-ignition-amber/30 rounded-lg hover:scale-105 hover:shadow-md transition-all"
+            className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-gold-50 to-gold-100 border border-gold-200 rounded-lg hover:scale-105 hover:shadow-md transition-all"
           >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-ignition-amber to-champagne-gold flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-sm">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </div>
             <div>
-              <p className="font-medium text-deep-teal">Add Facility</p>
-              <p className="text-xs text-deep-teal/60">Create new facility entry</p>
+              <p className="font-medium text-ocean-700">Add Facility</p>
+              <p className="text-xs text-ocean-600/60">Create new facility entry</p>
             </div>
           </a>
           <a
             href="/admin/facilities"
-            className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-deep-teal/10 to-ignition-amber/10 border border-deep-teal/30 rounded-lg hover:scale-105 hover:shadow-md transition-all"
+            className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-ocean-50 to-ocean-100 border border-ocean-200 rounded-lg hover:scale-105 hover:shadow-md transition-all"
           >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-deep-teal to-ignition-amber flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-ocean-500 to-ocean-600 flex items-center justify-center shadow-sm">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
             <div>
-              <p className="font-medium text-deep-teal">Manage Facilities</p>
-              <p className="text-xs text-deep-teal/60">Edit existing facilities</p>
+              <p className="font-medium text-ocean-700">Manage Facilities</p>
+              <p className="text-xs text-ocean-600/60">Edit existing facilities</p>
             </div>
           </a>
           <a
             href="/admin/tasks"
-            className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-champagne-gold/10 to-warm-clay/10 border border-warm-clay/30 rounded-lg hover:scale-105 hover:shadow-md transition-all"
+            className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-sage-50 to-sage-100 border border-sage-200 rounded-lg hover:scale-105 hover:shadow-md transition-all"
           >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-champagne-gold to-warm-clay flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-sage-400 to-sage-500 flex items-center justify-center shadow-sm">
               <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
               </svg>
             </div>
             <div>
-              <p className="font-medium text-deep-teal">View Tasks</p>
-              <p className="text-xs text-deep-teal/60">Manage pending tasks</p>
+              <p className="font-medium text-ocean-700">View Tasks</p>
+              <p className="text-xs text-ocean-600/60">Manage pending tasks</p>
             </div>
           </a>
         </div>
       </div>
 
       {/* Data Quality Overview */}
-      <div className="bg-white border border-warm-clay/20 shadow-sm rounded-xl p-6">
-        <h2 className="font-serif text-xl text-deep-teal mb-6">Data Quality Overview</h2>
+      <div className="bg-white border border-sage-200 shadow-sm rounded-xl p-6">
+        <h2 className="font-display text-xl text-ocean-600 mb-6">Data Quality Overview</h2>
         <div className="space-y-4">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-deep-teal/80">Facilities with Doctors</span>
-              <span className="text-sm font-medium text-deep-teal">
+              <span className="text-sm text-ocean-700/80">Facilities with Doctors</span>
+              <span className="text-sm font-medium text-ocean-700">
                 {metrics ? Math.round(((metrics.doctors || 0) / (metrics.facilities || 1)) * 100) : 0}%
               </span>
             </div>
-            <div className="h-2 bg-cream/50 rounded-full overflow-hidden">
+            <div className="h-2 bg-sage-100 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${metrics ? Math.round(((metrics.doctors || 0) / (metrics.facilities || 1)) * 100) : 0}%` }}
                 transition={{ duration: 1, delay: 0.5 }}
-                className="h-full bg-gradient-to-r from-ignition-amber to-champagne-gold"
+                className="h-full bg-gradient-to-r from-gold-400 to-gold-600"
               />
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-deep-teal/80">Facilities with Testimonials</span>
-              <span className="text-sm font-medium text-deep-teal">
+              <span className="text-sm text-ocean-700/80">Facilities with Testimonials</span>
+              <span className="text-sm font-medium text-ocean-700">
                 {metrics ? Math.round(((metrics.testimonials || 0) / (metrics.facilities || 1)) * 100) : 0}%
               </span>
             </div>
-            <div className="h-2 bg-cream/50 rounded-full overflow-hidden">
+            <div className="h-2 bg-sage-100 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${metrics ? Math.round(((metrics.testimonials || 0) / (metrics.facilities || 1)) * 100) : 0}%` }}
                 transition={{ duration: 1, delay: 0.7 }}
-                className="h-full bg-gradient-to-r from-deep-teal to-ignition-amber"
+                className="h-full bg-gradient-to-r from-ocean-400 to-ocean-600"
               />
             </div>
           </div>
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-deep-teal/80">Facilities with Pricing</span>
-              <span className="text-sm font-medium text-deep-teal">
+              <span className="text-sm text-ocean-700/80">Facilities with Pricing</span>
+              <span className="text-sm font-medium text-ocean-700">
                 {metrics ? Math.round(((metrics.pricing || 0) / (metrics.facilities || 1)) * 100) : 0}%
               </span>
             </div>
-            <div className="h-2 bg-cream/50 rounded-full overflow-hidden">
+            <div className="h-2 bg-sage-100 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${metrics ? Math.round(((metrics.pricing || 0) / (metrics.facilities || 1)) * 100) : 0}%` }}
                 transition={{ duration: 1, delay: 0.9 }}
-                className="h-full bg-gradient-to-r from-champagne-gold to-warm-clay"
+                className="h-full bg-gradient-to-r from-sage-400 to-sage-500"
               />
             </div>
           </div>
@@ -233,30 +233,30 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* System Status */}
-      <div className="bg-white border border-warm-clay/20 shadow-sm rounded-xl p-6">
+      <div className="bg-white border border-sage-200 shadow-sm rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-serif text-xl text-deep-teal">System Status</h2>
+          <h2 className="font-display text-xl text-ocean-600">System Status</h2>
           <span className="flex items-center gap-2 text-sm text-green-600">
             <span className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span>
             All systems operational
           </span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-cream/30 rounded-lg">
-            <p className="text-2xl font-bold text-deep-teal">{metrics?.facilities || 0}</p>
-            <p className="text-xs text-deep-teal/60 mt-1">Total Facilities</p>
+          <div className="text-center p-3 bg-sage-50 rounded-lg">
+            <p className="text-2xl font-bold text-ocean-700">{metrics?.facilities || 0}</p>
+            <p className="text-xs text-ocean-600/60 mt-1">Total Facilities</p>
           </div>
-          <div className="text-center p-3 bg-cream/30 rounded-lg">
-            <p className="text-2xl font-bold text-deep-teal">{metrics?.doctors || 0}</p>
-            <p className="text-xs text-deep-teal/60 mt-1">Doctor Profiles</p>
+          <div className="text-center p-3 bg-sage-50 rounded-lg">
+            <p className="text-2xl font-bold text-ocean-700">{metrics?.doctors || 0}</p>
+            <p className="text-xs text-ocean-600/60 mt-1">Doctor Profiles</p>
           </div>
-          <div className="text-center p-3 bg-cream/30 rounded-lg">
-            <p className="text-2xl font-bold text-deep-teal">{metrics?.testimonials || 0}</p>
-            <p className="text-xs text-deep-teal/60 mt-1">Testimonials</p>
+          <div className="text-center p-3 bg-sage-50 rounded-lg">
+            <p className="text-2xl font-bold text-ocean-700">{metrics?.testimonials || 0}</p>
+            <p className="text-xs text-ocean-600/60 mt-1">Testimonials</p>
           </div>
-          <div className="text-center p-3 bg-cream/30 rounded-lg">
-            <p className="text-2xl font-bold text-deep-teal">{metrics?.pricing || 0}</p>
-            <p className="text-xs text-deep-teal/60 mt-1">Price Entries</p>
+          <div className="text-center p-3 bg-sage-50 rounded-lg">
+            <p className="text-2xl font-bold text-ocean-700">{metrics?.pricing || 0}</p>
+            <p className="text-xs text-ocean-600/60 mt-1">Price Entries</p>
           </div>
         </div>
       </div>

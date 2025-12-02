@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OASARA - Gold + Seaglass Variations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #FFFFFF;
+      color: #1A2F28;
+      padding: 40px;
+      min-height: 100vh;
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      margin-bottom: 10px;
+      text-align: center;
+      font-weight: 700;
+      color: #2D5A47;
+      letter-spacing: 3px;
+    }
+    .subtitle { text-align: center; color: #4A6358; margin-bottom: 50px; font-weight: 500; }
+
+    .mockup-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 50px;
+    }
+
+    .mockup-full {
+      border-radius: 4px;
+      overflow: hidden;
+      background: #FFFFFF;
+      border: 1px solid #D1DDD6;
+      box-shadow: 0 20px 60px rgba(45, 90, 71, 0.1);
+      position: relative;
+    }
+
+    .mockup-header {
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+    }
+
+    .logo {
+      font-family: 'Cinzel', serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: 8px;
+      background: linear-gradient(180deg, #D4B86A 0%, #A67C00 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .mockup-nav {
+      display: flex;
+      gap: 32px;
+      font-size: 0.85rem;
+    }
+    .mockup-nav a {
+      text-decoration: none;
+      color: #2D5A47;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 48px;
+      padding: 24px 40px;
+      color: #FFFFFF;
+      align-items: center;
+    }
+    .stat {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 28px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 4px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    .stat-num {
+      font-family: 'Cinzel', serif;
+      font-size: 2.6rem;
+      font-weight: 900;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .mockup-content {
+      padding: 40px;
+      background: #FAFBFA;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+    }
+
+    .hero-section h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #1A2F28;
+      line-height: 1.2;
+    }
+    .hero-section p {
+      font-size: 1rem;
+      color: #4A6358;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      border-radius: 3px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-decoration: none;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      border: none;
+      background: linear-gradient(180deg, #D4B86A 0%, #B8923A 100%);
+      color: #1A1A1A;
+      box-shadow: 0 4px 0 #8B6914, 0 6px 16px rgba(139, 105, 20, 0.3);
+    }
+
+    .facility-card {
+      border-radius: 4px;
+      padding: 16px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      background: #FFFFFF;
+      border: 2px solid #D1DDD6;
+      margin-bottom: 12px;
+    }
+
+    .facility-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: white;
+    }
+
+    .facility-info h4 { font-weight: 700; font-size: 0.95rem; color: #1A2F28; }
+    .facility-info p { font-size: 0.8rem; color: #4A6358; }
+
+    .variant-label {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      padding: 8px 16px;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: #2D5A47;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* VARIANT A - Original Seaglass */
+    .var-a .mockup-header { border-bottom: 3px solid #7EB2A8; }
+    .var-a .stats-bar { background: #5A9A8E; }
+    .var-a .stat-num { color: #FFE9A0; }
+    .var-a .facility-icon { background: linear-gradient(135deg, #7EB2A8, #5A9A8E); }
+
+    /* VARIANT B - Deep Teal */
+    .var-b .mockup-header { border-bottom: 3px solid #458577; }
+    .var-b .stats-bar { background: #2D5A47; }
+    .var-b .stat-num { color: #F5D77A; }
+    .var-b .facility-icon { background: linear-gradient(135deg, #458577, #2D5A47); }
+
+    /* VARIANT C - Ocean Blue */
+    .var-c .mockup-header { border-bottom: 3px solid #5B9AA0; }
+    .var-c .stats-bar { background: #2A6B72; }
+    .var-c .stat-num { color: #FFD966; }
+    .var-c .facility-icon { background: linear-gradient(135deg, #5B9AA0, #2A6B72); }
+
+    /* VARIANT D - Slate Teal */
+    .var-d .mockup-header { border-bottom: 3px solid #6B9A95; }
+    .var-d .stats-bar { background: linear-gradient(135deg, #3D6B63 0%, #2D5247 100%); }
+    .var-d .stat-num { color: #FFE5A0; }
+    .var-d .facility-icon { background: linear-gradient(135deg, #6B9A95, #4A7A72); }
+
+    .instructions {
+      text-align: center;
+      padding: 40px;
+      background: #E8F0EC;
+      border: 2px solid #C5D9CF;
+      border-radius: 4px;
+      margin-top: 50px;
+    }
+    .instructions h3 {
+      margin-bottom: 16px;
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #2D5A47;
+      letter-spacing: 2px;
+    }
+    .instructions p {
+      color: #4A6358;
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <h1>GOLD ACCENT + SEAGLASS VARIATIONS</h1>
+  <p class="subtitle">Same gold branding, different teal/seaglass backgrounds</p>
+
+  <div class="mockup-stack">
+
+    <!-- VARIANT A - Original Seaglass -->
+    <div class="mockup-full var-a">
+      <div class="variant-label">A: Light Seaglass</div>
+      <div class="mockup-header">
+        <div class="logo">OASARA</div>
+        <div class="mockup-nav">
+          <a href="#">Facilities</a>
+          <a href="#">Why Zano?</a>
+          <a href="#">Guide</a>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat"><span class="stat-num">518</span><span class="stat-label">Facilities</span></div>
+        <div class="stat"><span class="stat-num">39</span><span class="stat-label">Countries</span></div>
+      </div>
+      <div class="mockup-content">
+        <div class="hero-section">
+          <h2>Your Oasis for Medical Sovereignty</h2>
+          <p>Discover world-class healthcare facilities across 39 countries.</p>
+          <button class="btn">Explore Facilities</button>
+        </div>
+        <div>
+          <div class="facility-card">
+            <div class="facility-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </div>
+            <div class="facility-info">
+              <h4>Apollo Hospitals</h4>
+              <p>New Delhi, India</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT B - Deep Teal -->
+    <div class="mockup-full var-b">
+      <div class="variant-label">B: Deep Sage</div>
+      <div class="mockup-header">
+        <div class="logo">OASARA</div>
+        <div class="mockup-nav">
+          <a href="#">Facilities</a>
+          <a href="#">Why Zano?</a>
+          <a href="#">Guide</a>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat"><span class="stat-num">518</span><span class="stat-label">Facilities</span></div>
+        <div class="stat"><span class="stat-num">39</span><span class="stat-label">Countries</span></div>
+      </div>
+      <div class="mockup-content">
+        <div class="hero-section">
+          <h2>Your Oasis for Medical Sovereignty</h2>
+          <p>Discover world-class healthcare facilities across 39 countries.</p>
+          <button class="btn">Explore Facilities</button>
+        </div>
+        <div>
+          <div class="facility-card">
+            <div class="facility-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </div>
+            <div class="facility-info">
+              <h4>Apollo Hospitals</h4>
+              <p>New Delhi, India</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT C - Ocean Blue -->
+    <div class="mockup-full var-c">
+      <div class="variant-label">C: Ocean Teal</div>
+      <div class="mockup-header">
+        <div class="logo">OASARA</div>
+        <div class="mockup-nav">
+          <a href="#">Facilities</a>
+          <a href="#">Why Zano?</a>
+          <a href="#">Guide</a>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat"><span class="stat-num">518</span><span class="stat-label">Facilities</span></div>
+        <div class="stat"><span class="stat-num">39</span><span class="stat-label">Countries</span></div>
+      </div>
+      <div class="mockup-content">
+        <div class="hero-section">
+          <h2>Your Oasis for Medical Sovereignty</h2>
+          <p>Discover world-class healthcare facilities across 39 countries.</p>
+          <button class="btn">Explore Facilities</button>
+        </div>
+        <div>
+          <div class="facility-card">
+            <div class="facility-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </div>
+            <div class="facility-info">
+              <h4>Apollo Hospitals</h4>
+              <p>New Delhi, India</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VARIANT D - Slate Teal Gradient -->
+    <div class="mockup-full var-d">
+      <div class="variant-label">D: Sage Gradient</div>
+      <div class="mockup-header">
+        <div class="logo">OASARA</div>
+        <div class="mockup-nav">
+          <a href="#">Facilities</a>
+          <a href="#">Why Zano?</a>
+          <a href="#">Guide</a>
+        </div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat"><span class="stat-num">518</span><span class="stat-label">Facilities</span></div>
+        <div class="stat"><span class="stat-num">39</span><span class="stat-label">Countries</span></div>
+      </div>
+      <div class="mockup-content">
+        <div class="hero-section">
+          <h2>Your Oasis for Medical Sovereignty</h2>
+          <p>Discover world-class healthcare facilities across 39 countries.</p>
+          <button class="btn">Explore Facilities</button>
+        </div>
+        <div>
+          <div class="facility-card">
+            <div class="facility-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </div>
+            <div class="facility-info">
+              <h4>Apollo Hospitals</h4>
+              <p>New Delhi, India</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="instructions">
+    <h3>GOLD + SEAGLASS VARIATIONS</h3>
+    <p><strong>A: Light Seaglass</strong> (#5A9A8E) - bright, airy | <strong>B: Deep Sage</strong> (#2D5A47) - rich, grounded | <strong>C: Ocean Teal</strong> (#2A6B72) - cooler, more blue | <strong>D: Sage Gradient</strong> - dimensional depth</p>
+  </div>
+</body>
+</html>

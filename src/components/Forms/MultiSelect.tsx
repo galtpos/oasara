@@ -55,12 +55,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
   return (
     <div ref={wrapperRef} className="relative">
-      <label className="block text-sm text-cream/80 mb-2">{label}</label>
+      <label className="block text-sm text-ocean-700/80 mb-2">{label}</label>
 
       {/* Selected Items */}
-      <div className="flex flex-wrap gap-2 mb-2 min-h-[40px] p-2 bg-dark-base/50 border border-cream/20 rounded-lg">
+      <div className="flex flex-wrap gap-2 mb-2 min-h-[40px] p-2 bg-sage-50 border border-sage-200 rounded-lg">
         {selected.length === 0 ? (
-          <span className="text-cream/40 text-sm self-center">{placeholder}</span>
+          <span className="text-ocean-400/60 text-sm self-center">{placeholder}</span>
         ) : (
           selected.map(item => (
             <motion.span
@@ -68,7 +68,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
-              className="px-3 py-1 bg-gradient-to-r from-ignition-amber/20 to-champagne-gold/20 text-champagne-gold text-sm rounded-lg border border-champagne-gold/30 flex items-center gap-2"
+              className="px-3 py-1 bg-gradient-to-r from-gold-100 to-gold-200 text-gold-700 text-sm rounded-lg border border-gold-300 flex items-center gap-2"
             >
               {item}
               <button
@@ -86,7 +86,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 bg-dark-base/50 border border-cream/20 rounded-lg text-cream text-left hover:border-champagne-gold transition-colors flex items-center justify-between"
+        className="w-full px-4 py-2 bg-sage-50 border border-sage-200 rounded-lg text-ocean-700 text-left hover:border-ocean-400 transition-colors flex items-center justify-between"
       >
         <span className="text-sm">
           {selected.length > 0 ? `${selected.length} selected` : 'Select options'}
@@ -108,22 +108,22 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="absolute z-50 w-full mt-2 glass-morphism rounded-lg border border-champagne-gold/20 overflow-hidden shadow-xl"
+            className="absolute z-50 w-full mt-2 bg-white rounded-lg border border-sage-200 overflow-hidden shadow-xl"
           >
             {/* Search */}
-            <div className="p-3 border-b border-cream/10">
+            <div className="p-3 border-b border-sage-200">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search or add custom..."
-                className="w-full px-3 py-2 bg-dark-base/50 border border-cream/20 rounded-lg text-cream placeholder-cream/40 text-sm focus:outline-none focus:border-champagne-gold transition-colors"
+                className="w-full px-3 py-2 bg-sage-50 border border-sage-200 rounded-lg text-ocean-700 placeholder-ocean-400/60 text-sm focus:outline-none focus:border-ocean-400 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               />
               {allowCustom && searchQuery && !options.includes(searchQuery) && (
                 <button
                   onClick={handleAddCustom}
-                  className="w-full mt-2 px-3 py-2 bg-ignition-amber/20 text-ignition-amber rounded-lg hover:bg-ignition-amber/30 transition-colors text-sm"
+                  className="w-full mt-2 px-3 py-2 bg-gold-100 text-gold-700 rounded-lg hover:bg-gold-200 transition-colors text-sm"
                 >
                   + Add "{searchQuery}"
                 </button>
@@ -133,7 +133,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             {/* Options List */}
             <div className="max-h-60 overflow-y-auto">
               {filteredOptions.length === 0 ? (
-                <div className="p-4 text-center text-cream/40 text-sm">
+                <div className="p-4 text-center text-ocean-400/60 text-sm">
                   {searchQuery ? 'No matches found' : 'All options selected'}
                 </div>
               ) : (
@@ -145,11 +145,11 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                       handleToggle(option);
                       setSearchQuery('');
                     }}
-                    className="w-full px-4 py-2 text-left text-sm text-cream/80 hover:text-cream hover:bg-cream/10 transition-colors flex items-center justify-between"
+                    className="w-full px-4 py-2 text-left text-sm text-ocean-600 hover:text-ocean-700 hover:bg-sage-50 transition-colors flex items-center justify-between"
                   >
                     <span>{option}</span>
                     {selected.includes(option) && (
-                      <svg className="w-4 h-4 text-champagne-gold" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-gold-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     )}
@@ -159,7 +159,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             </div>
 
             {/* Footer */}
-            <div className="p-3 border-t border-cream/10 flex items-center justify-between text-xs text-cream/60">
+            <div className="p-3 border-t border-sage-200 flex items-center justify-between text-xs text-ocean-500/60">
               <span>{selected.length} selected</span>
               {selected.length > 0 && (
                 <button

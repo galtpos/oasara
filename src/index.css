@@ -1,137 +1,240 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Open+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ============================================
+   OASARA Brand System - Ocean Teal & Gold
+   ============================================
+   Primary: Ocean Teal (#2A6B72) - trust, calm, healthcare
+   Accent: Gold (#D4B86A) - premium, action, emphasis
+   Typography: Cinzel (display), Inter (body)
+   ============================================ */
+
 @layer base {
   body {
-    background: #FFF8F0 !important; /* Cream - warm oasis background */
-    @apply text-deep-teal antialiased;
-    font-family: 'Open Sans', sans-serif;
+    background: #FFFFFF;
+    @apply text-sage-700 antialiased;
+    font-family: 'Inter', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
-    @apply text-deep-teal;
+    font-family: 'Cinzel', serif;
+    @apply text-sage-800 font-bold tracking-wide;
+  }
+}
+
+@layer components {
+  /* ============================================
+     LOGO - Gold Gradient
+     ============================================ */
+  .logo-gradient {
+    font-family: 'Cinzel', serif;
+    font-weight: 800;
+    letter-spacing: 0.5em;
+    background: linear-gradient(180deg, #D4B86A 0%, #A67C00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* ============================================
+     STATS BAR - Ocean Teal with Glass Pills
+     ============================================ */
+  .stats-bar {
+    background: #2A6B72;
+    @apply flex gap-12 py-5 px-10;
+  }
+
+  .stat-pill {
+    @apply flex items-center gap-3 py-3 px-6 rounded;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+  }
+
+  .stat-number {
+    font-family: 'Cinzel', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #FFD966;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    line-height: 1;
+  }
+
+  .stat-label {
+    @apply text-white font-bold uppercase tracking-widest text-sm;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  }
+
+  /* ============================================
+     BUTTONS - Gold with Hard Shadow
+     ============================================ */
+  .btn-gold {
+    @apply inline-block py-3.5 px-8 rounded font-bold uppercase tracking-widest text-sm;
+    background: linear-gradient(180deg, #D4B86A 0%, #B8923A 100%);
+    color: #1A1A1A;
+    box-shadow: 0 4px 0 #8B6914, 0 6px 16px rgba(139, 105, 20, 0.3);
+    transition: all 0.15s ease;
+  }
+
+  .btn-gold:hover {
+    box-shadow: 0 2px 0 #8B6914, 0 4px 12px rgba(139, 105, 20, 0.4);
+    transform: translateY(2px);
+  }
+
+  .btn-gold:active {
+    box-shadow: 0 0 0 #8B6914, 0 2px 8px rgba(139, 105, 20, 0.4);
+    transform: translateY(4px);
+  }
+
+  /* Legacy gradient-cta compatibility */
+  .gradient-cta {
+    @apply btn-gold;
+  }
+
+  /* ============================================
+     CARDS - Clean with Ocean Border Hover
+     ============================================ */
+  .card {
+    @apply bg-white rounded p-4;
+    border: 2px solid #D1DDD6;
+    transition: all 0.2s ease;
+  }
+
+  .card:hover {
+    border-color: #5B9AA0;
+    box-shadow: 0 8px 24px rgba(42, 107, 114, 0.12);
+    transform: translateY(-2px);
+  }
+
+  /* Glass morphism - legacy compatibility */
+  .glass-morphism {
+    @apply bg-white/95 backdrop-blur-sm rounded-lg;
+    border: 1px solid rgba(42, 107, 114, 0.15);
+    box-shadow: 0 4px 16px rgba(42, 107, 114, 0.08);
+  }
+
+  .glass-morphism:hover {
+    @apply bg-white;
+    border-color: rgba(42, 107, 114, 0.3);
+    box-shadow: 0 8px 24px rgba(42, 107, 114, 0.12);
+  }
+
+  /* ============================================
+     NAV LINKS
+     ============================================ */
+  .nav-link {
+    @apply text-sage-600 font-semibold uppercase tracking-wider text-sm;
+    transition: color 0.2s ease;
+  }
+
+  .nav-link:hover {
+    color: #D4B86A;
+  }
+
+  /* ============================================
+     FACILITY ICON BADGE
+     ============================================ */
+  .icon-badge {
+    @apply w-12 h-12 rounded flex items-center justify-center text-white;
+    background: linear-gradient(135deg, #5B9AA0, #2A6B72);
   }
 }
 
 @layer utilities {
-  .glass-morphism {
-    background: rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(193, 119, 84, 0.15) !important;
-    box-shadow: 0 2px 8px rgba(193, 119, 84, 0.1) !important;
-  }
-
-  .glass-morphism-hover {
-    @apply glass-morphism transition-all duration-300;
-  }
-
-  .glass-morphism-hover:hover {
-    background: rgba(255, 255, 255, 1) !important;
-    border-color: rgba(217, 121, 37, 0.3);
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(217, 121, 37, 0.15) !important;
-  }
-
-  .gradient-cta {
-    background: linear-gradient(135deg, #D97925 0%, #D4AF37 100%);
-    transition: all 0.3s ease;
-  }
-
-  .gradient-cta:hover {
-    background: linear-gradient(135deg, #D4AF37 0%, #D97925 100%);
-    transform: scale(0.98);
-  }
-
+  /* Shimmer loading effect */
   .shimmer {
     background: linear-gradient(
       90deg,
-      rgba(217, 121, 37, 0.1) 0%,
-      rgba(217, 121, 37, 0.3) 50%,
-      rgba(217, 121, 37, 0.1) 100%
+      rgba(42, 107, 114, 0.1) 0%,
+      rgba(42, 107, 114, 0.2) 50%,
+      rgba(42, 107, 114, 0.1) 100%
     );
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
   }
 
   @keyframes shimmer {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Price emphasis */
+  .price-highlight {
+    color: #D4B86A;
+    font-weight: 700;
   }
 }
 
-/* Mapbox GL overrides for warm theme */
+/* ============================================
+   MAPBOX OVERRIDES
+   ============================================ */
 .mapboxgl-popup-content {
-  @apply glass-morphism text-deep-teal;
+  @apply glass-morphism text-sage-700;
   padding: 0;
-  border-radius: 16px;
+  border-radius: 8px;
 }
 
 .mapboxgl-popup-close-button {
-  @apply text-warm-clay;
+  @apply text-sage-400;
   font-size: 24px;
   padding: 8px;
 }
 
 .mapboxgl-popup-close-button:hover {
-  @apply text-ignition-amber;
+  color: #D4B86A;
 }
 
-/* Custom scrollbar */
+/* Map container */
+.map-container {
+  border: 2px solid #5B9AA0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(42, 107, 114, 0.15);
+}
+
+/* ============================================
+   SCROLLBAR
+   ============================================ */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-desert-sand;
+  background: #E8F0EC;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-warm-clay rounded-full;
+  background: #5B9AA0;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-ignition-amber;
+  background: #2A6B72;
 }
 
-/* Warm Oasis Theme Enhancements */
-
-/* Make prices SHINE */
-[class*="price"], [class*="cost"], .price, .cost {
-  color: #D97925 !important;
-  font-weight: 700 !important;
-  font-size: 120% !important;
-}
-
-/* Map inset styling */
-.map-container {
-  border: 2px solid rgba(193, 119, 84, 0.2);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(193, 119, 84, 0.15);
-}
-
-/* Keep specific colors for branded elements */
-.text-ignition-amber, [class*="amber"] {
+/* ============================================
+   LEGACY COLOR OVERRIDES (for compatibility)
+   ============================================ */
+.text-ignition-amber {
   color: #D97925 !important;
 }
 
-.text-champagne-gold, [class*="gold"] {
-  color: #D4AF37 !important;
+.text-champagne-gold {
+  color: #C9A54F !important;
 }
 
 .text-deep-teal {
-  color: #0B697A !important;
+  color: #2D5A47 !important;
 }
 
 .text-warm-clay {
-  color: #C17754 !important;
+  color: #89A99A !important;
+}
+
+/* Override cream background to white */
+.bg-cream {
+  background: #FFFFFF !important;
 }

@@ -203,8 +203,8 @@ const TreatmentGuidesTab: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-serif text-[#D4AF37] mb-4">Complete Procedure Intelligence</h2>
-        <p className="text-[#FFF8F0]/80 max-w-3xl mx-auto">
+        <h2 className="text-3xl font-display text-gold-600 mb-4">Complete Procedure Intelligence</h2>
+        <p className="text-ocean-700/80 max-w-3xl mx-auto">
           Comprehensive cost breakdowns, success rates, and destination recommendations for the most popular medical tourism procedures.
         </p>
       </div>
@@ -214,23 +214,23 @@ const TreatmentGuidesTab: React.FC = () => {
         {treatmentCategories.map((category) => (
           <motion.div
             key={category.id}
-            className="bg-gradient-to-br from-[#0B697A]/20 to-transparent rounded-lg border border-[#D4AF37]/20 overflow-hidden"
+            className="bg-gradient-to-br from-ocean-600/10 to-transparent rounded-lg border border-gold-500/20 overflow-hidden"
           >
             {/* Category Header */}
             <button
               onClick={() => setExpandedCategory(expandedCategory === category.id ? null : category.id)}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-[#D97925]/10 transition-colors"
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-gold-500/10 transition-colors"
             >
               <div className="flex items-center gap-4">
                 <div className="text-left">
-                  <h3 className="text-2xl font-serif text-[#D4AF37]">{category.title}</h3>
-                  <p className="text-sm text-[#FFF8F0]/60">{category.procedures.length} procedures</p>
+                  <h3 className="text-2xl font-display text-gold-600">{category.title}</h3>
+                  <p className="text-sm text-ocean-600/60">{category.procedures.length} procedures</p>
                 </div>
               </div>
               <motion.div
                 animate={{ rotate: expandedCategory === category.id ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
-                className="text-[#D4AF37]"
+                className="text-gold-600"
               >
                 ▼
               </motion.div>
@@ -250,27 +250,27 @@ const TreatmentGuidesTab: React.FC = () => {
                     {category.procedures.map((procedure: any, index) => (
                       <div
                         key={index}
-                        className="bg-[#0A0A0A]/50 p-6 rounded-lg border border-[#D4AF37]/10"
+                        className="bg-white/80 p-6 rounded-lg border border-gold-500/10"
                       >
                         {/* Procedure Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div>
-                            <h4 className="text-xl font-bold text-[#D4AF37] mb-2">{procedure.name}</h4>
+                            <h4 className="text-xl font-bold text-gold-600 mb-2">{procedure.name}</h4>
                             {procedure.description && (
-                              <p className="text-[#FFF8F0]/70 text-sm mb-2">{procedure.description}</p>
+                              <p className="text-ocean-700/70 text-sm mb-2">{procedure.description}</p>
                             )}
                           </div>
                           <div className="text-right">
-                            <div className="text-sm text-[#FFF8F0]/50">Average Savings</div>
-                            <div className="text-2xl font-bold text-green-400">{procedure.savings}</div>
+                            <div className="text-sm text-ocean-600/50">Average Savings</div>
+                            <div className="text-2xl font-bold text-green-600">{procedure.savings}</div>
                           </div>
                         </div>
 
                         {/* Cost Comparison */}
                         <div className="mb-4">
                           <div className="flex items-center justify-between p-4 bg-red-500/10 border-l-4 border-red-500 rounded mb-3">
-                            <span className="text-[#FFF8F0]">🇺🇸 United States</span>
-                            <span className="text-red-400 font-bold text-lg">{procedure.usaCost}</span>
+                            <span className="text-ocean-700">🇺🇸 United States</span>
+                            <span className="text-red-500 font-bold text-lg">{procedure.usaCost}</span>
                           </div>
 
                           <div className="grid md:grid-cols-2 gap-3">
@@ -280,13 +280,13 @@ const TreatmentGuidesTab: React.FC = () => {
                                 className="flex items-center justify-between p-3 bg-green-500/10 border-l-4 border-green-500 rounded"
                               >
                                 <div>
-                                  <div className="text-[#FFF8F0] font-bold">{location.country}</div>
-                                  <div className="text-xs text-[#FFF8F0]/50">{location.city}</div>
+                                  <div className="text-ocean-700 font-bold">{location.country}</div>
+                                  <div className="text-xs text-ocean-600/50">{location.city}</div>
                                   {location.note && (
-                                    <div className="text-xs text-[#D4AF37] mt-1">{location.note}</div>
+                                    <div className="text-xs text-gold-600 mt-1">{location.note}</div>
                                   )}
                                 </div>
-                                <div className="text-green-400 font-bold">{location.cost}</div>
+                                <div className="text-green-600 font-bold">{location.cost}</div>
                               </div>
                             ))}
                           </div>
@@ -294,16 +294,16 @@ const TreatmentGuidesTab: React.FC = () => {
 
                         {/* Best For Section */}
                         {procedure.bestFor && (
-                          <div className="bg-[#D97925]/10 p-4 rounded border-l-4 border-[#D97925]">
-                            <div className="text-[#D4AF37] font-bold mb-1">Best Destination</div>
-                            <div className="text-[#FFF8F0]/80 text-sm">{procedure.bestFor}</div>
+                          <div className="bg-gold-500/10 p-4 rounded border-l-4 border-gold-500">
+                            <div className="text-gold-600 font-bold mb-1">Best Destination</div>
+                            <div className="text-ocean-700/80 text-sm">{procedure.bestFor}</div>
                           </div>
                         )}
 
                         {/* Search Button */}
                         <button
                           onClick={() => window.location.href = `/?specialty=${encodeURIComponent(procedure.name)}`}
-                          className="mt-4 w-full bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
+                          className="mt-4 w-full bg-gradient-to-r from-gold-400 to-gold-600 text-white py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
                         >
                           Search Facilities for {procedure.name}
                         </button>
@@ -318,11 +318,11 @@ const TreatmentGuidesTab: React.FC = () => {
       </div>
 
       {/* Additional Info Section */}
-      <div className="bg-gradient-to-r from-[#0B697A]/30 to-[#C17754]/30 p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-4">Why Volume Creates Excellence</h3>
-        <div className="grid md:grid-cols-2 gap-6 text-[#FFF8F0]/80">
+      <div className="bg-gradient-to-r from-ocean-600/20 to-sage-200/50 p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-4">Why Volume Creates Excellence</h3>
+        <div className="grid md:grid-cols-2 gap-6 text-ocean-700/80">
           <div>
-            <h4 className="text-[#D97925] font-bold mb-2">The Expertise Equation</h4>
+            <h4 className="text-gold-600 font-bold mb-2">The Expertise Equation</h4>
             <p className="text-sm mb-4">
               Turkish hair transplant surgeons perform 50x more procedures annually than their US counterparts.
               Higher volume leads to superior expertise through repetition - the same principle that makes
@@ -330,7 +330,7 @@ const TreatmentGuidesTab: React.FC = () => {
             </p>
           </div>
           <div>
-            <h4 className="text-[#D97925] font-bold mb-2">The Cost Paradox</h4>
+            <h4 className="text-gold-600 font-bold mb-2">The Cost Paradox</h4>
             <p className="text-sm mb-4">
               Dr. Devi Shetty's Narayana Health in Bangalore performs 30 heart surgeries daily with a 98.5% success rate -
               higher than Cleveland Clinic - at $7,900 vs $123,000. Volume drives down costs while simultaneously
@@ -341,14 +341,14 @@ const TreatmentGuidesTab: React.FC = () => {
       </div>
 
       {/* Call to Action */}
-      <div className="bg-gradient-to-r from-[#D97925] to-[#D4AF37] p-8 rounded-lg text-center">
-        <h3 className="text-2xl font-serif text-white mb-4">Ready to Save 60-90% on Your Procedure?</h3>
+      <div className="bg-gradient-to-r from-gold-400 to-gold-600 p-8 rounded-lg text-center">
+        <h3 className="text-2xl font-display text-white mb-4">Ready to Save 60-90% on Your Procedure?</h3>
         <p className="text-white/90 mb-6">
           Browse our 518 JCI-verified facilities across 39 countries
         </p>
         <button
           onClick={() => window.location.href = '/'}
-          className="bg-white text-[#D97925] px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#FFF8F0] transition-colors"
+          className="bg-white text-gold-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-sage-50 transition-colors"
         >
           Search All Facilities
         </button>

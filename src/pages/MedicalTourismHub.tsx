@@ -38,9 +38,9 @@ const MedicalTourismHub: React.FC = () => {
   const ActiveComponent = tabs[activeTab].component;
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A]">
+    <div className="min-h-screen bg-sage-50">
       {/* Live Statistics Header */}
-      <div className="bg-gradient-to-r from-[#D97925] via-[#D4AF37] to-[#C17754] py-3 px-4">
+      <div className="bg-gradient-to-r from-gold-500 via-gold-600 to-ocean-600 py-3 px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between text-xs md:text-sm text-white/90 gap-4">
           <div className="flex items-center gap-2">
             <span className="font-bold">{americansFled.toLocaleString()}</span>
@@ -64,28 +64,28 @@ const MedicalTourismHub: React.FC = () => {
           <div className="hidden md:block w-px h-4 bg-white/30" />
           <div className="flex items-center gap-2">
             <span className="font-bold">Zano Payments</span>
-            <span className="text-[#FFF8F0]">Coming Soon</span>
+            <span className="text-white">Coming Soon</span>
           </div>
         </div>
       </div>
 
       {/* Hero Section */}
-      <div className="bg-gradient-to-b from-[#0B697A]/20 to-transparent py-12 px-4">
+      <div className="bg-gradient-to-b from-ocean-600/10 to-transparent py-12 px-4">
         <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-serif text-[#D4AF37] mb-4">
+          <h1 className="text-4xl md:text-6xl font-display text-gold-600 mb-4">
             Medical Tourism Intelligence Center
           </h1>
-          <p className="text-xl md:text-2xl text-[#FFF8F0]/80 mb-6">
+          <p className="text-xl md:text-2xl text-ocean-600/80 mb-6">
             Your Oasis for Medical Sovereignty
           </p>
-          <div className="text-[#D97925] text-lg">
+          <div className="text-gold-600 text-lg">
             <span className="font-bold">{bankruptciesToday}</span> families filed for medical bankruptcy today
           </div>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="sticky top-0 z-40 bg-[#0A0A0A]/95 backdrop-blur-md border-b border-[#D4AF37]/20">
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-sage-200">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex overflow-x-auto no-scrollbar">
             {tabs.map((tab) => (
@@ -95,17 +95,17 @@ const MedicalTourismHub: React.FC = () => {
                 className={`
                   relative px-6 py-4 text-left transition-all duration-300 flex-shrink-0
                   ${activeTab === tab.id
-                    ? 'text-[#D4AF37]'
-                    : 'text-[#FFF8F0]/60 hover:text-[#D4AF37]/80'
+                    ? 'text-gold-600'
+                    : 'text-ocean-600/60 hover:text-gold-500'
                   }
                 `}
               >
                 <div className="text-sm md:text-base font-bold">{tab.label}</div>
-                <div className="text-xs text-[#FFF8F0]/50 mt-1">{tab.subtitle}</div>
+                <div className="text-xs text-ocean-500/50 mt-1">{tab.subtitle}</div>
                 {activeTab === tab.id && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-[#D97925] to-[#D4AF37]"
+                    className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-gold-400 to-gold-600"
                   />
                 )}
               </button>
@@ -131,7 +131,7 @@ const MedicalTourismHub: React.FC = () => {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white px-6 py-3 rounded-full shadow-2xl text-sm font-bold"
+          className="bg-gradient-to-r from-gold-400 to-gold-600 text-white px-6 py-3 rounded-full shadow-2xl text-sm font-bold"
           onClick={() => window.location.href = '/'}
         >
           Search Facilities
@@ -139,41 +139,41 @@ const MedicalTourismHub: React.FC = () => {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="bg-[#0B697A] text-white px-6 py-3 rounded-full shadow-2xl text-sm font-bold"
+          className="bg-ocean-600 text-white px-6 py-3 rounded-full shadow-2xl text-sm font-bold"
         >
           Calculate Savings
         </motion.button>
       </div>
 
       {/* Trust Badges */}
-      <div className="bg-[#0B697A]/10 border-t border-[#D4AF37]/20 py-6 mt-12">
+      <div className="bg-ocean-600/10 border-t border-gold-500/20 py-6 mt-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-wrap justify-center gap-8 text-center">
-            <div className="text-[#FFF8F0]/80">
-              <div className="text-[#D4AF37] font-bold">JCI Verified</div>
-              <div className="text-xs">518 Facilities</div>
+            <div className="text-ocean-600">
+              <div className="text-gold-600 font-bold">JCI Verified</div>
+              <div className="text-xs text-ocean-500">518 Facilities</div>
             </div>
-            <div className="text-[#FFF8F0]/80">
-              <div className="text-[#D4AF37] font-bold">Real Reviews</div>
-              <div className="text-xs">From Actual Patients</div>
+            <div className="text-ocean-600">
+              <div className="text-gold-600 font-bold">Real Reviews</div>
+              <div className="text-xs text-ocean-500">From Actual Patients</div>
             </div>
-            <div className="text-[#FFF8F0]/80">
-              <div className="text-[#D4AF37] font-bold">Price Transparency</div>
-              <div className="text-xs">No Hidden Fees</div>
+            <div className="text-ocean-600">
+              <div className="text-gold-600 font-bold">Price Transparency</div>
+              <div className="text-xs text-ocean-500">No Hidden Fees</div>
             </div>
-            <div className="text-[#FFF8F0]/80">
-              <div className="text-[#D4AF37] font-bold">Escrow Protection</div>
-              <div className="text-xs">With Zano (Soon)</div>
+            <div className="text-ocean-600">
+              <div className="text-gold-600 font-bold">Escrow Protection</div>
+              <div className="text-xs text-ocean-500">With Zano (Soon)</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Medical Disclaimer */}
-      <div className="bg-[#0A0A0A] border-t border-[#D4AF37]/10 py-8">
-        <div className="max-w-7xl mx-auto px-4 text-xs text-[#FFF8F0]/50 text-center">
+      <div className="bg-ocean-700 border-t border-gold-500/10 py-8">
+        <div className="max-w-7xl mx-auto px-4 text-xs text-white/60 text-center">
           <p className="mb-2">
-            <strong className="text-[#D4AF37]">Medical Disclaimer:</strong> Medical tourism involves travel for medical procedures.
+            <strong className="text-gold-500">Medical Disclaimer:</strong> Medical tourism involves travel for medical procedures.
             While we verify facility credentials and compile patient experiences, medical outcomes vary by individual.
             Always consult with healthcare providers and thoroughly research facilities. OASARA provides information and
             booking services but is not a medical provider. International medical care carries different regulations than

@@ -87,8 +87,8 @@ const PatientStoriesTab: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-serif text-[#D4AF37] mb-4">Real Journeys, Real Results</h2>
-        <p className="text-[#FFF8F0]/80 max-w-3xl mx-auto">
+        <h2 className="text-3xl font-display text-gold-600 mb-4">Real Journeys, Real Results</h2>
+        <p className="text-ocean-700/80 max-w-3xl mx-auto">
           Authentic experiences from Americans who chose medical tourism. Their stories, costs, and outcomes - unfiltered.
         </p>
       </div>
@@ -99,39 +99,39 @@ const PatientStoriesTab: React.FC = () => {
           <motion.div
             key={story.id}
             whileHover={{ scale: 1.02 }}
-            className="bg-gradient-to-br from-[#0B697A]/20 to-transparent p-6 rounded-lg border border-[#D4AF37]/20 cursor-pointer"
+            className="bg-gradient-to-br from-ocean-600/10 to-transparent p-6 rounded-lg border border-gold-500/20 cursor-pointer"
             onClick={() => setSelectedStory(story.id)}
           >
-            <h3 className="text-xl font-bold text-[#D4AF37] mb-2">{story.name}, {story.age}</h3>
-            <p className="text-sm text-[#FFF8F0]/60 mb-4">{story.from}</p>
+            <h3 className="text-xl font-bold text-gold-600 mb-2">{story.name}, {story.age}</h3>
+            <p className="text-sm text-ocean-600/60 mb-4">{story.from}</p>
 
             <div className="space-y-2 mb-4">
               <div>
-                <div className="text-xs text-[#FFF8F0]/50">Procedure</div>
-                <div className="text-sm text-[#FFF8F0]">{story.procedure}</div>
+                <div className="text-xs text-ocean-600/50">Procedure</div>
+                <div className="text-sm text-ocean-700">{story.procedure}</div>
               </div>
               <div>
-                <div className="text-xs text-[#FFF8F0]/50">Hospital</div>
-                <div className="text-sm text-[#D97925]">{story.hospital}</div>
+                <div className="text-xs text-ocean-600/50">Hospital</div>
+                <div className="text-sm text-gold-600">{story.hospital}</div>
               </div>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-red-500/10 border-l-4 border-red-500 rounded mb-2">
-              <span className="text-xs text-[#FFF8F0]/70">US Quote</span>
-              <span className="text-red-400 font-bold">{story.usQuote}</span>
+              <span className="text-xs text-ocean-600/70">US Quote</span>
+              <span className="text-red-500 font-bold">{story.usQuote}</span>
             </div>
 
             <div className="flex items-center justify-between p-3 bg-green-500/10 border-l-4 border-green-500 rounded mb-3">
-              <span className="text-xs text-[#FFF8F0]/70">Actual Cost</span>
-              <span className="text-green-400 font-bold">{story.actualCost}</span>
+              <span className="text-xs text-ocean-600/70">Actual Cost</span>
+              <span className="text-green-600 font-bold">{story.actualCost}</span>
             </div>
 
-            <div className="text-center p-3 bg-[#D4AF37]/10 rounded">
-              <div className="text-xs text-[#FFF8F0]/50">Saved</div>
-              <div className="text-lg font-bold text-[#D4AF37]">{story.savings}</div>
+            <div className="text-center p-3 bg-gold-500/10 rounded">
+              <div className="text-xs text-ocean-600/50">Saved</div>
+              <div className="text-lg font-bold text-gold-600">{story.savings}</div>
             </div>
 
-            <button className="mt-4 w-full bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white py-2 rounded text-sm font-bold hover:opacity-90 transition-opacity">
+            <button className="mt-4 w-full bg-gradient-to-r from-gold-400 to-gold-600 text-white py-2 rounded text-sm font-bold hover:opacity-90 transition-opacity">
               Read Full Story
             </button>
           </motion.div>
@@ -149,17 +149,17 @@ const PatientStoriesTab: React.FC = () => {
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="bg-[#0A0A0A] p-8 rounded-lg border-2 border-[#D4AF37] max-w-3xl max-h-[90vh] overflow-y-auto"
+            className="bg-white p-8 rounded-lg border-2 border-gold-500 max-w-3xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between mb-6">
               <div>
-                <h3 className="text-2xl font-serif text-[#D4AF37]">{selectedStoryData.name}'s Journey</h3>
-                <p className="text-[#FFF8F0]/60">{selectedStoryData.age} from {selectedStoryData.from}</p>
+                <h3 className="text-2xl font-display text-gold-600">{selectedStoryData.name}'s Journey</h3>
+                <p className="text-ocean-600/60">{selectedStoryData.age} from {selectedStoryData.from}</p>
               </div>
               <button
                 onClick={() => setSelectedStory(null)}
-                className="text-[#FFF8F0] hover:text-[#D4AF37] text-2xl"
+                className="text-ocean-600 hover:text-gold-600 text-2xl"
               >
                 ×
               </button>
@@ -168,48 +168,48 @@ const PatientStoriesTab: React.FC = () => {
             <div className="grid md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-3">
                 <div>
-                  <div className="text-sm text-[#D97925] font-bold">Procedure</div>
-                  <div className="text-[#FFF8F0]">{selectedStoryData.procedure}</div>
+                  <div className="text-sm text-gold-600 font-bold">Procedure</div>
+                  <div className="text-ocean-700">{selectedStoryData.procedure}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-[#D97925] font-bold">Hospital</div>
-                  <div className="text-[#FFF8F0]">{selectedStoryData.hospital}</div>
+                  <div className="text-sm text-gold-600 font-bold">Hospital</div>
+                  <div className="text-ocean-700">{selectedStoryData.hospital}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-[#D97925] font-bold">Recovery</div>
-                  <div className="text-[#FFF8F0]">{selectedStoryData.recovery}</div>
+                  <div className="text-sm text-gold-600 font-bold">Recovery</div>
+                  <div className="text-ocean-700">{selectedStoryData.recovery}</div>
                 </div>
               </div>
 
               <div className="space-y-3">
                 <div className="p-4 bg-red-500/10 border-l-4 border-red-500 rounded">
-                  <div className="text-xs text-[#FFF8F0]/50">US Quote</div>
-                  <div className="text-2xl font-bold text-red-400">{selectedStoryData.usQuote}</div>
+                  <div className="text-xs text-ocean-600/50">US Quote</div>
+                  <div className="text-2xl font-bold text-red-500">{selectedStoryData.usQuote}</div>
                 </div>
                 <div className="p-4 bg-green-500/10 border-l-4 border-green-500 rounded">
-                  <div className="text-xs text-[#FFF8F0]/50">Actual Cost</div>
-                  <div className="text-2xl font-bold text-green-400">{selectedStoryData.actualCost}</div>
+                  <div className="text-xs text-ocean-600/50">Actual Cost</div>
+                  <div className="text-2xl font-bold text-green-600">{selectedStoryData.actualCost}</div>
                 </div>
-                <div className="p-4 bg-[#D4AF37]/10 border-l-4 border-[#D4AF37] rounded">
-                  <div className="text-xs text-[#FFF8F0]/50">Total Savings</div>
-                  <div className="text-2xl font-bold text-[#D4AF37]">{selectedStoryData.savings}</div>
+                <div className="p-4 bg-gold-500/10 border-l-4 border-gold-500 rounded">
+                  <div className="text-xs text-ocean-600/50">Total Savings</div>
+                  <div className="text-2xl font-bold text-gold-600">{selectedStoryData.savings}</div>
                 </div>
               </div>
             </div>
 
-            <div className="bg-[#0B697A]/20 p-6 rounded-lg border border-[#D4AF37]/20 mb-6">
-              <h4 className="text-[#D97925] font-bold mb-3">Their Story</h4>
-              <p className="text-[#FFF8F0]/80 italic leading-relaxed">{selectedStoryData.quote}</p>
+            <div className="bg-ocean-600/10 p-6 rounded-lg border border-gold-500/20 mb-6">
+              <h4 className="text-gold-600 font-bold mb-3">Their Story</h4>
+              <p className="text-ocean-700/80 italic leading-relaxed">{selectedStoryData.quote}</p>
             </div>
 
             <div className="grid md:grid-cols-2 gap-4">
-              <div className="bg-[#C17754]/20 p-4 rounded">
-                <div className="text-sm text-[#D97925] font-bold mb-2">Outcome</div>
-                <div className="text-[#FFF8F0]">{selectedStoryData.outcome}</div>
+              <div className="bg-sage-200/50 p-4 rounded">
+                <div className="text-sm text-gold-600 font-bold mb-2">Outcome</div>
+                <div className="text-ocean-700">{selectedStoryData.outcome}</div>
               </div>
               <div className="bg-green-500/20 p-4 rounded">
-                <div className="text-sm text-[#D97925] font-bold mb-2">Would Recommend?</div>
-                <div className="text-green-400 font-bold text-lg">
+                <div className="text-sm text-gold-600 font-bold mb-2">Would Recommend?</div>
+                <div className="text-green-600 font-bold text-lg">
                   {selectedStoryData.wouldRecommend ? '✓ Absolutely' : '✗ No'}
                 </div>
               </div>
@@ -217,7 +217,7 @@ const PatientStoriesTab: React.FC = () => {
 
             <button
               onClick={() => window.location.href = `/?search=${encodeURIComponent(selectedStoryData.hospital.split(',')[0])}`}
-              className="mt-6 w-full bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
+              className="mt-6 w-full bg-gradient-to-r from-gold-400 to-gold-600 text-white py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
             >
               Find Similar Facilities
             </button>
@@ -226,36 +226,36 @@ const PatientStoriesTab: React.FC = () => {
       )}
 
       {/* Success Metrics */}
-      <div className="bg-gradient-to-r from-[#D97925]/30 to-[#D4AF37]/30 p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6 text-center">Collective Impact</h3>
+      <div className="bg-gradient-to-r from-gold-500/20 to-gold-400/20 p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-6 text-center">Collective Impact</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div>
-            <div className="text-4xl font-bold text-[#D4AF37] mb-2">$800K+</div>
-            <div className="text-sm text-[#FFF8F0]/70">Total Saved (Just These 5 Stories)</div>
+            <div className="text-4xl font-bold text-gold-600 mb-2">$800K+</div>
+            <div className="text-sm text-ocean-600/70">Total Saved (Just These 5 Stories)</div>
           </div>
           <div>
-            <div className="text-4xl font-bold text-[#D4AF37] mb-2">5/5</div>
-            <div className="text-sm text-[#FFF8F0]/70">Would Do It Again</div>
+            <div className="text-4xl font-bold text-gold-600 mb-2">5/5</div>
+            <div className="text-sm text-ocean-600/70">Would Do It Again</div>
           </div>
           <div>
-            <div className="text-4xl font-bold text-[#D4AF37] mb-2">100%</div>
-            <div className="text-sm text-[#FFF8F0]/70">Successful Outcomes</div>
+            <div className="text-4xl font-bold text-gold-600 mb-2">100%</div>
+            <div className="text-sm text-ocean-600/70">Successful Outcomes</div>
           </div>
           <div>
-            <div className="text-4xl font-bold text-[#D4AF37] mb-2">0</div>
-            <div className="text-sm text-[#FFF8F0]/70">Major Complications</div>
+            <div className="text-4xl font-bold text-gold-600 mb-2">0</div>
+            <div className="text-sm text-ocean-600/70">Major Complications</div>
           </div>
         </div>
       </div>
 
       {/* Comparison: Failed US vs Success Abroad */}
-      <div className="bg-gradient-to-br from-red-900/20 to-green-900/20 p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-6">When US Treatment Fails</h3>
+      <div className="bg-gradient-to-br from-red-100/50 to-green-100/50 p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-6">When US Treatment Fails</h3>
 
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-red-500/10 p-6 rounded-lg border-l-4 border-red-500">
-            <h4 className="text-red-400 font-bold mb-3">❌ US Treatment (Failed)</h4>
-            <div className="space-y-2 text-sm text-[#FFF8F0]/80">
+            <h4 className="text-red-600 font-bold mb-3">❌ US Treatment (Failed)</h4>
+            <div className="space-y-2 text-sm text-ocean-700/80">
               <p><strong>Patient:</strong> Michael Stevens, Stage 3 colon cancer</p>
               <p><strong>Treatment:</strong> Chemotherapy at MD Anderson</p>
               <p><strong>Cost:</strong> $380,000</p>
@@ -266,8 +266,8 @@ const PatientStoriesTab: React.FC = () => {
           </div>
 
           <div className="bg-green-500/10 p-6 rounded-lg border-l-4 border-green-500">
-            <h4 className="text-green-400 font-bold mb-3">✓ German Treatment (Successful)</h4>
-            <div className="space-y-2 text-sm text-[#FFF8F0]/80">
+            <h4 className="text-green-600 font-bold mb-3">✓ German Treatment (Successful)</h4>
+            <div className="space-y-2 text-sm text-ocean-700/80">
               <p><strong>Treatment:</strong> Hyperthermia + low-dose chemo</p>
               <p><strong>Hospital:</strong> Klinik St. Georg, Bad Aibling</p>
               <p><strong>Cost:</strong> $45,000</p>
@@ -278,8 +278,8 @@ const PatientStoriesTab: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-6 p-4 bg-[#D4AF37]/10 rounded border-l-4 border-[#D4AF37]">
-          <p className="text-[#FFF8F0]/80 italic text-sm">
+        <div className="mt-6 p-4 bg-gold-500/10 rounded border-l-4 border-gold-500">
+          <p className="text-ocean-700/80 italic text-sm">
             "MD Anderson gave me 6 months to live after $380,000 in treatment that made me sicker than the cancer.
             German hyperthermia - which FDA won't approve - saved my life for $45,000. The treatment was gentler,
             targeted, and actually worked." - Michael Stevens
@@ -288,44 +288,44 @@ const PatientStoriesTab: React.FC = () => {
       </div>
 
       {/* Share Your Story */}
-      <div className="bg-gradient-to-r from-[#0B697A]/30 to-[#C17754]/30 p-8 rounded-lg border border-[#D4AF37]/20">
-        <h3 className="text-2xl font-serif text-[#D4AF37] mb-4 text-center">Share Your Medical Tourism Journey</h3>
-        <p className="text-[#FFF8F0]/80 text-center mb-6 max-w-2xl mx-auto">
+      <div className="bg-gradient-to-r from-ocean-600/20 to-sage-200/50 p-8 rounded-lg border border-gold-500/20">
+        <h3 className="text-2xl font-display text-gold-600 mb-4 text-center">Share Your Medical Tourism Journey</h3>
+        <p className="text-ocean-700/80 text-center mb-6 max-w-2xl mx-auto">
           We're building the largest database of medical tourism success stories. Your journey could help others escape medical bankruptcy.
         </p>
 
         <div className="grid md:grid-cols-3 gap-4 mb-6">
-          <div className="text-center p-4 bg-[#0A0A0A]/50 rounded">
+          <div className="text-center p-4 bg-white/80 rounded border border-sage-200">
             <div className="text-2xl mb-2">📸</div>
-            <div className="text-sm text-[#FFF8F0]/70">Share before/after photos</div>
+            <div className="text-sm text-ocean-600/70">Share before/after photos</div>
           </div>
-          <div className="text-center p-4 bg-[#0A0A0A]/50 rounded">
+          <div className="text-center p-4 bg-white/80 rounded border border-sage-200">
             <div className="text-2xl mb-2">💰</div>
-            <div className="text-sm text-[#FFF8F0]/70">Document your savings</div>
+            <div className="text-sm text-ocean-600/70">Document your savings</div>
           </div>
-          <div className="text-center p-4 bg-[#0A0A0A]/50 rounded">
+          <div className="text-center p-4 bg-white/80 rounded border border-sage-200">
             <div className="text-2xl mb-2">🎁</div>
-            <div className="text-sm text-[#FFF8F0]/70">Get $100 credit toward next booking</div>
+            <div className="text-sm text-ocean-600/70">Get $100 credit toward next booking</div>
           </div>
         </div>
 
         <div className="text-center">
-          <button className="bg-gradient-to-r from-[#D97925] to-[#D4AF37] text-white px-8 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity">
+          <button className="bg-gradient-to-r from-gold-400 to-gold-600 text-white px-8 py-3 rounded-lg font-bold hover:opacity-90 transition-opacity">
             Submit Your Story
           </button>
-          <p className="text-xs text-[#FFF8F0]/50 mt-3">Privacy options: Full name, first name only, or completely anonymous</p>
+          <p className="text-xs text-ocean-600/50 mt-3">Privacy options: Full name, first name only, or completely anonymous</p>
         </div>
       </div>
 
       {/* Call to Action */}
-      <div className="bg-gradient-to-r from-[#D97925] to-[#D4AF37] p-8 rounded-lg text-center">
-        <h3 className="text-2xl font-serif text-white mb-4">Ready to Write Your Success Story?</h3>
+      <div className="bg-gradient-to-r from-gold-400 to-gold-600 p-8 rounded-lg text-center">
+        <h3 className="text-2xl font-display text-white mb-4">Ready to Write Your Success Story?</h3>
         <p className="text-white/90 mb-6">
           Join thousands of Americans who've saved hundreds of thousands on world-class healthcare
         </p>
         <button
           onClick={() => window.location.href = '/'}
-          className="bg-white text-[#D97925] px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#FFF8F0] transition-colors"
+          className="bg-white text-gold-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-sage-50 transition-colors"
         >
           Start Your Journey
         </button>
