@@ -269,33 +269,33 @@ const OnlineTrustServicesComparison: React.FC = () => {
         {[1, 2, 3, 4, 5].map((star) => (
           <svg
             key={star}
-            className={`w-4 h-4 ${star <= rating ? 'text-amber-500' : 'text-gray-300'}`}
+            className={`w-4 h-4 ${star <= rating ? 'text-gold-500' : 'text-sage-300'}`}
             fill="currentColor"
             viewBox="0 0 20 20"
           >
             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
           </svg>
         ))}
-        <span className="ml-1 text-sm text-gray-600">{rating.toFixed(1)}</span>
+        <span className="ml-1 text-sm text-ocean-600">{rating.toFixed(1)}</span>
       </div>
     );
   };
 
   return (
-    <section className="bg-gradient-to-br from-slate-50 to-teal-50/30 py-16 border-t border-gray-200">
+    <section className="bg-gradient-to-br from-sage-50 via-sage-100/50 to-ocean-50/30 py-16 border-t border-sage-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <span className="inline-flex items-center gap-2 text-teal-600 text-sm font-medium mb-4">
+          <span className="inline-flex items-center gap-2 text-ocean-600 text-sm font-medium mb-4">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Online Legal Services
           </span>
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl font-bold text-ocean-800 mb-4">
             Create Your Medical Trust Online
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg text-ocean-600/80 max-w-3xl mx-auto">
             Compare the top online legal services for creating living trusts, healthcare directives,
             and powers of attorney - no lawyer required for basic estate planning.
           </p>
@@ -308,10 +308,10 @@ const OnlineTrustServicesComparison: React.FC = () => {
               key={service.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden hover:shadow-xl transition-shadow"
+              className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-sage-200 overflow-hidden hover:shadow-card-hover transition-shadow"
             >
               {/* Header */}
-              <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-4">
+              <div className="bg-gradient-to-r from-ocean-600 to-ocean-700 px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white font-bold text-lg">
@@ -319,34 +319,34 @@ const OnlineTrustServicesComparison: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-white">{service.name}</h3>
-                      <p className="text-sm text-teal-100">{service.tagline}</p>
+                      <p className="text-sm text-ocean-100">{service.tagline}</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Pricing */}
-              <div className="px-6 py-4 border-b border-gray-100">
+              <div className="px-6 py-4 border-b border-sage-100">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Living Trust:</span>
-                  <span className="font-bold text-teal-700">{service.pricing.livingTrust}</span>
+                  <span className="text-sm text-ocean-600">Living Trust:</span>
+                  <span className="font-bold text-gold-600">{service.pricing.livingTrust}</span>
                 </div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Healthcare Directive:</span>
-                  <span className="font-medium text-gray-900">{service.pricing.healthcareDirective}</span>
+                  <span className="text-sm text-ocean-600">Healthcare Directive:</span>
+                  <span className="font-medium text-ocean-800">{service.pricing.healthcareDirective}</span>
                 </div>
-                <div className="text-xs text-gray-500 bg-gray-50 px-3 py-1.5 rounded-full inline-block">
+                <div className="text-xs text-ocean-500 bg-sage-50 px-3 py-1.5 rounded-full inline-block">
                   {service.pricing.pricingModel}
                 </div>
               </div>
 
               {/* Rating & Best For */}
-              <div className="px-6 py-4 border-b border-gray-100">
+              <div className="px-6 py-4 border-b border-sage-100">
                 <div className="flex items-center justify-between mb-3">
                   {renderStars(service.rating)}
                 </div>
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium text-gray-900">Best for:</span> {service.bestFor}
+                <p className="text-sm text-ocean-600">
+                  <span className="font-medium text-ocean-800">Best for:</span> {service.bestFor}
                 </p>
               </div>
 
@@ -356,13 +356,13 @@ const OnlineTrustServicesComparison: React.FC = () => {
                   href={service.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 text-center bg-teal-600 text-white py-2.5 px-4 rounded-xl font-medium hover:bg-teal-700 transition-colors text-sm"
+                  className="flex-1 text-center bg-gradient-to-r from-gold-500 to-gold-600 text-white py-2.5 px-4 rounded-xl font-medium hover:from-gold-600 hover:to-gold-700 transition-all shadow-sm hover:shadow-gold text-sm"
                 >
                   Visit Site
                 </a>
                 <button
                   onClick={() => setSelectedService(service)}
-                  className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors text-sm"
+                  className="px-4 py-2.5 border border-ocean-300 text-ocean-700 rounded-xl font-medium hover:bg-ocean-50 transition-colors text-sm"
                 >
                   Details
                 </button>
@@ -372,44 +372,44 @@ const OnlineTrustServicesComparison: React.FC = () => {
         </div>
 
         {/* Comparison Table */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden mb-12">
-          <div className="px-6 py-4 bg-gradient-to-r from-gray-50 to-slate-50 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Quick Comparison</h3>
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-card border border-sage-200 overflow-hidden mb-12">
+          <div className="px-6 py-4 bg-gradient-to-r from-sage-50 to-ocean-50/30 border-b border-sage-200">
+            <h3 className="text-lg font-semibold text-ocean-800">Quick Comparison</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-sage-50 border-b border-sage-200">
                 <tr>
-                  <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Service</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Trust Price</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Pricing Model</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Attorney Access</th>
-                  <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Rating</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-ocean-700">Service</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-ocean-700">Trust Price</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-ocean-700">Pricing Model</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-ocean-700">Attorney Access</th>
+                  <th className="text-center py-3 px-4 text-sm font-semibold text-ocean-700">Rating</th>
                 </tr>
               </thead>
               <tbody>
                 {sortedServices.map((service, index) => (
-                  <tr key={service.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                  <tr key={service.id} className={index % 2 === 0 ? 'bg-white' : 'bg-sage-50/50'}>
                     <td className="py-3 px-4">
-                      <span className="font-medium text-gray-900">{service.name}</span>
+                      <span className="font-medium text-ocean-800">{service.name}</span>
                     </td>
-                    <td className="py-3 px-4 text-center font-semibold text-teal-700">
+                    <td className="py-3 px-4 text-center font-semibold text-gold-600">
                       {service.pricing.livingTrust}
                     </td>
-                    <td className="py-3 px-4 text-center text-sm text-gray-600">
+                    <td className="py-3 px-4 text-center text-sm text-ocean-600">
                       {service.pricing.pricingModel}
                     </td>
                     <td className="py-3 px-4 text-center">
                       {service.id === 'rocketlawyer' ? (
                         <span className="text-green-600 font-medium">Included</span>
                       ) : service.id === 'legalzoom' ? (
-                        <span className="text-amber-600">+$199</span>
+                        <span className="text-gold-600">+$199</span>
                       ) : (
-                        <span className="text-gray-400">Extra</span>
+                        <span className="text-sage-400">Extra</span>
                       )}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-flex items-center gap-1 text-amber-600">
+                      <span className="inline-flex items-center gap-1 text-gold-500">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
@@ -424,23 +424,23 @@ const OnlineTrustServicesComparison: React.FC = () => {
         </div>
 
         {/* Free Resources */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-200 p-8 mb-8">
+        <div className="bg-gradient-to-br from-ocean-50 to-sage-100 rounded-2xl border border-ocean-200 p-8 mb-8">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-ocean-600 rounded-xl flex items-center justify-center flex-shrink-0">
               <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
               </svg>
             </div>
             <div>
-              <h3 className="text-xl font-bold text-emerald-900 mb-2">Free Healthcare Directive Forms</h3>
-              <p className="text-emerald-700 mb-4">
+              <h3 className="text-xl font-bold text-ocean-800 mb-2">Free Healthcare Directive Forms</h3>
+              <p className="text-ocean-700 mb-4">
                 Many states offer free advance directive forms. AARP provides free, state-specific forms:
               </p>
               <a
                 href="https://www.aarp.org/caregiving/financial-legal/free-printable-advance-directives/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-800 font-medium"
+                className="inline-flex items-center gap-2 text-ocean-700 hover:text-ocean-800 font-medium"
               >
                 Get Free State Forms from AARP
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -453,7 +453,7 @@ const OnlineTrustServicesComparison: React.FC = () => {
 
         {/* Disclaimer */}
         <div className="text-center">
-          <p className="text-xs text-gray-500 max-w-2xl mx-auto">
+          <p className="text-xs text-ocean-500 max-w-2xl mx-auto">
             * Prices and features are subject to change. This comparison is for informational purposes only.
             Online services are best for straightforward estate planning. Consult an attorney for complex situations.
           </p>
@@ -467,18 +467,18 @@ const OnlineTrustServicesComparison: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-ocean-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
             onClick={() => setSelectedService(null)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="bg-gradient-to-r from-teal-600 to-teal-700 px-6 py-5 sticky top-0">
+              <div className="bg-gradient-to-r from-ocean-600 to-ocean-700 px-6 py-5 sticky top-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center text-white font-bold text-xl">
@@ -486,7 +486,7 @@ const OnlineTrustServicesComparison: React.FC = () => {
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-white">{selectedService.name}</h3>
-                      <p className="text-sm text-teal-100">{selectedService.tagline}</p>
+                      <p className="text-sm text-ocean-100">{selectedService.tagline}</p>
                     </div>
                   </div>
                   <button
@@ -504,29 +504,29 @@ const OnlineTrustServicesComparison: React.FC = () => {
               <div className="p-6 space-y-6">
                 {/* Pricing */}
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Pricing</h4>
-                  <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                  <h4 className="font-semibold text-ocean-800 mb-3">Pricing</h4>
+                  <div className="bg-sage-50 rounded-xl p-4 space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Living Trust</span>
-                      <span className="font-bold text-teal-700">{selectedService.pricing.livingTrust}</span>
+                      <span className="text-ocean-600">Living Trust</span>
+                      <span className="font-bold text-gold-600">{selectedService.pricing.livingTrust}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Healthcare Directive</span>
-                      <span className="font-medium">{selectedService.pricing.healthcareDirective}</span>
+                      <span className="text-ocean-600">Healthcare Directive</span>
+                      <span className="font-medium text-ocean-800">{selectedService.pricing.healthcareDirective}</span>
                     </div>
-                    <div className="pt-2 border-t border-gray-200">
-                      <span className="text-sm text-gray-500">{selectedService.pricing.pricingModel}</span>
+                    <div className="pt-2 border-t border-sage-200">
+                      <span className="text-sm text-ocean-500">{selectedService.pricing.pricingModel}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Features */}
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-3">Features Included</h4>
+                  <h4 className="font-semibold text-ocean-800 mb-3">Features Included</h4>
                   <ul className="grid grid-cols-2 gap-2">
                     {selectedService.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                        <svg className="w-4 h-4 text-teal-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                      <li key={i} className="flex items-start gap-2 text-sm text-ocean-700">
+                        <svg className="w-4 h-4 text-ocean-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                         </svg>
                         {feature}
@@ -541,7 +541,7 @@ const OnlineTrustServicesComparison: React.FC = () => {
                     <h4 className="font-semibold text-green-700 mb-2">Pros</h4>
                     <ul className="space-y-1">
                       {selectedService.pros.map((pro, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                        <li key={i} className="flex items-start gap-2 text-sm text-ocean-700">
                           <span className="text-green-600">+</span>
                           {pro}
                         </li>
@@ -552,7 +552,7 @@ const OnlineTrustServicesComparison: React.FC = () => {
                     <h4 className="font-semibold text-red-700 mb-2">Cons</h4>
                     <ul className="space-y-1">
                       {selectedService.cons.map((con, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+                        <li key={i} className="flex items-start gap-2 text-sm text-ocean-700">
                           <span className="text-red-600">-</span>
                           {con}
                         </li>
@@ -562,12 +562,12 @@ const OnlineTrustServicesComparison: React.FC = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="pt-4 border-t border-gray-200">
+                <div className="pt-4 border-t border-sage-200">
                   <a
                     href={selectedService.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block w-full text-center bg-teal-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-teal-700 transition-colors"
+                    className="block w-full text-center bg-gradient-to-r from-gold-500 to-gold-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-gold-600 hover:to-gold-700 transition-all shadow-sm hover:shadow-gold"
                   >
                     Visit {selectedService.name}
                   </a>
