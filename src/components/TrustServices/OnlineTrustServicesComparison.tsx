@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../lib/supabase';
 
 interface TrustService {
   id: string;
@@ -259,63 +258,12 @@ const services: TrustService[] = [
   },
 ];
 
-// Database affiliate link overrides (keyed by service ID)
-interface AffiliateOverride {
-  affiliate_link?: string;
-  is_active: boolean;
-}
-
 const OnlineTrustServicesComparison: React.FC = () => {
   const [selectedService, setSelectedService] = useState<TrustService | null>(null);
-  const [affiliateOverrides, setAffiliateOverrides] = useState<Record<string, AffiliateOverride>>({});
 
-  // Fetch affiliate link overrides from database
-  useEffect(() => {
-    const fetchAffiliateData = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('affiliate_programs')
-          .select('service_slug, affiliate_link, is_active')
-          .eq('is_active', true);
-
-        if (!error && data) {
-          const overrides: Record<string, AffiliateOverride> = {};
-          data.forEach(item => {
-            overrides[item.service_slug] = {
-              affiliate_link: item.affiliate_link,
-              is_active: item.is_active
-            };
-          });
-          setAffiliateOverrides(overrides);
-        }
-      } catch (err) {
-        // Silently fail - use static links
-        console.log('Using static affiliate links');
-      }
-    };
-
-    fetchAffiliateData();
-  }, []);
-
-  // Track affiliate link clicks
-  const trackClick = async (serviceId: string, url: string) => {
-    try {
-      // Try to increment click count in database
-      await supabase.rpc('increment_affiliate_click', { program_slug: serviceId });
-    } catch (err) {
-      // Silently fail
-    }
-    // Open the link
+  // Open link in new tab
+  const openLink = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
-  // Get the URL for a service (use affiliate link if available)
-  const getServiceUrl = (service: TrustService): string => {
-    const override = affiliateOverrides[service.id];
-    if (override?.affiliate_link) {
-      return override.affiliate_link;
-    }
-    return service.url;
   };
 
   const sortedServices = [...services].sort((a, b) => b.rating - a.rating);
@@ -410,7 +358,7 @@ const OnlineTrustServicesComparison: React.FC = () => {
               {/* Actions */}
               <div className="px-6 py-4 flex gap-3">
                 <button
-                  onClick={() => trackClick(service.id, getServiceUrl(service))}
+                  onClick={() => openLink(service.url)}
                   className="flex-1 text-center bg-teal-600 text-white py-2.5 px-4 rounded-xl font-medium hover:bg-teal-700 transition-colors text-sm"
                 >
                   Visit Site
@@ -620,7 +568,7 @@ const OnlineTrustServicesComparison: React.FC = () => {
                 {/* CTA */}
                 <div className="pt-4 border-t border-gray-200">
                   <button
-                    onClick={() => trackClick(selectedService.id, getServiceUrl(selectedService))}
+                    onClick={() => openLink(selectedService.url)}
                     className="block w-full text-center bg-teal-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-teal-700 transition-colors"
                   >
                     Visit {selectedService.name} →
