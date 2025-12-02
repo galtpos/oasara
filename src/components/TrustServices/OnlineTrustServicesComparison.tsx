@@ -261,11 +261,6 @@ const services: TrustService[] = [
 const OnlineTrustServicesComparison: React.FC = () => {
   const [selectedService, setSelectedService] = useState<TrustService | null>(null);
 
-  // Open link in new tab
-  const openLink = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-
   const sortedServices = [...services].sort((a, b) => b.rating - a.rating);
 
   const renderStars = (rating: number) => {
@@ -274,7 +269,7 @@ const OnlineTrustServicesComparison: React.FC = () => {
         {[1, 2, 3, 4, 5].map((star) => (
           <svg
             key={star}
-            className={`w-4 h-4 ${star <= rating ? 'text-gold-500' : 'text-gray-300'}`}
+            className={`w-4 h-4 ${star <= rating ? 'text-amber-500' : 'text-gray-300'}`}
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -357,12 +352,14 @@ const OnlineTrustServicesComparison: React.FC = () => {
 
               {/* Actions */}
               <div className="px-6 py-4 flex gap-3">
-                <button
-                  onClick={() => openLink(service.url)}
+                <a
+                  href={service.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex-1 text-center bg-teal-600 text-white py-2.5 px-4 rounded-xl font-medium hover:bg-teal-700 transition-colors text-sm"
                 >
                   Visit Site
-                </button>
+                </a>
                 <button
                   onClick={() => setSelectedService(service)}
                   className="px-4 py-2.5 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors text-sm"
@@ -412,7 +409,7 @@ const OnlineTrustServicesComparison: React.FC = () => {
                       )}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span className="inline-flex items-center gap-1 text-gold-600">
+                      <span className="inline-flex items-center gap-1 text-amber-600">
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
@@ -459,7 +456,6 @@ const OnlineTrustServicesComparison: React.FC = () => {
           <p className="text-xs text-gray-500 max-w-2xl mx-auto">
             * Prices and features are subject to change. This comparison is for informational purposes only.
             Online services are best for straightforward estate planning. Consult an attorney for complex situations.
-            Some links may be affiliate links - we may earn a commission at no extra cost to you.
           </p>
         </div>
       </div>
@@ -567,12 +563,14 @@ const OnlineTrustServicesComparison: React.FC = () => {
 
                 {/* CTA */}
                 <div className="pt-4 border-t border-gray-200">
-                  <button
-                    onClick={() => openLink(selectedService.url)}
+                  <a
+                    href={selectedService.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="block w-full text-center bg-teal-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-teal-700 transition-colors"
                   >
-                    Visit {selectedService.name} →
-                  </button>
+                    Visit {selectedService.name}
+                  </a>
                 </div>
               </div>
             </motion.div>
