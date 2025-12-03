@@ -1,0 +1,266 @@
+/* Feedback Widget Styles */
+
+/* Welcome Banner */
+.feedback-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 20px;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.feedback-banner p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.banner-dismiss {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.banner-dismiss:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Floating Action Button */
+.feedback-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.feedback-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.feedback-fab:active {
+  transform: scale(0.95);
+}
+
+/* Add pulse animation for first-time visibility */
+@keyframes pulse {
+  0% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); }
+  50% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 0 0 8px rgba(59, 130, 246, 0.2); }
+  100% { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); }
+}
+
+.feedback-fab.pulse {
+  animation: pulse 2s ease-in-out 3;
+}
+
+/* Modal Overlay */
+.feedback-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: 20px;
+}
+
+/* Modal */
+.feedback-modal {
+  background: white;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.feedback-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.feedback-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6B7280;
+  padding: 0;
+  line-height: 1;
+}
+
+.feedback-close:hover {
+  color: #111827;
+}
+
+/* Form Fields */
+.feedback-field {
+  padding: 16px 20px;
+}
+
+.feedback-field label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+/* Category Buttons */
+.feedback-categories {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.category-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border: 2px solid #E5E7EB;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.category-btn:hover {
+  border-color: #D1D5DB;
+  background: #F9FAFB;
+}
+
+.category-btn.active {
+  border-width: 2px;
+}
+
+.category-btn span:first-child {
+  font-size: 20px;
+}
+
+.category-btn span:last-child {
+  font-size: 12px;
+  color: #6B7280;
+}
+
+/* Textarea */
+.feedback-field textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.feedback-field textarea:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Screenshot Preview */
+.screenshot-preview {
+  width: 100%;
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.feedback-field input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* Submit Button */
+.feedback-submit {
+  width: calc(100% - 40px);
+  margin: 0 20px 20px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.feedback-submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.feedback-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Success State */
+.feedback-success {
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.feedback-success h3 {
+  margin: 16px 0 8px;
+  font-size: 20px;
+  color: #111827;
+}
+
+.feedback-success p {
+  color: #6B7280;
+  margin: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .feedback-fab {
+    bottom: 16px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+  }
+
+  .feedback-modal {
+    margin: 10px;
+    max-height: calc(100vh - 20px);
+  }
+
+  .feedback-categories {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@huggingface/inference": "^4.13.4",
     "@mapbox/mapbox-gl-geocoder": "^5.1.2",
     "@supabase/supabase-js": "^2.77.0",
     "@tanstack/react-query": "^5.90.5",
@@ -21,6 +22,7 @@
     "cheerio": "^1.1.2",
     "dotenv": "^17.2.3",
     "framer-motion": "^12.23.24",
+    "html2canvas": "^1.4.1",
     "mapbox-gl": "^3.16.0",
     "openai": "^4.104.0",
     "playwright": "^1.56.1",
