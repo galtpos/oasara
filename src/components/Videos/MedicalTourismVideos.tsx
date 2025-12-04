@@ -14,6 +14,12 @@ const MedicalTourismVideos: React.FC<MedicalTourismVideosProps> = ({ variant = '
       isShort: false
     },
     {
+      id: '51igZA1_YSY',
+      title: 'Medical Tourism Explained',
+      description: 'Everything you need to know about getting care abroad',
+      isShort: false
+    },
+    {
       id: 'NynZG7nObCo',
       title: 'Medical Tourism Quick Facts',
       description: 'Key insights in 60 seconds',
