@@ -16,6 +16,7 @@ import WhyZano from './pages/WhyZano';
 import ActionCenter from './pages/ActionCenter';
 import Feedback from './pages/Feedback';
 import MedicalTrusts from './pages/MedicalTrusts';
+import BountyBoard from './pages/BountyBoard';
 
 // Admin pages
 import AdminLogin from './admin/pages/AdminLogin';
@@ -24,6 +25,7 @@ import Dashboard from './admin/pages/Dashboard';
 import FacilitiesList from './admin/pages/FacilitiesList';
 import FacilityEditor from './admin/pages/FacilityEditor';
 import DoctorsList from './admin/pages/DoctorsList';
+import FeedbackManagement from './admin/pages/FeedbackManagement';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -34,6 +36,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/auth/confirm" element={<ConfirmEmail />} />
       <Route path="/early-access" element={<EarlyAccess />} />
+      <Route path="/bounty" element={<BountyBoard />} />
 
       {/* Protected Routes - Require authentication */}
       <Route path="/" element={<ProtectedRoute><PublicSite /></ProtectedRoute>} />
@@ -53,6 +56,7 @@ const AppRoutes: React.FC = () => {
         <Route path="facilities/new" element={<FacilityEditor />} />
         <Route path="facilities/:id" element={<FacilityEditor />} />
         <Route path="doctors" element={<DoctorsList />} />
+        <Route path="bounties" element={<FeedbackManagement />} />
         <Route path="testimonials" element={
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center max-w-md">
