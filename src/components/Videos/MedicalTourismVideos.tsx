@@ -14,12 +14,6 @@ const MedicalTourismVideos: React.FC<MedicalTourismVideosProps> = ({ variant = '
       isShort: false
     },
     {
-      id: 'TCWP89yGWg4',
-      title: 'Medical Tourism Success Stories',
-      description: 'Real patients share their experiences',
-      isShort: false
-    },
-    {
       id: 'NynZG7nObCo',
       title: 'Medical Tourism Quick Facts',
       description: 'Key insights in 60 seconds',
