@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { Link } from 'react-router-dom'
-import html2canvas from 'html2canvas'
 import './feedback-widget.css'
 import { supabase } from '../lib/supabase'
 
@@ -25,9 +23,6 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
   const [showBanner, setShowBanner] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [screenshot, setScreenshot] = useState<string | null>(null)
-  const [includeScreenshot, setIncludeScreenshot] = useState(true)
-  const [isCapturing, setIsCapturing] = useState(false)
   const [formData, setFormData] = useState({
     category: 'feature',
     description: '',
@@ -49,93 +44,14 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
     setShowBanner(false)
   }
 
-  // Capture screenshot when modal opens
-  const captureScreenshot = async () => {
-    try {
-      const widget = document.getElementById('feedback-widget-container')
-      if (widget) widget.style.display = 'none'
-
-      // Wait for any pending renders to complete
-      await new Promise(resolve => setTimeout(resolve, 500))
-
-      const canvas = await html2canvas(document.body, {
-        logging: false,
-        useCORS: true,
-        allowTaint: true,
-        scale: 0.5,
-        backgroundColor: '#ffffff',
-        // Ignore map canvases and WebGL elements that can't be captured
-        ignoreElements: (element) => {
-          const tagName = element.tagName?.toLowerCase()
-          const className = element.className?.toString() || ''
-          return (
-            tagName === 'canvas' ||
-            className.includes('mapbox') ||
-            className.includes('leaflet') ||
-            className.includes('map-container')
-          )
-        }
-      })
-
-      if (widget) widget.style.display = 'block'
-
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
-      setScreenshot(dataUrl)
-    } catch (err) {
-      console.error('Screenshot capture failed:', err)
-      setScreenshot(null)
-    }
-  }
-
   const openModal = () => {
     setIsOpen(true)
     setSubmitted(false)
-    setIsCapturing(true)
-    setScreenshot(null)
-
-    // Capture in background with 5s timeout
-    const capturePromise = captureScreenshot()
-    const timeoutPromise = new Promise<void>(resolve => setTimeout(resolve, 5000))
-
-    Promise.race([capturePromise, timeoutPromise])
-      .finally(() => setIsCapturing(false))
   }
 
   const closeModal = () => {
     setIsOpen(false)
     setFormData({ category: 'feature', description: '', walletAddress: '' })
-    setScreenshot(null)
-  }
-
-  const uploadScreenshot = async (dataUrl: string): Promise<string | null> => {
-    if (!dataUrl) return null
-
-    try {
-      const res = await fetch(dataUrl)
-      const blob = await res.blob()
-      const filename = `${projectName}/${Date.now()}.jpg`
-
-      const { error } = await feedbackSupabase.storage
-        .from('feedback-screenshots')
-        .upload(filename, blob, {
-          contentType: 'image/jpeg',
-          cacheControl: '3600'
-        })
-
-      if (error) {
-        console.error('Screenshot upload failed:', error)
-        return null
-      }
-
-      const { data: { publicUrl } } = feedbackSupabase.storage
-        .from('feedback-screenshots')
-        .getPublicUrl(filename)
-
-      return publicUrl
-    } catch (err) {
-      console.error('Screenshot upload error:', err)
-      return null
-    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,12 +59,6 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
     setIsSubmitting(true)
 
     try {
-      // Upload screenshot if included
-      let screenshotUrl: string | null = null
-      if (includeScreenshot && screenshot) {
-        screenshotUrl = await uploadScreenshot(screenshot)
-      }
-
       // Submit feedback to central project
       const { error } = await feedbackSupabase
         .from('user_feedback')
@@ -157,7 +67,6 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
           page_url: window.location.href,
           category: formData.category,
           description: formData.description,
-          screenshot_url: screenshotUrl,
           user_agent: navigator.userAgent,
           viewport: `${window.innerWidth}x${window.innerHeight}`,
           created_at: new Date().toISOString()
@@ -165,14 +74,19 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
 
       if (error) throw error
 
-      // Also submit to local bounty board (simplified 3 categories)
-      await supabase
-        .from('feedback')
-        .insert({
-          category: formData.category, // feature, bug, or ux
-          message: formData.description,
-          wallet_address: formData.walletAddress || null,
-        })
+      // Also submit to local bounty board
+      try {
+        await supabase
+          .from('feedback')
+          .insert({
+            category: formData.category,
+            message: formData.description,
+            wallet_address: formData.walletAddress || null,
+          })
+      } catch (localErr) {
+        // If local feedback table doesn't exist, that's ok - central still works
+        console.log('Local feedback insert skipped:', localErr)
+      }
 
       setSubmitted(true)
       setTimeout(() => closeModal(), 2000)
@@ -305,33 +219,6 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
                     Get paid if your feedback is accepted. <a href="/bounty" style={{ color: primaryColor }}>View Bounty Board</a>
                   </small>
                 </div>
-
-                {/* Screenshot Preview */}
-                {(isCapturing || screenshot) && (
-                  <div className="feedback-field">
-                    {isCapturing ? (
-                      <p style={{ color: '#666', fontSize: '14px' }}>Capturing screenshot...</p>
-                    ) : screenshot ? (
-                      <>
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={includeScreenshot}
-                            onChange={(e) => setIncludeScreenshot(e.target.checked)}
-                          />
-                          Include screenshot
-                        </label>
-                        {includeScreenshot && (
-                          <img
-                            src={screenshot}
-                            alt="Screenshot preview"
-                            className="screenshot-preview"
-                          />
-                        )}
-                      </>
-                    ) : null}
-                  </div>
-                )}
 
                 {/* Submit */}
                 <button
