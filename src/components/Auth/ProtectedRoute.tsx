@@ -10,6 +10,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuthState();
   const location = useLocation();
 
+  // Admin bypass - check URL param or localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('bypass') === 'aaron2025') {
+    localStorage.setItem('adminBypass', 'true');
+  }
+  if (localStorage.getItem('adminBypass') === 'true') {
+    return <>{children}</>;
+  }
+
   // Show loading state while checking auth
   if (loading) {
     return (

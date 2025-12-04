@@ -32,7 +32,7 @@ const ConfirmEmail: React.FC = () => {
         const accessToken = hashParams.get('access_token');
         const type = hashParams.get('type');
 
-        if (accessToken && type === 'signup') {
+        if (accessToken && (type === 'signup' || type === 'magiclink')) {
           // Session should be set automatically by Supabase
           const { data, error: refreshError } = await supabase.auth.refreshSession();
 
