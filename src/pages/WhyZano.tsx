@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import SiteHeader from '../components/Layout/SiteHeader';
 import ZanoTutorials from '../components/Zano/ZanoTutorials';
 import MedicalTourismVideos from '../components/Videos/MedicalTourismVideos';
+import USHealthcareCrisis from '../components/Videos/USHealthcareCrisis';
 
 const WhyZano: React.FC = () => {
   const problems = [
@@ -187,6 +188,9 @@ const WhyZano: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* US Healthcare Crisis */}
+      <USHealthcareCrisis variant="full" />
 
       {/* Medical Tourism Videos */}
       <MedicalTourismVideos variant="full" />

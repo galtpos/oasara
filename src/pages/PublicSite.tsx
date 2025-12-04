@@ -11,6 +11,7 @@ import ZanoFilter from '../components/Filters/ZanoFilter';
 import { getFacilities, getCountries, getSpecialties, Facility, supabase } from '../lib/supabase';
 import ZanoTutorials from '../components/Zano/ZanoTutorials';
 import MedicalTourismVideos from '../components/Videos/MedicalTourismVideos';
+import USHealthcareCrisis from '../components/Videos/USHealthcareCrisis';
 
 interface PledgeCounts {
   medical_trust: number;
@@ -477,6 +478,9 @@ const PublicSite: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* US Healthcare Crisis */}
+      <USHealthcareCrisis />
 
       {/* Medical Tourism Videos */}
       <MedicalTourismVideos />
