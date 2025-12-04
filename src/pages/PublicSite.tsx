@@ -178,8 +178,8 @@ const PublicSite: React.FC = () => {
       {/* Bounty Program Banner */}
       <div className="bg-gradient-to-r from-gold-500 to-gold-600 text-white py-2">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-center gap-4 text-sm">
-          <span className="font-semibold">Earn $20 fUSD!</span>
-          <span>Report bugs or suggest features and get paid.</span>
+          <span className="font-semibold">Earn up to $50 fUSD!</span>
+          <span>Features, bugs, UX improvements - get paid for accepted contributions.</span>
           <a
             href="/bounty"
             className="inline-flex items-center gap-1 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full font-medium transition-colors"

@@ -29,7 +29,7 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
   const [includeScreenshot, setIncludeScreenshot] = useState(true)
   const [isCapturing, setIsCapturing] = useState(false)
   const [formData, setFormData] = useState({
-    category: 'bug',
+    category: 'feature',
     description: '',
     walletAddress: ''
   })
@@ -103,7 +103,7 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
 
   const closeModal = () => {
     setIsOpen(false)
-    setFormData({ category: 'bug', description: '', walletAddress: '' })
+    setFormData({ category: 'feature', description: '', walletAddress: '' })
     setScreenshot(null)
   }
 
@@ -165,17 +165,11 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
 
       if (error) throw error
 
-      // Also submit to local bounty board
-      const categoryMap: Record<string, string> = {
-        bug: 'bug',
-        confusing: 'general',
-        suggestion: 'feature',
-        other: 'general'
-      }
+      // Also submit to local bounty board (simplified 3 categories)
       await supabase
         .from('feedback')
         .insert({
-          category: categoryMap[formData.category] || 'general',
+          category: formData.category, // feature, bug, or ux
           message: formData.description,
           wallet_address: formData.walletAddress || null,
         })
@@ -197,8 +191,8 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
       {showBanner && (
         <div className="feedback-banner" style={{ backgroundColor: primaryColor }}>
           <p>
-            <strong>Earn $20 fUSD!</strong> Report bugs or suggest features.
-            Accepted contributions get paid. <a href="/bounty" style={{ color: '#FCD34D', textDecoration: 'underline' }}>View Bounty Board</a>
+            <strong>Earn up to $50 fUSD!</strong> Report bugs, suggest features, or improve UX.
+            <a href="/bounty" style={{ color: '#FCD34D', textDecoration: 'underline', marginLeft: '4px' }}>View Bounty Board</a>
           </p>
           <button onClick={dismissBanner} className="banner-dismiss">
             Got it
@@ -234,26 +228,25 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
                 </svg>
                 <h3>Thank you!</h3>
                 <p>Your feedback is now on the <a href="/bounty" style={{ color: primaryColor, textDecoration: 'underline' }}>Bounty Board</a>!</p>
-                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>If accepted, you'll earn $20 fUSD</p>
+                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>Features: $50 | Bugs: $30 | UX: $20</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
                 <div className="feedback-header">
-                  <h3>Send Feedback <span style={{ fontSize: '12px', color: '#D97706', fontWeight: 'normal' }}>+ Earn $20 fUSD</span></h3>
+                  <h3>Send Feedback <span style={{ fontSize: '12px', color: '#D97706', fontWeight: 'normal' }}>+ Earn up to $50 fUSD</span></h3>
                   <button type="button" className="feedback-close" onClick={closeModal}>
                     &times;
                   </button>
                 </div>
 
-                {/* Category */}
+                {/* Category - Simplified 3 types */}
                 <div className="feedback-field">
                   <label>What type of feedback?</label>
                   <div className="feedback-categories">
                     {[
-                      { value: 'bug', label: 'Bug', icon: '🐛' },
-                      { value: 'confusing', label: 'Confusing', icon: '🤔' },
-                      { value: 'suggestion', label: 'Suggestion', icon: '💡' },
-                      { value: 'other', label: 'Other', icon: '💬' }
+                      { value: 'feature', label: 'Feature', icon: '💡', bounty: 50 },
+                      { value: 'bug', label: 'Bug', icon: '🐛', bounty: 30 },
+                      { value: 'ux', label: 'UX', icon: '✨', bounty: 20 }
                     ].map(cat => (
                       <button
                         key={cat.value}
@@ -264,6 +257,7 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
                       >
                         <span>{cat.icon}</span>
                         <span>{cat.label}</span>
+                        <span style={{ fontSize: '10px', color: '#D97706' }}>${cat.bounty}</span>
                       </button>
                     ))}
                   </div>
@@ -290,7 +284,7 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
                 <div className="feedback-field">
                   <label htmlFor="wallet" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     Zano Wallet
-                    <span style={{ fontSize: '11px', color: '#D97706', fontWeight: 'bold' }}>for $20 bounty</span>
+                    <span style={{ fontSize: '11px', color: '#D97706', fontWeight: 'bold' }}>for bounty</span>
                   </label>
                   <input
                     type="text"

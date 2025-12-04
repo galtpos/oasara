@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 
+// Bounty amounts per category
+const BOUNTY_AMOUNTS: Record<string, number> = {
+  feature: 50,
+  bug: 30,
+  ux: 20,
+};
+
+const getBountyAmount = (category: string): number => {
+  return BOUNTY_AMOUNTS[category] || 20;
+};
+
 interface FeedbackItem {
   id: string;
   email: string | null;
@@ -66,10 +77,11 @@ const FeedbackManagement: React.FC = () => {
   };
 
   const handleAccept = (item: FeedbackItem) => {
+    const bounty = getBountyAmount(item.category);
     updateFeedback(item.id, {
       accepted: true,
       status: 'accepted',
-      admin_response: adminResponse || 'Accepted! $20 fUSD bounty incoming.',
+      admin_response: adminResponse || `Accepted! $${bounty} fUSD bounty incoming.`,
     });
   };
 
@@ -94,22 +106,32 @@ const FeedbackManagement: React.FC = () => {
     return true;
   });
 
+  const acceptedItems = feedbackList.filter(f => f.accepted === true);
+  const totalBountyPaid = acceptedItems
+    .filter(f => f.bounty_paid)
+    .reduce((sum, item) => sum + getBountyAmount(item.category), 0);
+  const totalBountyOwed = acceptedItems
+    .filter(f => !f.bounty_paid)
+    .reduce((sum, item) => sum + getBountyAmount(item.category), 0);
+
   const stats = {
     total: feedbackList.length,
     pending: feedbackList.filter(f => f.accepted === null).length,
-    accepted: feedbackList.filter(f => f.accepted === true).length,
-    unpaid: feedbackList.filter(f => f.accepted === true && !f.bounty_paid).length,
+    accepted: acceptedItems.length,
+    unpaid: acceptedItems.filter(f => !f.bounty_paid).length,
+    totalPaid: totalBountyPaid,
+    totalOwed: totalBountyOwed,
+    remaining: 1000 - totalBountyPaid - totalBountyOwed,
   };
 
   const getCategoryLabel = (cat: string) => {
-    const labels: Record<string, string> = {
-      feature: 'Feature',
-      bug: 'Bug',
-      data: 'Data',
-      facility: 'Facility',
-      general: 'Other',
+    const labels: Record<string, { label: string; icon: string }> = {
+      feature: { label: 'Feature', icon: '💡' },
+      bug: { label: 'Bug', icon: '🐛' },
+      ux: { label: 'UX', icon: '✨' },
     };
-    return labels[cat] || cat;
+    const info = labels[cat] || { label: cat, icon: '📝' };
+    return `${info.icon} ${info.label} ($${getBountyAmount(cat)})`;
   };
 
   if (loading) {
@@ -124,26 +146,34 @@ const FeedbackManagement: React.FC = () => {
     <div className="p-6">
       <div className="mb-8">
         <h1 className="font-serif text-3xl text-deep-teal mb-2">Bounty Management</h1>
-        <p className="text-deep-teal/70">Review submissions and pay bounties ($20 fUSD each)</p>
+        <p className="text-deep-teal/70">Features: $50 | Bugs: $30 | UX: $20</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-8">
         <div className="bg-white rounded-xl p-4 border border-warm-clay/20">
           <div className="text-2xl font-bold text-deep-teal">{stats.total}</div>
           <div className="text-sm text-deep-teal/60">Total</div>
         </div>
         <div className="bg-yellow-50 rounded-xl p-4 border border-yellow-200">
           <div className="text-2xl font-bold text-yellow-700">{stats.pending}</div>
-          <div className="text-sm text-yellow-600">Pending Review</div>
+          <div className="text-sm text-yellow-600">Pending</div>
         </div>
         <div className="bg-green-50 rounded-xl p-4 border border-green-200">
           <div className="text-2xl font-bold text-green-700">{stats.accepted}</div>
           <div className="text-sm text-green-600">Accepted</div>
         </div>
         <div className="bg-orange-50 rounded-xl p-4 border border-orange-200">
-          <div className="text-2xl font-bold text-orange-700">{stats.unpaid}</div>
-          <div className="text-sm text-orange-600">Unpaid Bounties</div>
+          <div className="text-2xl font-bold text-orange-700">${stats.totalOwed}</div>
+          <div className="text-sm text-orange-600">Owed</div>
+        </div>
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+          <div className="text-2xl font-bold text-blue-700">${stats.totalPaid}</div>
+          <div className="text-sm text-blue-600">Paid</div>
+        </div>
+        <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-200">
+          <div className="text-2xl font-bold text-emerald-700">${stats.remaining}</div>
+          <div className="text-sm text-emerald-600">Budget Left</div>
         </div>
       </div>
 
@@ -208,7 +238,7 @@ const FeedbackManagement: React.FC = () => {
                   )}
                   {item.bounty_paid && (
                     <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
-                      $20 Paid
+                      ${getBountyAmount(item.category)} Paid
                     </span>
                   )}
                 </div>
@@ -256,7 +286,7 @@ const FeedbackManagement: React.FC = () => {
                           disabled={updating}
                           className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-50"
                         >
-                          {updating ? 'Saving...' : 'Accept ($20 Bounty)'}
+                          {updating ? 'Saving...' : `Accept ($${getBountyAmount(item.category)} Bounty)`}
                         </button>
                         <button
                           onClick={() => handleReject(item)}
@@ -289,18 +319,19 @@ const FeedbackManagement: React.FC = () => {
 
               {/* Pay Bounty */}
               {item.accepted === true && !item.bounty_paid && (
-                <div className="border-t border-warm-clay/20 pt-4 mt-4">
+                <div className="border-t border-warm-clay/20 pt-4 mt-4 flex items-center gap-4">
                   <button
                     onClick={() => handleMarkPaid(item)}
                     disabled={updating}
                     className="px-4 py-2 rounded-lg bg-champagne-gold text-white text-sm font-medium hover:bg-champagne-gold/90 disabled:opacity-50"
                   >
-                    {updating ? 'Updating...' : 'Mark Bounty Paid ($20 fUSD)'}
+                    {updating ? 'Updating...' : `Mark Paid ($${getBountyAmount(item.category)} fUSD)`}
                   </button>
                   {item.wallet_address && (
-                    <p className="text-xs text-deep-teal/60 mt-2">
-                      Send to: {item.wallet_address}
-                    </p>
+                    <div className="text-xs text-deep-teal/60">
+                      <span className="font-medium">Wallet:</span>
+                      <code className="ml-1 bg-sage-100 px-2 py-1 rounded">{item.wallet_address}</code>
+                    </div>
                   )}
                 </div>
               )}

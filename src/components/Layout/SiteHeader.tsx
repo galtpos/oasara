@@ -61,7 +61,7 @@ const SiteHeader: React.FC = () => {
                 className={`nav-link flex items-center gap-1 ${isActive('/bounty') ? 'text-gold-500' : ''}`}
               >
                 Bounty
-                <span className="text-xs bg-gold-500 text-white px-1.5 py-0.5 rounded-full font-bold">$20</span>
+                <span className="text-xs bg-gradient-to-r from-gold-500 to-gold-600 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
               </Link>
               <Link to="/early-access" className="btn-gold">
                 Join
