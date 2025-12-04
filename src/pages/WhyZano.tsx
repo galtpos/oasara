@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import SiteHeader from '../components/Layout/SiteHeader';
+import ZanoTutorials from '../components/Zano/ZanoTutorials';
 
 const WhyZano: React.FC = () => {
   const problems = [
@@ -186,28 +187,8 @@ const WhyZano: React.FC = () => {
         </div>
       </section>
 
-      {/* Video Section Placeholder */}
-      <section className="py-16 px-6 bg-ocean-600">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="font-display text-4xl text-white mb-6">See It In Action</h2>
-            <div className="aspect-video bg-black/30 rounded-2xl flex items-center justify-center border-2 border-gold-400/30">
-              <div className="text-center">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gold-500/20 flex items-center justify-center">
-                  <svg className="w-10 h-10 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-                <p className="text-white/70">Video coming soon</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {/* Zano Tutorials */}
+      <ZanoTutorials variant="full" />
 
       {/* How It Works */}
       <section className="py-16 px-6">
