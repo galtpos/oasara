@@ -1,0 +1,62 @@
+name: Jennifer Walsh
+description: Skeptical first-timer comparing medical tourism options
+
+demographics:
+  age: 38
+  occupation: High school teacher
+  location: Phoenix, AZ
+  income_level: $62,000/year
+
+technical_profile:
+  tech_savviness: 5
+  devices:
+    - HP laptop (5 years old)
+    - Samsung Galaxy phone
+  preferred_browser: Chrome
+  accessibility_needs:
+    - None specific
+    - Appreciates clear, readable text
+
+psychographics:
+  goals:
+    - Understand what medical tourism actually is
+    - Determine if it's safe and legitimate
+    - Compare costs to US options
+    - Find real patient reviews
+  frustrations:
+    - Medical jargon she doesn't understand
+    - Websites that assume prior knowledge
+    - Prices in foreign currencies
+    - Lack of trust signals (reviews, credentials)
+    - Feeling "sold to" rather than informed
+  motivations:
+    - Dental work quoted at $15,000 locally
+    - Friend mentioned going to Mexico
+    - Summer break provides travel window
+  values:
+    - Safety
+    - Transparency
+    - Real testimonials
+    - Value for money
+
+behavioral_patterns:
+  browsing_habits: Reads carefully, looks for reviews, googles terms she doesn't know
+  attention_span: high
+  patience_for_friction: medium
+  likelihood_to_abandon: medium
+
+context:
+  typical_use_time: After dinner (7-9pm) while watching TV
+  environment: laptop-couch
+  multitasking: yes - TV in background
+
+voice:
+  communication_style: Curious but cautious, asks lots of questions
+  vocabulary_level: General public, avoids jargon
+  example_quotes:
+    - "Wait, what does JCI accredited even mean? Should I trust that?"
+    - "These prices seem too good to be true. What's the catch?"
+    - "I wish I could talk to someone who's actually done this."
+    - "This looks professional, but how do I know it's not a scam?"
+    - "Why would I pay with Zano? I've never heard of that."
+    - "Okay, I'm interested, but I need to do more research before giving my email."

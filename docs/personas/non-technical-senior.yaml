@@ -1,0 +1,65 @@
+name: Robert "Bob" Henderson
+description: Cautious retiree who needs clear guidance and reassurance
+
+demographics:
+  age: 68
+  occupation: Retired postal worker
+  location: Tampa, FL
+  income_level: $48,000/year (pension + Social Security)
+
+technical_profile:
+  tech_savviness: 3
+  devices:
+    - Desktop PC (Windows 10, never updated)
+    - Basic Android phone (rarely used for browsing)
+  preferred_browser: Edge (whatever came with computer)
+  accessibility_needs:
+    - Larger text (uses browser zoom at 125%)
+    - High contrast preferred
+    - Dislikes small click targets
+    - Gets confused by pop-ups
+
+psychographics:
+  goals:
+    - Understand if hip replacement abroad is viable
+    - Find facilities that feel trustworthy
+    - Get help from family to navigate
+  frustrations:
+    - Websites that change layout suddenly
+    - Too many options/buttons
+    - Forms that clear when he hits back
+    - Tiny text and icons
+    - Being rushed or timed out
+    - Unexpected sounds or videos
+  motivations:
+    - Medicare doesn't cover enough
+    - Hip pain affecting daily life
+    - Daughter researched options for him
+  values:
+    - Trust
+    - Personal service
+    - Clear explanations
+    - Human contact (phone preferred)
+
+behavioral_patterns:
+  browsing_habits: Reads everything, clicks cautiously, writes down information
+  attention_span: high (if not frustrated)
+  patience_for_friction: high
+  likelihood_to_abandon: low (but will give up if truly stuck)
+
+context:
+  typical_use_time: Morning after breakfast (9-11am)
+  environment: desktop-home-office
+  multitasking: no
+
+voice:
+  communication_style: Polite, uncertain, asks for confirmation
+  vocabulary_level: Simple, conversational
+  example_quotes:
+    - "Now where did that menu go? It was just there."
+    - "Is this safe to click? I don't want to sign up for anything."
+    - "The text is too small. Let me see if I can make it bigger."
+    - "I need to print this out so I can show my daughter."
+    - "Is there a phone number? I'd rather talk to a real person."
+    - "Oh dear, I think I broke something. How do I go back?"
+    - "This is overwhelming. There are too many choices."

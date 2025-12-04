@@ -1,0 +1,61 @@
+name: Patricia Morrison
+description: Time-strapped executive who needs things to just work
+
+demographics:
+  age: 47
+  occupation: VP of Operations at a manufacturing company
+  location: Chicago, IL
+  income_level: $280,000/year
+
+technical_profile:
+  tech_savviness: 6
+  devices:
+    - Dell laptop (work-issued)
+    - iPhone 14
+    - Occasionally borrows husband's iPad
+  preferred_browser: Chrome (whatever IT installed)
+  accessibility_needs:
+    - Reading glasses for small text
+    - Prefers larger click targets
+
+psychographics:
+  goals:
+    - Find a reputable facility quickly
+    - Get cost estimates without lengthy forms
+    - Schedule around busy work calendar
+  frustrations:
+    - Being forced to create accounts before seeing prices
+    - Websites that require too many clicks
+    - Unclear next steps
+    - Phone numbers that go to voicemail
+    - Having to repeat information
+  motivations:
+    - Knee replacement surgery not covered well by insurance
+    - Heard colleague saved $40K going abroad
+    - Wants recovery time during Q4 slowdown
+  values:
+    - Time efficiency
+    - Professionalism
+    - Clear communication
+    - Reputation and credentials
+
+behavioral_patterns:
+  browsing_habits: Quick scans, clicks first prominent button, uses search
+  attention_span: low
+  patience_for_friction: low
+  likelihood_to_abandon: high
+
+context:
+  typical_use_time: Lunch break (12-1pm) or Sunday morning
+  environment: desktop-office or tablet-couch
+  multitasking: yes - often on conference calls
+
+voice:
+  communication_style: Professional, concise, wants bottom line
+  vocabulary_level: Business professional
+  example_quotes:
+    - "Just tell me the price. I don't need the life story."
+    - "Is this JCI accredited? That's really all I need to know."
+    - "I don't have time to create another account. Can I just call someone?"
+    - "This looks legitimate. The design is clean."
+    - "Why are there so many steps? Amazon does this in two clicks."

@@ -1,20 +1,21 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-// Public pages
-import PublicSite from './pages/PublicSite';
-import EarlyAccess from './pages/EarlyAccess';
-import MedicalTourismHub from './pages/MedicalTourismHub';
-import MedicalTrusts from './pages/MedicalTrusts';
-import WhyZano from './pages/WhyZano';
-import ActionCenter from './pages/ActionCenter';
-import Feedback from './pages/Feedback';
-
 // Auth pages
+import LandingGate from './pages/LandingGate';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import ConfirmEmail from './pages/ConfirmEmail';
-import UserDashboard from './pages/Dashboard';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
+
+// Protected pages
+import PublicSite from './pages/PublicSite';
+import EarlyAccess from './pages/EarlyAccess';
+import MedicalTourismHub from './pages/MedicalTourismHub';
+import WhyZano from './pages/WhyZano';
+import ActionCenter from './pages/ActionCenter';
+import Feedback from './pages/Feedback';
+import MedicalTrusts from './pages/MedicalTrusts';
 
 // Admin pages
 import AdminLogin from './admin/pages/AdminLogin';
@@ -23,26 +24,24 @@ import Dashboard from './admin/pages/Dashboard';
 import FacilitiesList from './admin/pages/FacilitiesList';
 import FacilityEditor from './admin/pages/FacilityEditor';
 import DoctorsList from './admin/pages/DoctorsList';
-import Analytics from './admin/pages/Analytics';
-import AffiliateManager from './admin/pages/AffiliateManager';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<PublicSite />} />
-      <Route path="/early-access" element={<EarlyAccess />} />
-      <Route path="/hub" element={<MedicalTourismHub />} />
-      <Route path="/medical-trusts" element={<MedicalTrusts />} />
-      <Route path="/why-zano" element={<WhyZano />} />
-      <Route path="/action" element={<ActionCenter />} />
-      <Route path="/feedback" element={<Feedback />} />
-
-      {/* Auth Routes */}
+      {/* Auth Routes (Public) */}
+      <Route path="/welcome" element={<LandingGate />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/auth/confirm" element={<ConfirmEmail />} />
-      <Route path="/dashboard" element={<UserDashboard />} />
+      <Route path="/early-access" element={<EarlyAccess />} />
+
+      {/* Protected Routes - Require authentication */}
+      <Route path="/" element={<ProtectedRoute><PublicSite /></ProtectedRoute>} />
+      <Route path="/hub" element={<ProtectedRoute><MedicalTourismHub /></ProtectedRoute>} />
+      <Route path="/why-zano" element={<ProtectedRoute><WhyZano /></ProtectedRoute>} />
+      <Route path="/action" element={<ProtectedRoute><ActionCenter /></ProtectedRoute>} />
+      <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
+      <Route path="/medical-trusts" element={<ProtectedRoute><MedicalTrusts /></ProtectedRoute>} />
 
       {/* Admin Login */}
       <Route path="/admin/login" element={<AdminLogin />} />
@@ -54,8 +53,6 @@ const AppRoutes: React.FC = () => {
         <Route path="facilities/new" element={<FacilityEditor />} />
         <Route path="facilities/:id" element={<FacilityEditor />} />
         <Route path="doctors" element={<DoctorsList />} />
-        <Route path="analytics" element={<Analytics />} />
-        <Route path="affiliates" element={<AffiliateManager />} />
         <Route path="testimonials" element={
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center max-w-md">

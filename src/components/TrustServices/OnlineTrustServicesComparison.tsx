@@ -1,5 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../../lib/supabase';
+
+interface AffiliateProgram {
+  id: string;
+  service_name: string;
+  service_slug: string;
+  description: string;
+  price_display: string;
+  price_type: string;
+  category: string;
+  rating: number;
+  website_url: string;
+  affiliate_link: string | null;
+  features: string[] | null;
+  pros: string[] | null;
+  cons: string[] | null;
+  best_for: string | null;
+  is_active: boolean;
+}
 
 interface TrustService {
   id: string;
@@ -19,247 +38,68 @@ interface TrustService {
   rating: number;
 }
 
-const services: TrustService[] = [
-  {
-    id: 'legalzoom',
-    name: 'LegalZoom',
-    logo: 'LZ',
-    tagline: 'Most recognized name in online legal services',
-    url: 'https://www.legalzoom.com/personal/estate-planning/living-trust-overview.html',
-    pricing: {
-      livingTrust: '$399',
-      healthcareDirective: '$39',
-      pricingModel: 'Pay per document',
-    },
-    features: [
-      'Living Trust with Pour-Over Will',
-      'Financial Power of Attorney',
-      'Healthcare Directive',
-      'HIPAA Authorization',
-      'Property Transfer Guide',
-      'Attorney Review Available ($199 extra)',
-    ],
-    pros: [
-      'Established since 2001 with strong reputation',
-      'Pay only for what you need',
-      'Includes testamentary trust option',
-      'Extensive customer support',
-    ],
-    cons: [
-      'Higher prices than competitors',
-      'Attorney access costs extra',
-      'Less detailed questionnaire',
-    ],
-    bestFor: 'One-time users who want a trusted brand',
-    rating: 4.2,
+// Generate logo abbreviation from name
+const getLogoAbbrev = (name: string): string => {
+  const words = name.split(' ');
+  if (words.length === 1) {
+    return name.substring(0, 2).toUpperCase();
+  }
+  return words.map(w => w[0]).join('').substring(0, 3).toUpperCase();
+};
+
+// Convert database affiliate to TrustService format
+const affiliateToService = (affiliate: AffiliateProgram): TrustService => ({
+  id: affiliate.service_slug,
+  name: affiliate.service_name,
+  logo: getLogoAbbrev(affiliate.service_name),
+  tagline: affiliate.description.substring(0, 60) + (affiliate.description.length > 60 ? '...' : ''),
+  url: affiliate.affiliate_link || affiliate.website_url,
+  pricing: {
+    livingTrust: affiliate.price_display,
+    healthcareDirective: 'Included',
+    pricingModel: affiliate.price_type === 'one_time' ? 'One-time fee' :
+                  affiliate.price_type === 'subscription' ? 'Subscription' :
+                  affiliate.price_type,
   },
-  {
-    id: 'rocketlawyer',
-    name: 'Rocket Lawyer',
-    logo: 'RL',
-    tagline: 'Unlimited legal documents with subscription',
-    url: 'https://www.rocketlawyer.com/family-and-personal/estate-planning',
-    pricing: {
-      livingTrust: 'Included in $39.99/mo',
-      healthcareDirective: 'Included',
-      pricingModel: 'Subscription ($39.99/mo)',
-    },
-    features: [
-      'Unlimited Legal Documents',
-      'Living Trust & Will',
-      'All Power of Attorney Forms',
-      'Healthcare Directive',
-      'Attorney Q&A Included',
-      '40% Off Attorney Consultations',
-      'Digital Signatures',
-    ],
-    pros: [
-      'Best value for multiple documents',
-      'Attorney access included',
-      'BBB A+ Rating',
-      'Pet guardian provisions',
-      '$1 first week trial',
-    ],
-    cons: [
-      'Ongoing subscription required',
-      'No testamentary trust option',
-      'Must cancel to stop charges',
-    ],
-    bestFor: 'Users needing multiple documents or ongoing legal needs',
-    rating: 4.4,
-  },
-  {
-    id: 'trustandwill',
-    name: 'Trust & Will',
-    logo: 'T&W',
-    tagline: 'Modern estate planning made simple',
-    url: 'https://trustandwill.com/learn/living-trust',
-    pricing: {
-      livingTrust: '$499 individual / $599 couples',
-      healthcareDirective: 'Included',
-      pricingModel: 'Flat-rate packages',
-    },
-    features: [
-      'State-Specific Documents',
-      'Intuitive Modern Interface',
-      'Living Trust + Will',
-      'Power of Attorney',
-      'Healthcare Directive',
-      'Guardian Nomination',
-      'Free Unlimited Updates',
-    ],
-    pros: [
-      'Clean, modern user experience',
-      'Transparent flat-rate pricing',
-      'Free document updates for life',
-      'In-house legal team reviewed',
-    ],
-    cons: [
-      'Higher price than some competitors',
-      'No attorney consultation included',
-      'Limited to estate planning only',
-    ],
-    bestFor: 'Tech-savvy users wanting a premium experience',
-    rating: 4.6,
-  },
-  {
-    id: 'nolo',
-    name: 'Nolo WillMaker',
-    logo: 'NOLO',
-    tagline: 'Trusted legal publisher since 1971',
-    url: 'https://www.willmaker.com/',
-    pricing: {
-      livingTrust: '$149 (software)',
-      healthcareDirective: 'Included',
-      pricingModel: 'One-time software purchase',
-    },
-    features: [
-      'Desktop Software + Online Access',
-      'Comprehensive Estate Planning',
-      'Living Trust Creation',
-      'All 50 States Supported',
-      'Executor & Beneficiary Guides',
-      'Pet Care Instructions',
-      'Educational Resources',
-    ],
-    pros: [
-      'Best value for complete package',
-      'Extensive educational content',
-      'No recurring fees',
-      '50+ years of legal publishing',
-    ],
-    cons: [
-      'Interface feels dated',
-      'Software requires installation',
-      'Less hand-holding than competitors',
-    ],
-    bestFor: 'DIY users who want comprehensive software',
-    rating: 4.3,
-  },
-  {
-    id: 'gentreo',
-    name: 'Gentreo',
-    logo: 'GEN',
-    tagline: 'Family-focused estate planning',
-    url: 'https://www.gentreo.com/trust',
-    pricing: {
-      livingTrust: '$150 first year, then $50/year',
-      healthcareDirective: 'Included',
-      pricingModel: 'Annual subscription',
-    },
-    features: [
-      'Living Trust & Will',
-      'Pet Trust Available',
-      'Power of Attorney',
-      'Healthcare Directive',
-      'Digital Vault Storage',
-      'Family Sharing',
-      'Unlimited Updates',
-    ],
-    pros: [
-      'Affordable annual subscription',
-      'Great for families',
-      'Digital vault included',
-      'Pet trust option',
-    ],
-    cons: [
-      'Must maintain subscription for access',
-      'Less established brand',
-      'Fewer attorney resources',
-    ],
-    bestFor: 'Families wanting ongoing estate management',
-    rating: 4.1,
-  },
-  {
-    id: 'totallegal',
-    name: 'TotalLegal',
-    logo: 'TL',
-    tagline: 'Budget-friendly legal documents',
-    url: 'https://www.totallegal.com/estate-planning',
-    pricing: {
-      livingTrust: '$19.95/document OR $9.95/mo',
-      healthcareDirective: '$19.95 or included',
-      pricingModel: 'Per document or subscription',
-    },
-    features: [
-      'Individual Document Purchase',
-      'Living Will',
-      'Power of Attorney',
-      'Healthcare Directive',
-      'Attorney Access (Premium)',
-      'Online Document Storage',
-    ],
-    pros: [
-      'Lowest per-document price',
-      'Flexible payment options',
-      'Good for simple needs',
-    ],
-    cons: [
-      'Limited trust options',
-      'Basic interface',
-      'Less comprehensive than others',
-    ],
-    bestFor: 'Budget-conscious users with simple needs',
-    rating: 3.8,
-  },
-  {
-    id: 'freewill',
-    name: 'FreeWill',
-    logo: 'FW',
-    tagline: 'Free wills funded by nonprofits',
-    url: 'https://www.freewill.com/',
-    pricing: {
-      livingTrust: 'Free (CA only)',
-      healthcareDirective: 'Free',
-      pricingModel: 'Free (nonprofit-funded)',
-    },
-    features: [
-      'Free Last Will & Testament',
-      'Free Power of Attorney',
-      'Free Healthcare Directive',
-      'Living Trust (California Only)',
-      'Charitable Giving Integration',
-      'Simple Interface',
-    ],
-    pros: [
-      'Completely free to use',
-      'Simple and straightforward',
-      'No upsells or hidden fees',
-      'Great for basic wills',
-    ],
-    cons: [
-      'Living trusts only in California',
-      'Encourages charitable giving',
-      'Limited customization',
-      'No attorney support',
-    ],
-    bestFor: 'Users wanting free basic documents',
-    rating: 4.0,
-  },
-];
+  features: affiliate.features || [],
+  pros: affiliate.pros || [],
+  cons: affiliate.cons || [],
+  bestFor: affiliate.best_for || 'General estate planning needs',
+  rating: affiliate.rating,
+});
 
 const OnlineTrustServicesComparison: React.FC = () => {
   const [selectedService, setSelectedService] = useState<TrustService | null>(null);
+  const [services, setServices] = useState<TrustService[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAffiliates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('affiliate_programs')
+          .select('*')
+          .eq('is_active', true)
+          .order('rating', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching affiliates:', error);
+          return;
+        }
+
+        if (data) {
+          const converted = data.map(affiliateToService);
+          setServices(converted);
+        }
+      } catch (err) {
+        console.error('Failed to fetch affiliates:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAffiliates();
+  }, []);
 
   const sortedServices = [...services].sort((a, b) => b.rating - a.rating);
 
@@ -302,6 +142,15 @@ const OnlineTrustServicesComparison: React.FC = () => {
         </div>
 
         {/* Services Grid */}
+        {isLoading ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ocean-600"></div>
+          </div>
+        ) : sortedServices.length === 0 ? (
+          <div className="text-center py-16 text-ocean-600">
+            <p>No legal services available at this time. Please check back later.</p>
+          </div>
+        ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
           {sortedServices.map((service) => (
             <motion.div
@@ -369,6 +218,104 @@ const OnlineTrustServicesComparison: React.FC = () => {
               </div>
             </motion.div>
           ))}
+        </div>
+        )}
+
+        {/* Lawyer vs Online Cost Comparison */}
+        <div className="bg-gradient-to-br from-gold-50 via-amber-50 to-orange-50 rounded-2xl border border-gold-200 p-8 mb-12">
+          <div className="flex items-start gap-4 mb-6">
+            <div className="w-14 h-14 bg-gradient-to-br from-gold-500 to-amber-600 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-ocean-800 mb-2">Why Online Services vs. Traditional Lawyers?</h3>
+              <p className="text-ocean-600">See how much you can save while getting quality estate planning documents</p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Traditional Lawyer */}
+            <div className="bg-white/80 rounded-xl p-6 border border-sage-200">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-sage-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-sage-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h4 className="text-lg font-semibold text-ocean-800">Traditional Attorney</h4>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-sage-100">
+                  <span className="text-ocean-600">Simple Living Trust</span>
+                  <span className="font-bold text-ocean-800">$1,500 - $3,000</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-sage-100">
+                  <span className="text-ocean-600">Complex Estate Plan</span>
+                  <span className="font-bold text-ocean-800">$3,000 - $5,000+</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-sage-100">
+                  <span className="text-ocean-600">High Net Worth</span>
+                  <span className="font-bold text-ocean-800">$5,000 - $10,000+</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-ocean-600">Hourly Rate</span>
+                  <span className="font-bold text-ocean-800">$250 - $600/hr</span>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-sage-200">
+                <p className="text-sm text-ocean-500">
+                  Best for: Complex estates, blended families, business owners, high-net-worth individuals
+                </p>
+              </div>
+            </div>
+
+            {/* Online Services */}
+            <div className="bg-gradient-to-br from-ocean-500 to-ocean-600 rounded-xl p-6 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-gold-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                SAVE 70-90%
+              </div>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h4 className="text-lg font-semibold">Online Legal Services</h4>
+              </div>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-white/20">
+                  <span className="text-ocean-100">Living Trust Package</span>
+                  <span className="font-bold text-gold-300">$149 - $599</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/20">
+                  <span className="text-ocean-100">Healthcare Directive</span>
+                  <span className="font-bold text-gold-300">Free - $50</span>
+                </div>
+                <div className="flex justify-between items-center py-2 border-b border-white/20">
+                  <span className="text-ocean-100">Power of Attorney</span>
+                  <span className="font-bold text-gold-300">Included</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-ocean-100">Updates & Changes</span>
+                  <span className="font-bold text-gold-300">Free - $50/yr</span>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/20">
+                <p className="text-sm text-ocean-100">
+                  Best for: Standard estates, straightforward family situations, budget-conscious planning
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 bg-white/60 rounded-lg p-4 border border-gold-200">
+            <p className="text-sm text-ocean-700 text-center">
+              <strong className="text-ocean-800">Average savings:</strong> A family saving $2,000+ by using online services can invest that difference,
+              potentially growing to $5,000+ over 10 years. Online services work well for 80% of families with straightforward estate planning needs.
+            </p>
+          </div>
         </div>
 
         {/* Comparison Table */}

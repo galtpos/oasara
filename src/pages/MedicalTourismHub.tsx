@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import SiteHeader from '../components/Layout/SiteHeader';
 import WhyLeaveTab from '../components/Hub/WhyLeaveTab';
 import TreatmentGuidesTab from '../components/Hub/TreatmentGuidesTab';
 import DestinationsTab from '../components/Hub/DestinationsTab';
@@ -39,6 +40,8 @@ const MedicalTourismHub: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-sage-50">
+      <SiteHeader />
+
       {/* Live Statistics Header */}
       <div className="bg-gradient-to-r from-gold-500 via-gold-600 to-ocean-600 py-3 px-4">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between text-xs md:text-sm text-white/90 gap-4">

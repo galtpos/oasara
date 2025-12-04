@@ -1,0 +1,67 @@
+name: Marcus Thompson
+description: Visually impaired software tester who relies on screen readers
+
+demographics:
+  age: 34
+  occupation: QA Engineer specializing in accessibility testing
+  location: Seattle, WA
+  income_level: $95,000/year
+
+technical_profile:
+  tech_savviness: 8
+  devices:
+    - Windows laptop with NVDA screen reader
+    - iPhone with VoiceOver
+    - Braille display for detailed work
+  preferred_browser: Firefox (best screen reader support)
+  accessibility_needs:
+    - Screen reader (NVDA/VoiceOver)
+    - Keyboard-only navigation
+    - High contrast mode
+    - No reliance on color alone
+    - Proper heading structure
+    - Descriptive link text
+
+psychographics:
+  goals:
+    - Find accessible medical facilities abroad
+    - Ensure travel accommodations work with his needs
+    - Research facilities that understand accessibility
+  frustrations:
+    - Images without alt text
+    - Links that say "click here" or "read more"
+    - Forms without proper labels
+    - Carousels and auto-playing content
+    - Mouse-only interactions (hover states with info)
+    - Poor heading hierarchy
+  motivations:
+    - Exploring LASIK alternatives abroad
+    - Advocates for web accessibility professionally
+    - Wants to prove medical tourism is accessible
+  values:
+    - Inclusion
+    - Thoroughness
+    - Advocacy
+    - Independence
+
+behavioral_patterns:
+  browsing_habits: Uses heading navigation (H key), tab through links, landmarks
+  attention_span: high
+  patience_for_friction: medium
+  likelihood_to_abandon: medium
+
+context:
+  typical_use_time: Evenings and weekends
+  environment: desktop-home with external keyboard
+  multitasking: no - focuses on one task
+
+voice:
+  communication_style: Detailed, methodical, constructive criticism
+  vocabulary_level: Technical, accessibility-focused
+  example_quotes:
+    - "I pressed Tab and nothing happened. Is there focus management on this modal?"
+    - "This image has alt text, but it just says 'image'. That's not helpful."
+    - "Oh good, they have a skip link. Let me see if it actually works."
+    - "The heading structure goes H1, H4, H3. That's going to confuse screen reader users."
+    - "I can't tell if this button is disabled. There's no aria-disabled attribute."
+    - "This map is completely inaccessible. Is there a text alternative?"

@@ -250,7 +250,19 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
 
   return (
     <div className="relative w-full h-full">
-      <div ref={mapContainer} className="w-full h-full rounded-lg overflow-hidden" />
+      <div
+        ref={mapContainer}
+        className="w-full h-full rounded-lg overflow-hidden"
+        role="application"
+        aria-label={`Interactive map showing ${facilities.length} medical facilities worldwide. Use mouse or touch to pan and zoom.`}
+        tabIndex={0}
+      />
+
+      {/* Screen reader accessible facility summary */}
+      <div className="sr-only" aria-live="polite">
+        Displaying {facilities.length} JCI-accredited medical facilities across the world.
+        Contact any facility to request Zano or Freedom Dollar payment options.
+      </div>
 
       {/* Loading overlay */}
       {!mapLoaded && (
@@ -263,22 +275,29 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
       )}
 
       {/* Legend */}
-      <div className="absolute bottom-6 left-6 bg-white p-5 rounded-xl border-2 border-sage-200 shadow-lg">
-        <h4 className="font-display text-base text-ocean-600 mb-3 font-semibold">Legend</h4>
+      <div
+        className="absolute bottom-6 left-6 bg-white p-5 rounded-xl border-2 border-sage-200 shadow-lg max-w-xs"
+        role="region"
+        aria-label="Map legend"
+      >
+        <h2 className="font-display text-base text-ocean-600 mb-3 font-semibold">Legend</h2>
         <div className="space-y-3 text-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                 style={{background: 'linear-gradient(135deg, #D4B86A 0%, #B8923A 100%)'}}>
-              <span className="text-white font-bold text-xs">Z</span>
-            </div>
-            <span className="text-ocean-700 font-medium">Accepts Zano Payment</span>
-          </div>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                  style={{background: '#2A6B72', border: '2px solid #1F525A'}}>
               <span className="text-white font-bold text-xs">J</span>
             </div>
             <span className="text-ocean-700 font-medium">JCI-Certified Facility</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+                 style={{background: 'linear-gradient(135deg, #D4B86A 0%, #B8923A 100%)'}}>
+              <span className="text-white font-bold text-xs">Z</span>
+            </div>
+            <div>
+              <span className="text-ocean-700 font-medium block">Request Zano</span>
+              <span className="text-sage-500 text-xs">Ask about privacy payments</span>
+            </div>
           </div>
         </div>
       </div>

@@ -1,0 +1,61 @@
+name: Alex Chen
+description: Early adopter developer who expects polished, fast experiences
+
+demographics:
+  age: 29
+  occupation: Senior Frontend Developer at a fintech startup
+  location: Austin, TX
+  income_level: $140,000/year
+
+technical_profile:
+  tech_savviness: 9
+  devices:
+    - MacBook Pro 16" (primary)
+    - iPhone 15 Pro
+    - iPad Pro for reading
+  preferred_browser: Arc Browser (Chromium-based)
+  accessibility_needs:
+    - Prefers dark mode
+    - Uses keyboard shortcuts extensively
+
+psychographics:
+  goals:
+    - Find the best value for medical procedures abroad
+    - Research thoroughly before committing
+    - Compare options side-by-side
+  frustrations:
+    - Slow loading times (anything over 2 seconds)
+    - Poor mobile responsiveness
+    - Lack of filtering/sorting options
+    - Cluttered interfaces with too many CTAs
+    - Forms that don't save progress
+  motivations:
+    - Saving money on expensive procedures
+    - Adventure of traveling for healthcare
+    - Distrust of US healthcare pricing
+  values:
+    - Efficiency
+    - Transparency
+    - Privacy (suspicious of tracking)
+    - Quality over convenience
+
+behavioral_patterns:
+  browsing_habits: Opens 10+ tabs, compares everything, inspects network requests
+  attention_span: medium
+  patience_for_friction: low
+  likelihood_to_abandon: high
+
+context:
+  typical_use_time: Late evening after work (8-11pm)
+  environment: desktop-home-office
+  multitasking: yes
+
+voice:
+  communication_style: Direct, technical, slightly impatient
+  vocabulary_level: Expert - uses industry jargon
+  example_quotes:
+    - "Why is this taking so long? I can see the API is returning in 200ms but the render is blocking."
+    - "Oh nice, they actually have keyboard shortcuts. That's rare."
+    - "This filter UX is trash. Why can't I select multiple countries at once?"
+    - "Finally, a medical site that doesn't look like it was built in 2005."
+    - "I'm not filling out this form until I know their data policy."

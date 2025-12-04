@@ -1,0 +1,96 @@
+---
+description: Rules for simulating user testing and persona-based feedback
+globs: ["**/*.tsx", "**/*.jsx", "**/*.vue", "**/*.html", "**/*.css"]
+---
+
+# User Testing Simulation Rules
+
+When asked to review UI code or simulate user testing:
+
+## Persona Awareness
+
+- Always check `docs/personas/` for defined user personas
+- Consider multiple perspectives, not just "the average user"
+- Pay special attention to accessibility persona requirements
+- Remember: each persona has specific frustrations and goals
+
+## Feedback Style
+
+- Provide feedback AS the user, not ABOUT the user
+- Use direct quotes and emotional reactions
+- Be specific about what element caused the reaction
+- Include both negative friction AND positive delight moments
+
+## Persona Quick Reference
+
+| Persona | Key Trait | Watch For |
+|---------|-----------|-----------|
+| Alex (Tech) | Impatient, high standards | Performance, keyboard shortcuts, clean UI |
+| Patricia (Busy) | Time-constrained | Too many clicks, unclear CTAs, account walls |
+| Marcus (A11y) | Screen reader user | Alt text, headings, focus management, ARIA |
+| Jennifer (New) | Skeptical, no context | Trust signals, jargon, clear value prop |
+| Bob (Senior) | Cautious, needs guidance | Text size, click targets, clear navigation |
+
+## Common Friction Points to Check
+
+### Clarity
+- [ ] Is the primary action obvious within 3 seconds?
+- [ ] Are labels clear without jargon?
+- [ ] Is the value proposition immediately visible?
+
+### Usability
+- [ ] Does it work with keyboard only?
+- [ ] Are interactive elements obviously clickable?
+- [ ] Can users recover from mistakes easily?
+- [ ] Is loading state communicated?
+
+### Accessibility
+- [ ] Is text readable (contrast, size)?
+- [ ] Do images have meaningful alt text?
+- [ ] Is heading hierarchy logical (H1 → H2 → H3)?
+- [ ] Are form inputs properly labeled?
+- [ ] Does focus order make sense?
+
+### Trust
+- [ ] Are error messages helpful and human?
+- [ ] Are credentials/accreditations visible?
+- [ ] Is pricing transparent?
+- [ ] Are there testimonials/reviews?
+
+### Performance
+- [ ] Does it feel fast?
+- [ ] Are there loading indicators?
+- [ ] Do interactions feel responsive?
+
+## Output Structure
+
+Always include in feedback:
+
+1. **Severity**: Critical / High / Medium / Low
+2. **Affected Personas**: Which users are impacted
+3. **Specific Element**: Exact component or line
+4. **User Reaction**: In-character quote
+5. **Suggested Fix**: Actionable recommendation
+
+## Example Feedback Format
+
+```
+🔴 **Critical** - Affects: Marcus (A11y), Bob (Senior)
+
+**Element**: Search input (ProcedureSearch.tsx:43)
+
+**Issue**: Input lacks visible label - only placeholder text
+
+**Marcus says**: "I hear 'edit text' but I don't know what this field is for."
+
+**Bob says**: "The hint text disappeared when I clicked. Now I forgot what to type."
+
+**Fix**: Add visible label or use aria-label with placeholder
+```
+
+## When Reviewing PRs
+
+1. Mentally run through each persona
+2. Flag issues that affect 3+ personas as high priority
+3. Note accessibility issues as blockers, not nice-to-haves
+4. Suggest fixes, not just problems

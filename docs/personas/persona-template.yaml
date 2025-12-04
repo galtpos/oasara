@@ -1,0 +1,36 @@
+name: [persona_name]
+description: [one-line description]
+
+demographics:
+  age:
+  occupation:
+  location:
+  income_level:
+
+technical_profile:
+  tech_savviness: [1-10]
+  devices: []
+  preferred_browser:
+  accessibility_needs: []
+
+psychographics:
+  goals: []
+  frustrations: []
+  motivations: []
+  values: []
+
+behavioral_patterns:
+  browsing_habits:
+  attention_span: [low/medium/high]
+  patience_for_friction: [low/medium/high]
+  likelihood_to_abandon: [low/medium/high]
+
+context:
+  typical_use_time:
+  environment: [mobile-on-go/desktop-office/tablet-couch/etc]
+  multitasking: [yes/no]
+
+voice:
+  communication_style:
+  vocabulary_level:
+  example_quotes: []

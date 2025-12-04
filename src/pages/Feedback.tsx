@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import SiteHeader from '../components/Layout/SiteHeader';
 import { supabase } from '../lib/supabase';
 
 const Feedback: React.FC = () => {
@@ -75,27 +76,7 @@ const Feedback: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-sage-50">
-      {/* Header */}
-      <header className="border-b border-sage-200 bg-white/80 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-3">
-              <h1 className="font-display text-4xl text-gold-600 tracking-wide">OASARA</h1>
-            </Link>
-            <nav className="flex items-center gap-6">
-              <Link to="/" className="text-ocean-600 hover:text-gold-600 transition-colors font-medium">
-                Facilities
-              </Link>
-              <Link to="/why-zano" className="text-ocean-600 hover:text-gold-600 transition-colors font-medium">
-                Why Zano?
-              </Link>
-              <Link to="/action" className="text-ocean-600 hover:text-gold-600 transition-colors font-medium">
-                Take Action
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       {/* Content */}
       <section className="py-16 px-6">

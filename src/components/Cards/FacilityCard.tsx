@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Facility } from '../../lib/supabase';
 import RequestZanoButton from '../Outreach/RequestZanoButton';
+import ContactOptionsMenu from '../Contact/ContactOptionsMenu';
 
 interface FacilityCardProps {
   facility: Facility;
@@ -297,17 +299,29 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
             )}
 
             {facility.phone && (
-              <a
-                href={`tel:${facility.phone}`}
-                className="flex-1 flex items-center justify-center px-4 py-2.5 rounded bg-white hover:bg-sage-50 text-sage-700 transition-colors text-sm font-semibold border-2 border-sage-200"
-                onClick={(e) => e.stopPropagation()}
-              >
-                Call Facility
-              </a>
+              <ContactOptionsMenu
+                phone={facility.phone}
+                facilityName={facility.name}
+                email={facility.contact_email}
+              />
             )}
           </div>
         </div>
       )}
+
+      {/* View Details Link */}
+      <div className="mb-4">
+        <Link
+          to={`/facility/${facility.id}`}
+          className="flex items-center justify-center gap-2 w-full py-2.5 rounded bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white text-sm font-semibold transition-all shadow-sm hover:shadow-md"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          View Details & Community
+        </Link>
+      </div>
 
       {/* Footer */}
       <div className="flex items-center justify-between">

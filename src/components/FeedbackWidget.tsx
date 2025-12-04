@@ -25,6 +25,7 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
   const [submitted, setSubmitted] = useState(false)
   const [screenshot, setScreenshot] = useState<string | null>(null)
   const [includeScreenshot, setIncludeScreenshot] = useState(true)
+  const [isCapturing, setIsCapturing] = useState(false)
   const [formData, setFormData] = useState({
     category: 'bug',
     description: ''
@@ -51,10 +52,26 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
       const widget = document.getElementById('feedback-widget-container')
       if (widget) widget.style.display = 'none'
 
+      // Wait for any pending renders to complete
+      await new Promise(resolve => setTimeout(resolve, 500))
+
       const canvas = await html2canvas(document.body, {
         logging: false,
         useCORS: true,
-        scale: 0.5
+        allowTaint: true,
+        scale: 0.5,
+        backgroundColor: '#ffffff',
+        // Ignore map canvases and WebGL elements that can't be captured
+        ignoreElements: (element) => {
+          const tagName = element.tagName?.toLowerCase()
+          const className = element.className?.toString() || ''
+          return (
+            tagName === 'canvas' ||
+            className.includes('mapbox') ||
+            className.includes('leaflet') ||
+            className.includes('map-container')
+          )
+        }
       })
 
       if (widget) widget.style.display = 'block'
@@ -67,10 +84,18 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
     }
   }
 
-  const openModal = async () => {
-    await captureScreenshot()
+  const openModal = () => {
     setIsOpen(true)
     setSubmitted(false)
+    setIsCapturing(true)
+    setScreenshot(null)
+
+    // Capture in background with 5s timeout
+    const capturePromise = captureScreenshot()
+    const timeoutPromise = new Promise<void>(resolve => setTimeout(resolve, 5000))
+
+    Promise.race([capturePromise, timeoutPromise])
+      .finally(() => setIsCapturing(false))
   }
 
   const closeModal = () => {
@@ -237,26 +262,35 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
                     required
                     minLength={10}
                   />
+                  <small style={{ color: formData.description.length < 10 ? '#999' : '#22C55E', fontSize: '12px' }}>
+                    {formData.description.length}/10 characters minimum
+                  </small>
                 </div>
 
                 {/* Screenshot Preview */}
-                {screenshot && (
+                {(isCapturing || screenshot) && (
                   <div className="feedback-field">
-                    <label>
-                      <input
-                        type="checkbox"
-                        checked={includeScreenshot}
-                        onChange={(e) => setIncludeScreenshot(e.target.checked)}
-                      />
-                      Include screenshot
-                    </label>
-                    {includeScreenshot && (
-                      <img
-                        src={screenshot}
-                        alt="Screenshot preview"
-                        className="screenshot-preview"
-                      />
-                    )}
+                    {isCapturing ? (
+                      <p style={{ color: '#666', fontSize: '14px' }}>Capturing screenshot...</p>
+                    ) : screenshot ? (
+                      <>
+                        <label>
+                          <input
+                            type="checkbox"
+                            checked={includeScreenshot}
+                            onChange={(e) => setIncludeScreenshot(e.target.checked)}
+                          />
+                          Include screenshot
+                        </label>
+                        {includeScreenshot && (
+                          <img
+                            src={screenshot}
+                            alt="Screenshot preview"
+                            className="screenshot-preview"
+                          />
+                        )}
+                      </>
+                    ) : null}
                   </div>
                 )}
 

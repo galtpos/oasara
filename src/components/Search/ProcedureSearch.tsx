@@ -35,14 +35,20 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
         ${isFocused ? 'border-2 border-ocean-400 shadow-lg' : 'border-2 border-sage-200'}
       `}>
         <div className="flex items-center gap-4">
+          {/* Accessible label for screen readers */}
+          <label htmlFor="procedure-search" className="sr-only">
+            Search procedures, facilities, or destinations
+          </label>
           {/* Input - No icon, just clean text */}
           <input
-            type="text"
+            id="procedure-search"
+            type="search"
             value={query}
             onChange={handleChange}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             placeholder={placeholder}
+            aria-describedby={isFocused && !query ? "search-suggestions" : undefined}
             className="flex-1 bg-transparent text-ocean-700 placeholder-ocean-400/60 focus:outline-none text-lg font-normal"
           />
 
@@ -66,6 +72,7 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
         <AnimatePresence>
           {isFocused && !query && (
             <motion.div
+              id="search-suggestions"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}

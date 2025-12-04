@@ -22,9 +22,9 @@ const ConfirmEmail: React.FC = () => {
 
       if (session) {
         setStatus('success');
-        // Redirect to dashboard after 3 seconds
+        // Redirect to home after 3 seconds
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/');
         }, 3000);
       } else {
         // Check if there's a token_hash in the URL (email confirmation)
@@ -42,7 +42,7 @@ const ConfirmEmail: React.FC = () => {
           } else if (data.session) {
             setStatus('success');
             setTimeout(() => {
-              navigate('/dashboard');
+              navigate('/');
             }, 3000);
           }
         } else {
@@ -98,15 +98,15 @@ const ConfirmEmail: React.FC = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h2 className="font-display text-2xl text-ocean-700 mb-2">Email Confirmed!</h2>
+              <h2 className="font-display text-2xl text-ocean-700 mb-2">You're In!</h2>
               <p className="text-ocean-600/70 mb-4">
-                Your account is now active. Redirecting to your dashboard...
+                Your account is active. Redirecting to the marketplace...
               </p>
               <Link
-                to="/dashboard"
+                to="/"
                 className="inline-block px-6 py-2 rounded-lg bg-gradient-to-r from-gold-400 to-gold-600 text-white font-medium hover:shadow-lg transition-all"
               >
-                Go to Dashboard
+                Explore Facilities
               </Link>
             </div>
           )}

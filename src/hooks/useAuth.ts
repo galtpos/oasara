@@ -28,6 +28,7 @@ interface AuthState {
 interface AuthContextType extends AuthState {
   signUp: (email: string, password: string, name?: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithMagicLink: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: string | null }>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
@@ -46,6 +47,7 @@ export function useAuth() {
 export function useAuthState(): AuthState & {
   signUp: (email: string, password: string, name?: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signInWithMagicLink: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: string | null }>;
   resetPassword: (email: string) => Promise<{ error: string | null }>;
@@ -165,6 +167,31 @@ export function useAuthState(): AuthState & {
     }
   };
 
+  const signInWithMagicLink = async (email: string) => {
+    try {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        },
+      });
+
+      if (error) {
+        setState(prev => ({ ...prev, loading: false, error: error.message }));
+        return { error: error.message };
+      }
+
+      setState(prev => ({ ...prev, loading: false }));
+      return { error: null };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An error occurred';
+      setState(prev => ({ ...prev, loading: false, error: message }));
+      return { error: message };
+    }
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setState({
@@ -219,6 +246,7 @@ export function useAuthState(): AuthState & {
     ...state,
     signUp,
     signIn,
+    signInWithMagicLink,
     signOut,
     updateProfile,
     resetPassword,
