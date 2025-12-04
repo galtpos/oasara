@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
+import { Link } from 'react-router-dom'
 import html2canvas from 'html2canvas'
 import './feedback-widget.css'
+import { supabase } from '../lib/supabase'
 
 // Central feedback Supabase (freedomforge project - shared across all sites)
 const feedbackSupabase = createClient(
@@ -28,7 +30,8 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
   const [isCapturing, setIsCapturing] = useState(false)
   const [formData, setFormData] = useState({
     category: 'bug',
-    description: ''
+    description: '',
+    walletAddress: ''
   })
 
   const modalRef = useRef<HTMLDivElement>(null)
@@ -100,7 +103,7 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
 
   const closeModal = () => {
     setIsOpen(false)
-    setFormData({ category: 'bug', description: '' })
+    setFormData({ category: 'bug', description: '', walletAddress: '' })
     setScreenshot(null)
   }
 
@@ -162,6 +165,21 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
 
       if (error) throw error
 
+      // Also submit to local bounty board
+      const categoryMap: Record<string, string> = {
+        bug: 'bug',
+        confusing: 'general',
+        suggestion: 'feature',
+        other: 'general'
+      }
+      await supabase
+        .from('feedback')
+        .insert({
+          category: categoryMap[formData.category] || 'general',
+          message: formData.description,
+          wallet_address: formData.walletAddress || null,
+        })
+
       setSubmitted(true)
       setTimeout(() => closeModal(), 2000)
 
@@ -179,8 +197,8 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
       {showBanner && (
         <div className="feedback-banner" style={{ backgroundColor: primaryColor }}>
           <p>
-            <strong>You're helping us improve!</strong> Use the feedback button
-            anytime to report issues or share suggestions.
+            <strong>Earn $20 fUSD!</strong> Report bugs or suggest features.
+            Accepted contributions get paid. <a href="/bounty" style={{ color: '#FCD34D', textDecoration: 'underline' }}>View Bounty Board</a>
           </p>
           <button onClick={dismissBanner} className="banner-dismiss">
             Got it
@@ -215,12 +233,13 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
                 </svg>
                 <h3>Thank you!</h3>
-                <p>Your feedback helps us improve.</p>
+                <p>Your feedback is now on the <a href="/bounty" style={{ color: primaryColor, textDecoration: 'underline' }}>Bounty Board</a>!</p>
+                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>If accepted, you'll earn $20 fUSD</p>
               </div>
             ) : (
               <form onSubmit={handleSubmit}>
                 <div className="feedback-header">
-                  <h3>Send Feedback</h3>
+                  <h3>Send Feedback <span style={{ fontSize: '12px', color: '#D97706', fontWeight: 'normal' }}>+ Earn $20 fUSD</span></h3>
                   <button type="button" className="feedback-close" onClick={closeModal}>
                     &times;
                   </button>
@@ -264,6 +283,32 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
                   />
                   <small style={{ color: formData.description.length < 10 ? '#999' : '#22C55E', fontSize: '12px' }}>
                     {formData.description.length}/10 characters minimum
+                  </small>
+                </div>
+
+                {/* Wallet Address for Bounty */}
+                <div className="feedback-field">
+                  <label htmlFor="wallet" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    Zano Wallet
+                    <span style={{ fontSize: '11px', color: '#D97706', fontWeight: 'bold' }}>for $20 bounty</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="wallet"
+                    value={formData.walletAddress}
+                    onChange={(e) => setFormData({ ...formData, walletAddress: e.target.value })}
+                    placeholder="Optional - paste your Zano address"
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      border: '1px solid #ddd',
+                      borderRadius: '8px',
+                      fontSize: '14px',
+                      marginTop: '6px'
+                    }}
+                  />
+                  <small style={{ color: '#666', fontSize: '11px' }}>
+                    Get paid if your feedback is accepted. <a href="/bounty" style={{ color: primaryColor }}>View Bounty Board</a>
                   </small>
                 </div>
 

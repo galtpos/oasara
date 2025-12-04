@@ -175,6 +175,23 @@ const PublicSite: React.FC = () => {
     <div className="min-h-screen bg-white">
       <SiteHeader />
 
+      {/* Bounty Program Banner */}
+      <div className="bg-gradient-to-r from-gold-500 to-gold-600 text-white py-2">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-center gap-4 text-sm">
+          <span className="font-semibold">Earn $20 fUSD!</span>
+          <span>Report bugs or suggest features and get paid.</span>
+          <a
+            href="/bounty"
+            className="inline-flex items-center gap-1 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full font-medium transition-colors"
+          >
+            View Bounty Board
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      </div>
+
       {/* Hero Section - Value Proposition */}
       <section className="bg-gradient-to-br from-ocean-600 via-ocean-700 to-ocean-800 text-white py-12">
         <div className="max-w-7xl mx-auto px-6">

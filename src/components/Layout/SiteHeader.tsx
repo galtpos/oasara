@@ -57,10 +57,11 @@ const SiteHeader: React.FC = () => {
                 Trust Laws
               </Link>
               <Link
-                to="/feedback"
-                className={`nav-link ${isActive('/feedback') ? 'text-gold-500' : ''}`}
+                to="/bounty"
+                className={`nav-link flex items-center gap-1 ${isActive('/bounty') ? 'text-gold-500' : ''}`}
               >
-                Feedback
+                Bounty
+                <span className="text-xs bg-gold-500 text-white px-1.5 py-0.5 rounded-full font-bold">$20</span>
               </Link>
               <Link to="/early-access" className="btn-gold">
                 Join
