@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ContactFacilityModalProps {
@@ -8,6 +8,7 @@ interface ContactFacilityModalProps {
   facilityName: string;
   facilityEmail?: string;
   procedures?: string[];
+  selectedProcedure?: string; // Pre-selected procedure from context
 }
 
 const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
@@ -16,18 +17,69 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
   facilityId,
   facilityName,
   facilityEmail,
-  procedures = []
+  procedures = [],
+  selectedProcedure = ''
 }) => {
+  // Generate default message template
+  const generateDefaultMessage = useCallback((procedure: string) => {
+    const procedureText = procedure
+      ? `I am interested in learning more about ${procedure} at your facility.`
+      : 'I am interested in learning more about your medical services.';
+
+    return `Hello,
+
+${procedureText}
+
+I would appreciate information about:
+• Pricing and package options
+• Estimated timeline for treatment
+• Required medical history or documentation
+• Accommodation recommendations nearby
+
+I discovered your facility through OASARA, a privacy-preserving medical tourism marketplace. For secure, private transactions, I encourage you to explore accepting Zano or Freedom Dollar (fUSD) – a stable cryptocurrency that protects both patients and providers from chargebacks, bank freezes, and surveillance. Learn more: https://oasara.com/why-zano
+
+Thank you for your time. I look forward to your response.`;
+  }, []);
+
   const [formData, setFormData] = useState({
     senderName: '',
     senderEmail: '',
     senderPhone: '',
-    procedure: '',
+    procedure: selectedProcedure,
     preferredContact: 'email' as 'email' | 'phone' | 'whatsapp',
-    message: ''
+    message: generateDefaultMessage(selectedProcedure)
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Update message when procedure changes
+  useEffect(() => {
+    if (isOpen && selectedProcedure) {
+      setFormData(prev => ({
+        ...prev,
+        procedure: selectedProcedure,
+        message: prev.message === generateDefaultMessage(prev.procedure) || prev.message === ''
+          ? generateDefaultMessage(selectedProcedure)
+          : prev.message
+      }));
+    }
+  }, [isOpen, selectedProcedure, generateDefaultMessage]);
+
+  // Reset form when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        senderName: '',
+        senderEmail: '',
+        senderPhone: '',
+        procedure: selectedProcedure,
+        preferredContact: 'email',
+        message: generateDefaultMessage(selectedProcedure)
+      });
+      setStatus('idle');
+      setErrorMessage('');
+    }
+  }, [isOpen, selectedProcedure, generateDefaultMessage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,17 +115,8 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
       }
 
       setStatus('success');
-      // Reset form after a delay
+      // Close modal after delay
       setTimeout(() => {
-        setFormData({
-          senderName: '',
-          senderEmail: '',
-          senderPhone: '',
-          procedure: '',
-          preferredContact: 'email',
-          message: ''
-        });
-        setStatus('idle');
         onClose();
       }, 3000);
     } catch (error) {
@@ -85,7 +128,20 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    if (name === 'procedure') {
+      // When procedure changes, update the message template if it hasn't been customized
+      setFormData(prev => {
+        const currentIsDefault = prev.message === generateDefaultMessage(prev.procedure);
+        return {
+          ...prev,
+          procedure: value,
+          message: currentIsDefault ? generateDefaultMessage(value) : prev.message
+        };
+      });
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   if (!isOpen) return null;
@@ -265,15 +321,18 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
                   <label htmlFor="message" className="block text-sm font-medium text-ocean-700 mb-1">
                     Your Message <span className="text-red-500">*</span>
                   </label>
+                  <p className="text-xs text-sage-500 mb-2">
+                    Feel free to edit this template to personalize your inquiry.
+                  </p>
                   <textarea
                     id="message"
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
                     required
-                    rows={4}
+                    rows={12}
                     placeholder="Tell the facility about your needs, questions, or preferred dates for treatment..."
-                    className="w-full px-4 py-2.5 rounded-lg border border-sage-200 focus:border-ocean-500 focus:ring-2 focus:ring-ocean-100 outline-none transition-all resize-none"
+                    className="w-full px-4 py-2.5 rounded-lg border border-sage-200 focus:border-ocean-500 focus:ring-2 focus:ring-ocean-100 outline-none transition-all resize-y text-sm"
                   />
                 </div>
 
