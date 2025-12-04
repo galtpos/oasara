@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import SiteHeader from '../components/Layout/SiteHeader';
 import ZanoTutorials from '../components/Zano/ZanoTutorials';
+import MedicalTourismVideos from '../components/Videos/MedicalTourismVideos';
 
 const WhyZano: React.FC = () => {
   const problems = [
@@ -186,6 +187,9 @@ const WhyZano: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Medical Tourism Videos */}
+      <MedicalTourismVideos variant="full" />
 
       {/* Zano Tutorials */}
       <ZanoTutorials variant="full" />
