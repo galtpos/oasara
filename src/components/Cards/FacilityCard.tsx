@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Facility } from '../../lib/supabase';
 import RequestZanoButton from '../Outreach/RequestZanoButton';
 import ContactOptionsMenu from '../Contact/ContactOptionsMenu';
+import ContactFacilityModal from '../Contact/ContactFacilityModal';
 
 interface FacilityCardProps {
   facility: Facility;
@@ -12,6 +13,7 @@ interface FacilityCardProps {
 
 const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
   const [showEnrichedData, setShowEnrichedData] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const hasEnrichedData =
     (facility.doctors?.length || 0) > 0 ||
@@ -309,17 +311,33 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
         </div>
       )}
 
-      {/* View Details Link */}
-      <div className="mb-4">
+      {/* Action Buttons */}
+      <div className="mb-4 flex gap-2">
+        {/* Contact Facility Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowContactModal(true);
+          }}
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white text-sm font-semibold transition-all shadow-sm hover:shadow-md"
+          style={{ boxShadow: '0 3px 0 #8B6914' }}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Contact
+        </button>
+
+        {/* View Details Link */}
         <Link
           to={`/facility/${facility.id}`}
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-600 hover:to-gold-700 text-white text-sm font-semibold transition-all shadow-sm hover:shadow-md"
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded bg-ocean-600 hover:bg-ocean-700 text-white text-sm font-semibold transition-all"
           onClick={(e) => e.stopPropagation()}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          View Details & Community
+          Details
         </Link>
       </div>
 
@@ -346,6 +364,19 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
           <RequestZanoButton facility={facility} />
         )}
       </div>
+
+      {/* Contact Modal */}
+      <ContactFacilityModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        facilityId={facility.id}
+        facilityName={facility.name}
+        facilityEmail={facility.contact_email}
+        procedures={[
+          ...facility.specialties,
+          ...(facility.popular_procedures?.map(p => p.name) || [])
+        ]}
+      />
     </motion.div>
   );
 };

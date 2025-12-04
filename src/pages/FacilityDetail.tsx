@@ -1,10 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { CommentsSection } from '../components/Comments';
 import { ActivityWidget } from '../components/Activity';
+import ContactFacilityModal from '../components/Contact/ContactFacilityModal';
 
 interface Facility {
   id: string;
@@ -18,6 +19,7 @@ interface Facility {
   languages: string[];
   website?: string;
   phone?: string;
+  contact_email?: string;
   google_rating?: number;
   review_count?: number;
   accepts_zano: boolean;
@@ -27,6 +29,7 @@ interface Facility {
 
 const FacilityDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const { data: facility, isLoading, error } = useQuery({
     queryKey: ['facility', id],
@@ -179,6 +182,21 @@ const FacilityDetail: React.FC = () => {
 
                 {/* Contact Actions */}
                 <div className="flex flex-wrap gap-3 pt-4 border-t border-sage-100">
+                  {/* Primary Contact Button */}
+                  <button
+                    onClick={() => setShowContactModal(true)}
+                    className="flex items-center gap-2 px-6 py-2.5 rounded-lg text-white font-semibold transition-all hover:shadow-lg"
+                    style={{
+                      background: 'linear-gradient(180deg, #D4B86A 0%, #B8923A 100%)',
+                      boxShadow: '0 4px 0 #8B6914, 0 6px 16px rgba(139, 105, 20, 0.3)'
+                    }}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Contact Facility
+                  </button>
+
                   {facility.website && (
                     <a
                       href={facility.website}
@@ -189,7 +207,7 @@ const FacilityDetail: React.FC = () => {
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                       </svg>
-                      Visit Website
+                      Website
                     </a>
                   )}
                   {facility.phone && (
@@ -308,6 +326,19 @@ const FacilityDetail: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Contact Modal */}
+      <ContactFacilityModal
+        isOpen={showContactModal}
+        onClose={() => setShowContactModal(false)}
+        facilityId={facility.id}
+        facilityName={facility.name}
+        facilityEmail={facility.contact_email}
+        procedures={[
+          ...facility.specialties,
+          ...(facility.popular_procedures?.map(p => p.name) || [])
+        ]}
+      />
     </div>
   );
 };

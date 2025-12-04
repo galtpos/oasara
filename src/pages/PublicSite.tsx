@@ -9,6 +9,7 @@ import CountryFilter from '../components/Filters/CountryFilter';
 import SpecialtyFilter from '../components/Filters/SpecialtyFilter';
 import ZanoFilter from '../components/Filters/ZanoFilter';
 import { getFacilities, getCountries, getSpecialties, Facility, supabase } from '../lib/supabase';
+import ZanoTutorials from '../components/Zano/ZanoTutorials';
 
 interface PledgeCounts {
   medical_trust: number;
@@ -475,6 +476,9 @@ const PublicSite: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Zano Tutorials Section */}
+      <ZanoTutorials />
 
       {/* Footer */}
       <footer className="mt-16 py-12 border-t border-sage-200 bg-sage-50">
