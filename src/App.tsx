@@ -15,7 +15,7 @@ function AppContent() {
       {!isLandingPage && <ChatButton />}
       {!isLandingPage && <FeedbackWidget projectName="oasara" primaryColor="#10B981" />}
       {!isLandingPage && (
-        <div style={{ position: 'fixed', bottom: '80px', left: '20px', right: '20px', maxWidth: '400px', zIndex: 40 }}>
+        <div style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', maxWidth: '728px', width: '90%', zIndex: 30 }}>
           <AdBanner site="oasara" zone="FOOTER" />
         </div>
       )}
