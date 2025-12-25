@@ -20,6 +20,8 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+  const listenersAttached = useRef(false);
+  const facilitiesRef = useRef<Facility[]>(facilities);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -46,21 +48,19 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
     };
   }, []);
 
+  // Keep facilities ref updated for use in event handlers
   useEffect(() => {
-    if (!map.current || !mapLoaded) return;
+    facilitiesRef.current = facilities;
+  }, [facilities]);
 
-    // Remove existing source and layers
-    if (map.current.getSource('facilities')) {
-      if (map.current.getLayer('clusters')) map.current.removeLayer('clusters');
-      if (map.current.getLayer('cluster-count')) map.current.removeLayer('cluster-count');
-      if (map.current.getLayer('unclustered-point')) map.current.removeLayer('unclustered-point');
-      map.current.removeSource('facilities');
-    }
+  // Set up map layers and event listeners ONCE when map loads
+  useEffect(() => {
+    if (!map.current || !mapLoaded || listenersAttached.current) return;
 
     // Convert facilities to GeoJSON
     const geojson: GeoJSON.FeatureCollection = {
       type: 'FeatureCollection',
-      features: facilities.map(facility => ({
+      features: facilitiesRef.current.map(facility => ({
         type: 'Feature',
         geometry: {
           type: 'Point',
@@ -160,12 +160,13 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
       }
     });
 
-    // Click handler for clusters - zoom in
-    map.current.on('click', 'clusters', (e) => {
+    // Event handlers - defined once, use refs for current data
+    const handleClusterClick = (e: mapboxgl.MapMouseEvent) => {
       if (!map.current) return;
       const features = map.current.queryRenderedFeatures(e.point, {
         layers: ['clusters']
       });
+      if (!features.length) return;
       const clusterId = features[0].properties?.cluster_id;
       const source = map.current.getSource('facilities') as mapboxgl.GeoJSONSource;
 
@@ -176,20 +177,18 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
           zoom: zoom
         });
       });
-    });
+    };
 
-    // Click handler for individual facilities
-    map.current.on('click', 'unclustered-point', (e) => {
+    const handlePointClick = (e: mapboxgl.MapMouseEvent) => {
       if (!e.features || !e.features[0].properties) return;
       const facilityId = e.features[0].properties.id;
-      const facility = facilities.find(f => f.id === facilityId);
+      const facility = facilitiesRef.current.find(f => f.id === facilityId);
       if (facility) {
         onFacilitySelect(facility);
       }
-    });
+    };
 
-    // Hover popup for individual facilities
-    map.current.on('mouseenter', 'unclustered-point', (e) => {
+    const handlePointMouseEnter = (e: mapboxgl.MapMouseEvent) => {
       if (!map.current || !e.features || !e.features[0].properties) return;
       map.current.getCanvas().style.cursor = 'pointer';
 
@@ -216,26 +215,77 @@ const GlobalFacilityMap: React.FC<GlobalFacilityMapProps> = ({
           </div>
         `)
         .addTo(map.current);
-    });
+    };
 
-    map.current.on('mouseleave', 'unclustered-point', () => {
+    const handlePointMouseLeave = () => {
       if (!map.current) return;
       map.current.getCanvas().style.cursor = '';
       if (popupRef.current) {
         popupRef.current.remove();
       }
-    });
+    };
 
-    // Change cursor on cluster hover
-    map.current.on('mouseenter', 'clusters', () => {
+    const handleClusterMouseEnter = () => {
       if (map.current) map.current.getCanvas().style.cursor = 'pointer';
-    });
+    };
 
-    map.current.on('mouseleave', 'clusters', () => {
+    const handleClusterMouseLeave = () => {
       if (map.current) map.current.getCanvas().style.cursor = '';
-    });
+    };
 
-  }, [facilities, mapLoaded, onFacilitySelect]);
+    // Attach event listeners
+    map.current.on('click', 'clusters', handleClusterClick);
+    map.current.on('click', 'unclustered-point', handlePointClick);
+    map.current.on('mouseenter', 'unclustered-point', handlePointMouseEnter);
+    map.current.on('mouseleave', 'unclustered-point', handlePointMouseLeave);
+    map.current.on('mouseenter', 'clusters', handleClusterMouseEnter);
+    map.current.on('mouseleave', 'clusters', handleClusterMouseLeave);
+
+    listenersAttached.current = true;
+
+    // Cleanup function
+    return () => {
+      if (map.current) {
+        map.current.off('click', 'clusters', handleClusterClick);
+        map.current.off('click', 'unclustered-point', handlePointClick);
+        map.current.off('mouseenter', 'unclustered-point', handlePointMouseEnter);
+        map.current.off('mouseleave', 'unclustered-point', handlePointMouseLeave);
+        map.current.off('mouseenter', 'clusters', handleClusterMouseEnter);
+        map.current.off('mouseleave', 'clusters', handleClusterMouseLeave);
+      }
+      listenersAttached.current = false;
+    };
+  }, [mapLoaded, onFacilitySelect]);
+
+  // Update GeoJSON data incrementally when facilities change (no layer rebuild)
+  useEffect(() => {
+    if (!map.current || !mapLoaded) return;
+
+    const source = map.current.getSource('facilities') as mapboxgl.GeoJSONSource;
+    if (!source) return;
+
+    // Only update the data, don't rebuild layers
+    const geojson: GeoJSON.FeatureCollection = {
+      type: 'FeatureCollection',
+      features: facilities.map(facility => ({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [facility.lng, facility.lat]
+        },
+        properties: {
+          id: facility.id,
+          name: facility.name,
+          city: facility.city,
+          country: facility.country,
+          rating: facility.google_rating,
+          accepts_zano: facility.accepts_zano
+        }
+      }))
+    };
+
+    source.setData(geojson);
+  }, [facilities, mapLoaded]);
 
   // Fly to selected facility
   useEffect(() => {

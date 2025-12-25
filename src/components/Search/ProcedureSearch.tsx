@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useDebouncedCallback } from 'use-debounce';
 
 interface ProcedureSearchProps {
   onSearch: (query: string) => void;
@@ -13,10 +14,18 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
+  // Debounce search to prevent excessive re-renders (300ms delay)
+  const debouncedSearch = useDebouncedCallback(
+    (value: string) => {
+      onSearch(value);
+    },
+    300
+  );
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
-    onSearch(value);
+    debouncedSearch(value);
   };
 
   const handleClear = () => {
@@ -92,7 +101,7 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
                     key={suggestion}
                     onClick={() => {
                       setQuery(suggestion);
-                      onSearch(suggestion);
+                      onSearch(suggestion); // Immediate for suggestion clicks
                     }}
                     className="px-4 py-2 rounded-lg bg-gold-100 text-gold-700 text-sm hover:bg-gold-200 transition-colors border border-gold-200 font-medium"
                   >

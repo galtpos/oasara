@@ -76,11 +76,12 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Backdrop */}
+      {/* Backdrop - lower z-index to not block facility cards */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-10"
           onClick={() => setIsOpen(false)}
+          aria-hidden="true"
         />
       )}
     </div>

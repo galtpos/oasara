@@ -278,9 +278,11 @@ const FacilityDetail: React.FC = () => {
                   title="Facility Location"
                   width="100%"
                   height="100%"
-                  frameBorder="0"
                   style={{ border: 0 }}
-                  src={`https://www.google.com/maps/embed/v1/place?key=${process.env.REACT_APP_GOOGLE_MAPS_EMBED_KEY || 'AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8'}&q=${encodeURIComponent(facility.name + ' ' + facility.city)}`}
+                  src={process.env.REACT_APP_GOOGLE_MAPS_EMBED_KEY
+                    ? `https://www.google.com/maps/embed/v1/place?key=${process.env.REACT_APP_GOOGLE_MAPS_EMBED_KEY}&q=${encodeURIComponent(facility.name + ' ' + facility.city)}`
+                    : `https://www.openstreetmap.org/export/embed.html?bbox=${facility.lng - 0.01},${facility.lat - 0.01},${facility.lng + 0.01},${facility.lat + 0.01}&layer=mapnik&marker=${facility.lat},${facility.lng}`
+                  }
                   allowFullScreen
                 />
               </div>

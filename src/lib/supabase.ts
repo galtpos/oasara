@@ -1,9 +1,42 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL!
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || ''
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+// Singleton pattern to prevent multiple GoTrueClient instances
+let supabaseInstance: SupabaseClient | null = null;
+
+function getSupabaseClient(): SupabaseClient {
+  if (supabaseInstance) {
+    return supabaseInstance;
+  }
+
+  // Debug logging only on first initialization
+  console.log('SUPABASE INIT:', {
+    url: supabaseUrl,
+    keyLength: supabaseAnonKey.length,
+    keyStart: supabaseAnonKey.substring(0, 20),
+    keyEnd: supabaseAnonKey.substring(supabaseAnonKey.length - 20)
+  })
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('MISSING SUPABASE CREDENTIALS!', { url: !!supabaseUrl, key: !!supabaseAnonKey })
+  }
+
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      storageKey: 'oasara.auth.token',
+      detectSessionInUrl: false, // We handle URL tokens manually in ConfirmEmail
+      flowType: 'implicit',
+    }
+  });
+
+  return supabaseInstance;
+}
+
+export const supabase = getSupabaseClient();
 
 // Enriched data types
 export interface Doctor {
@@ -105,14 +138,12 @@ export async function getFacilities(filters?: {
   specialty?: string
   acceptsZano?: boolean
 }) {
+  console.log('getFacilities called, supabaseUrl:', supabaseUrl)
+
+  // Simple query without joins - more reliable for public access
   let query = supabase
     .from('facilities')
-    .select(`
-      *,
-      doctors (*),
-      procedure_pricing (*),
-      testimonials (*)
-    `)
+    .select('*')
     .order('google_rating', { ascending: false })
 
   if (filters?.country) {
@@ -129,7 +160,11 @@ export async function getFacilities(filters?: {
 
   const { data, error } = await query
 
-  if (error) throw error
+  if (error) {
+    console.error('SUPABASE ERROR fetching facilities:', error.message, error.code, error.details)
+    return []
+  }
+  console.log('Facilities fetched:', data?.length || 0)
   return data as Facility[]
 }
 

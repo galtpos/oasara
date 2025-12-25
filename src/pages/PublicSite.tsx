@@ -66,22 +66,38 @@ const PublicSite: React.FC = () => {
     fetchPledgeCounts();
   }, []);
 
-  // Fetch facilities
-  const { data: facilities = [], isLoading: facilitiesLoading } = useQuery<Facility[]>({
+  // Fetch facilities with error handling
+  const { data: facilities = [], isLoading: facilitiesLoading, error: facilitiesError } = useQuery<Facility[]>({
     queryKey: ['facilities'],
-    queryFn: () => getFacilities()
+    queryFn: async () => {
+      const result = await getFacilities();
+      return result;
+    },
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes - prevents refetches
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
+
+  // Log errors
+  useEffect(() => {
+    if (facilitiesError) {
+      console.error('FACILITIES ERROR:', facilitiesError);
+    }
+  }, [facilitiesError]);
 
   // Fetch countries
   const { data: countries = [] } = useQuery({
     queryKey: ['countries'],
-    queryFn: getCountries
+    queryFn: getCountries,
+    staleTime: 10 * 60 * 1000, // Countries rarely change
   });
 
   // Fetch specialties
   const { data: specialties = [] } = useQuery({
     queryKey: ['specialties'],
-    queryFn: getSpecialties
+    queryFn: getSpecialties,
+    staleTime: 10 * 60 * 1000, // Specialties rarely change
   });
 
   // Filter and sort facilities
@@ -348,6 +364,10 @@ const PublicSite: React.FC = () => {
         <div className="stat-pill">
           <span className="stat-number">{pledgeCounts.try_medical_tourism}</span>
           <span className="stat-label">Medical Tourists</span>
+        </div>
+        <div className="stat-pill">
+          <span className="stat-number">{pledgeCounts.cancel_insurance}</span>
+          <span className="stat-label">Cancelled Insurance</span>
         </div>
         <div className="ml-auto flex items-center gap-2 text-white/80 text-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
