@@ -1,169 +1,87 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import { useAuthState } from '../hooks/useAuth';
-
-const SUPABASE_URL = 'https://whklrclzrtijneqdjmiy.supabase.co';
-const LAUNCH_DATE = new Date('2025-12-04T18:00:00-05:00'); // Dec 4, 2025 @ 6pm ET
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 const LandingGate: React.FC = () => {
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [earlyAccessLoading, setEarlyAccessLoading] = useState(false);
-  const { signInWithMagicLink, loading } = useAuthState();
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuthState();
+  const navigate = useNavigate();
 
-  const [isLaunched, setIsLaunched] = useState(false);
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [signupStats, setSignupStats] = useState<{
-    count: number;
-    milestone: number;
-    spotsRemaining: number;
-    percentFilled: number;
-    isAlmostFull: boolean;
-    isCritical: boolean;
-  } | null>(null);
-
-  // Countdown timer
+  // If user is already logged in, redirect to main site
   useEffect(() => {
-    const calculateTimeLeft = () => {
-      const now = new Date().getTime();
-      const difference = LAUNCH_DATE.getTime() - now;
-
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((difference % (1000 * 60)) / 1000)
-        });
-        setIsLaunched(false);
-      } else {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-        setIsLaunched(true);
-      }
-    };
-
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Fetch signup count
-  const fetchSignupCount = async () => {
-    try {
-      const timestamp = new Date().getTime();
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/get-signup-count?t=${timestamp}`, {
-        cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache' }
-      });
-      const data = await response.json();
-      if (data.success) setSignupStats(data);
-    } catch (err) {
-      console.error('Failed to fetch signup count:', err);
+    if (user) {
+      navigate('/');
     }
-  };
+  }, [user, navigate]);
 
-  useEffect(() => {
-    if (!isLaunched) {
-      fetchSignupCount();
-      const interval = setInterval(fetchSignupCount, 5 * 60 * 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isLaunched]);
-
-  // Early access signup (pre-launch)
-  const handleEarlyAccess = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEarlyAccessLoading(true);
-    setError('');
-
-    try {
-      const response = await fetch(`${SUPABASE_URL}/functions/v1/early-access-signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name }),
-      });
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess(true);
-        setEmail('');
-        setName('');
-        await fetchSignupCount();
-      } else {
-        setError(data.message || 'Failed to join. Please try again.');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred.');
-    } finally {
-      setEarlyAccessLoading(false);
-    }
-  };
-
-  // Magic link login (post-launch)
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
     if (!email) {
       setError('Please enter your email address');
+      setLoading(false);
       return;
     }
 
-    const { error: magicLinkError } = await signInWithMagicLink(email);
-    if (magicLinkError) {
-      setError(magicLinkError);
-    } else {
+    try {
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email: email.toLowerCase().trim(),
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/confirm`
+        }
+      });
+
+      if (signInError) {
+        setError(signInError.message);
+        setLoading(false);
+        return;
+      }
+
       setSuccess(true);
+    } catch (err) {
+      setError('Failed to send magic link. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Success state
+  // Success state - check email
   if (success) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sage-50 via-sage-100/30 to-sage-50 flex items-center justify-center px-6 py-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-gold-500 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-10 w-96 h-96 bg-gold-400 rounded-full blur-3xl"></div>
-        </div>
-
+      <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md w-full relative z-10"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full"
         >
-          <div className="bg-white/80 backdrop-blur-sm border border-sage-200 shadow-xl rounded-2xl p-8 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-lg">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          <div className="bg-white shadow-2xl border border-sage-200 rounded-2xl p-10 text-center">
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-b from-gold-500 to-gold-700 flex items-center justify-center shadow-lg">
+              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="font-display text-2xl text-ocean-700 mb-2">
-              {isLaunched ? 'Check Your Email' : 'You\'re on the List!'}
+            <h2 className="font-display text-3xl text-ocean-700 mb-3 tracking-wide">
+              Check Your Email
             </h2>
             <p className="text-ocean-600/70 mb-2">
-              {isLaunched
-                ? <>We sent a magic link to <strong>{email}</strong></>
-                : 'We\'ll notify you when access opens.'
-              }
+              We sent a magic link to
             </p>
-            {isLaunched && (
-              <p className="text-ocean-500/60 text-sm mb-4">
-                Click the link to access 500+ medical facilities worldwide.
-              </p>
-            )}
-            {signupStats && !isLaunched && (
-              <p className="text-sm text-gold-600 font-semibold mb-4">
-                You secured spot #{signupStats.count} of {signupStats.milestone}
-              </p>
-            )}
+            <p className="text-ocean-700 font-semibold text-lg mb-6">{email}</p>
+            <p className="text-ocean-600/50 text-sm mb-8">
+              Click the link to access 518 JCI-certified medical facilities worldwide.
+            </p>
             <button
               onClick={() => setSuccess(false)}
-              className="inline-block px-6 py-2 rounded-lg bg-gold-100 hover:bg-gold-200 text-ocean-700 border border-gold-300 transition-colors text-sm font-medium"
+              className="px-8 py-3 rounded-md bg-sage-100 hover:bg-sage-200 text-ocean-700 border border-sage-200 transition-all text-sm font-medium"
             >
-              {isLaunched ? 'Send Again' : 'Sign up another email'}
+              Use Different Email
             </button>
           </div>
         </motion.div>
@@ -172,212 +90,246 @@ const LandingGate: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-50 via-sage-100/30 to-sage-50 flex items-center justify-center px-6 py-12 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gold-500 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gold-400 rounded-full blur-3xl"></div>
-      </div>
-
-      <div className="max-w-xl w-full relative z-10">
-        {/* Hero */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <h1 className="font-display text-6xl md:text-7xl bg-gradient-to-r from-gold-500 via-gold-600 to-ocean-600 bg-clip-text text-transparent mb-4 tracking-tight">
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="py-6 px-6 border-b border-sage-200 bg-white">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <h1
+            className="font-display text-3xl tracking-[0.5em]"
+            style={{
+              background: 'linear-gradient(180deg, #D4B86A 0%, #A67C00 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
+            }}
+          >
             OASARA
           </h1>
-          <p className="text-xl text-ocean-600/80 italic mb-4 font-display">
-            Your Oasis for Medical Sovereignty
-          </p>
-          <p className="text-lg text-ocean-600/70">
-            518 JCI-certified facilities across 39 countries. Direct access. Zero middlemen.
-          </p>
-        </motion.div>
+          <div className="text-ocean-600 text-sm font-medium">
+            Medical Sovereignty Platform
+          </div>
+        </div>
+      </header>
 
-        {/* Signup Stats - Pre-launch only */}
-        {!isLaunched && signupStats && (
+      {/* Hero Stats Bar - Ocean Teal */}
+      <div className="bg-ocean-600 py-4">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-wrap items-center justify-center gap-8">
+            <div className="flex items-center gap-3 bg-white/15 border-2 border-white/25 rounded-lg px-5 py-2">
+              <span className="font-display text-3xl font-black text-gold-300">518</span>
+              <span className="text-white/80 text-sm">JCI Facilities</span>
+            </div>
+            <div className="flex items-center gap-3 bg-white/15 border-2 border-white/25 rounded-lg px-5 py-2">
+              <span className="font-display text-3xl font-black text-gold-300">39</span>
+              <span className="text-white/80 text-sm">Countries</span>
+            </div>
+            <div className="flex items-center gap-3 bg-white/15 border-2 border-white/25 rounded-lg px-5 py-2">
+              <span className="font-display text-3xl font-black text-gold-300">50-90%</span>
+              <span className="text-white/80 text-sm">Savings</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Left - Marketing Copy */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="mb-6"
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6 }}
           >
-            <div className={`max-w-md mx-auto p-4 rounded-xl border-2 ${
-              signupStats.isCritical ? 'bg-red-50/80 border-red-300'
-                : signupStats.isAlmostFull ? 'bg-orange-50/80 border-orange-300'
-                : 'bg-white/80 border-gold-300/30'
-            } backdrop-blur-sm shadow-lg`}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-ocean-700">
-                  {signupStats.isCritical ? 'Last Spots!' : signupStats.isAlmostFull ? 'Almost Full!' : 'Limited Access'}
-                </span>
-                <span className="text-sm font-bold bg-gradient-to-r from-gold-500 to-gold-600 bg-clip-text text-transparent">
-                  {signupStats.count}/{signupStats.milestone}
-                </span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm font-medium mb-6">
+              <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              US Healthcare is Broken
+            </div>
+
+            <h2 className="font-display text-5xl lg:text-6xl text-ocean-700 leading-tight mb-6 tracking-wide">
+              Escape the
+              <span className="block bg-gradient-to-r from-gold-500 to-gold-700 bg-clip-text text-transparent">
+                Healthcare Cartel
+              </span>
+            </h2>
+
+            <p className="text-xl text-ocean-600/80 mb-8 leading-relaxed">
+              Americans pay <span className="text-red-600 font-semibold">3-10x more</span> for the same procedures.
+              Insurance premiums are up <span className="text-red-600 font-semibold">47%</span> in 5 years.
+              The system is designed to extract your wealth.
+            </p>
+
+            <div className="space-y-4 mb-8">
+              <div className="flex items-center gap-4 p-4 bg-sage-50 rounded-lg border border-sage-200">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-b from-gold-500 to-gold-700 flex items-center justify-center shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-ocean-700 font-semibold">518 JCI-Certified Facilities</div>
+                  <div className="text-ocean-600/60 text-sm">39 countries, same quality as US hospitals</div>
+                </div>
               </div>
-              <div className="w-full bg-sage-100 rounded-full h-2 mb-2 overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${signupStats.percentFilled}%` }}
-                  transition={{ duration: 1 }}
-                  className={`h-full rounded-full ${
-                    signupStats.isCritical ? 'bg-gradient-to-r from-red-500 to-orange-500'
-                      : signupStats.isAlmostFull ? 'bg-gradient-to-r from-orange-400 to-gold-500'
-                      : 'bg-gradient-to-r from-gold-400 to-gold-600'
-                  }`}
-                />
+
+              <div className="flex items-center gap-4 p-4 bg-sage-50 rounded-lg border border-sage-200">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-b from-emerald-500 to-emerald-600 flex items-center justify-center shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-ocean-700 font-semibold">Save 50-90% on Procedures</div>
+                  <div className="text-ocean-600/60 text-sm">$6,000 knee replacement vs $50,000 in the US</div>
+                </div>
               </div>
-              <p className="text-xs text-ocean-600/70 text-center">
-                {signupStats.isCritical ? `Only ${signupStats.spotsRemaining} spots left!`
-                  : signupStats.isAlmostFull ? `Just ${signupStats.spotsRemaining} spots remaining`
-                  : `Only the first ${signupStats.milestone} get early access`}
+
+              <div className="flex items-center gap-4 p-4 bg-sage-50 rounded-lg border border-sage-200">
+                <div className="w-12 h-12 rounded-lg bg-gradient-to-b from-ocean-500 to-ocean-700 flex items-center justify-center shadow-md">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-ocean-700 font-semibold">Privacy-Preserving Payments</div>
+                  <div className="text-ocean-600/60 text-sm">Zano blockchain for financial sovereignty</div>
+                </div>
+              </div>
+            </div>
+
+          </motion.div>
+
+          {/* Right - Login Form */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <div className="bg-white shadow-2xl border border-sage-200 rounded-2xl p-8">
+              <div className="text-center mb-8">
+                <h3 className="font-display text-2xl text-ocean-700 mb-2 tracking-wide">
+                  Get Instant Access
+                </h3>
+                <p className="text-ocean-600/60">
+                  No password needed. We'll send you a magic link.
+                </p>
+              </div>
+
+              <form onSubmit={handleMagicLink} className="space-y-6">
+                <div>
+                  <label htmlFor="email" className="block text-ocean-700 text-sm font-medium mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="w-full px-5 py-4 rounded-md bg-sage-50 border border-sage-200 text-ocean-700 placeholder-ocean-400/50 focus:outline-none focus:border-ocean-500 focus:ring-2 focus:ring-ocean-500/20 transition-all text-lg"
+                    placeholder="your@email.com"
+                  />
+                </div>
+
+                {error && (
+                  <div className="p-4 rounded-md bg-red-50 border border-red-200 text-red-700 text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gradient-to-b from-gold-500 to-gold-700 py-4 rounded-md font-semibold text-white text-lg transition-all hover:translate-y-[-2px] shadow-[0_4px_0_#8B6914,0_6px_16px_rgba(139,105,20,0.3)] active:translate-y-0 active:shadow-[0_2px_0_#8B6914] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Sending...
+                    </span>
+                  ) : (
+                    'Send Magic Link'
+                  )}
+                </button>
+              </form>
+
+              <div className="mt-8 pt-6 border-t border-sage-200">
+                <p className="text-ocean-600/50 text-xs text-center mb-4">
+                  Your email is used for:
+                </p>
+                <div className="grid grid-cols-3 gap-3 text-center">
+                  <div className="p-3 rounded-lg bg-sage-50 border border-sage-100">
+                    <svg className="w-5 h-5 text-gold-600 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <div className="text-ocean-700 text-xs font-medium">Bounty Rewards</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-sage-50 border border-sage-100">
+                    <svg className="w-5 h-5 text-ocean-600 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <div className="text-ocean-700 text-xs font-medium">Community</div>
+                  </div>
+                  <div className="p-3 rounded-lg bg-sage-50 border border-sage-100">
+                    <svg className="w-5 h-5 text-emerald-600 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    <div className="text-ocean-700 text-xs font-medium">Updates</div>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-ocean-600/40 text-xs text-center mt-6">
+                No spam. No tracking. Just medical sovereignty.
               </p>
             </div>
           </motion.div>
-        )}
+        </div>
+      </main>
 
-        {/* Countdown - Pre-launch only */}
-        {!isLaunched && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
-          >
-            <div className="text-center mb-3">
-              <p className="text-sm text-ocean-600/60 font-medium uppercase tracking-wider">Early Access Opens In</p>
-            </div>
-            <div className="grid grid-cols-4 gap-3 max-w-lg mx-auto">
-              {['days', 'hours', 'minutes', 'seconds'].map((unit, i) => (
-                <div key={unit} className="bg-white/80 backdrop-blur-sm border border-sage-200 rounded-xl p-4 shadow-lg">
-                  <div className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gold-500 to-gold-600 bg-clip-text text-transparent">
-                    {timeLeft[unit as keyof typeof timeLeft]}
-                  </div>
-                  <div className="text-xs text-ocean-600/60 uppercase tracking-wider mt-1">
-                    {unit === 'minutes' ? 'Mins' : unit === 'seconds' ? 'Secs' : unit.charAt(0).toUpperCase() + unit.slice(1)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Form */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white/80 backdrop-blur-sm border border-sage-200 shadow-2xl rounded-2xl p-8 mb-8"
-        >
-          <div className="text-center mb-6">
-            <h3 className="font-display text-xl text-ocean-700 mb-2">
-              {isLaunched ? 'Get Instant Access' : 'Get Early Access'}
-            </h3>
-            <p className="text-ocean-600/70 text-sm">
-              {isLaunched
-                ? 'No password required. We\'ll email you a magic link.'
-                : 'Be among the first to explore.'}
-            </p>
-          </div>
-
-          <form onSubmit={isLaunched ? handleMagicLink : handleEarlyAccess} className="space-y-4">
-            {!isLaunched && (
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg bg-sage-50 border border-sage-200 text-ocean-700 placeholder-ocean-400/60 focus:outline-none focus:border-ocean-400 focus:ring-2 focus:ring-ocean-400/20 transition-all"
-                placeholder="Your name (optional)"
-              />
-            )}
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-4 rounded-lg bg-sage-50 border border-sage-200 text-ocean-700 placeholder-ocean-400/60 focus:outline-none focus:border-ocean-400 focus:ring-2 focus:ring-ocean-400/20 transition-all text-center text-lg"
-              placeholder="your@email.com"
-            />
-
-            {error && (
-              <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-                {error}
+      {/* Price Comparison Footer */}
+      <footer className="bg-sage-50 py-8 border-t border-sage-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <h3 className="font-display text-center text-ocean-700 text-lg mb-6 tracking-wide">
+            See What You Could Save
+          </h3>
+          <div className="flex flex-wrap items-center justify-center gap-8 text-center">
+            <div className="bg-white rounded-lg border border-sage-200 p-4 shadow-sm">
+              <div className="text-ocean-600/60 text-xs uppercase tracking-wider mb-2">Hip Replacement</div>
+              <div className="flex items-center gap-2 justify-center">
+                <span className="text-red-500 line-through text-sm">$40,000 US</span>
+                <span className="text-emerald-600 font-bold text-lg">$12,000</span>
               </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || earlyAccessLoading}
-              className="w-full bg-gradient-to-r from-gold-400 to-gold-600 py-4 rounded-lg font-semibold text-white text-lg transition-all hover:scale-[1.02] hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-            >
-              {(loading || earlyAccessLoading) ? 'Sending...' : isLaunched ? 'Send Magic Link' : 'Get Early Access'}
-            </button>
-
-            <p className="text-xs text-ocean-500/60 text-center">
-              {isLaunched
-                ? 'New user? Your account is created automatically.'
-                : 'No spam. No tracking. Just pure medical sovereignty updates.'}
-            </p>
-          </form>
-
-          {isLaunched && (
-            <div className="mt-4 pt-4 border-t border-sage-200 text-center">
-              <Link to="/login" className="text-sm text-gold-600 hover:text-gold-700 font-medium">
-                Prefer to use a password? Sign in here
-              </Link>
             </div>
-          )}
-        </motion.div>
-
-        {/* Features */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="grid grid-cols-3 gap-4"
-        >
-          <div className="text-center p-4 rounded-xl bg-white/60 border border-sage-200 shadow-lg">
-            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-md">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
+            <div className="bg-white rounded-lg border border-sage-200 p-4 shadow-sm">
+              <div className="text-ocean-600/60 text-xs uppercase tracking-wider mb-2">Dental Implants</div>
+              <div className="flex items-center gap-2 justify-center">
+                <span className="text-red-500 line-through text-sm">$5,000 US</span>
+                <span className="text-emerald-600 font-bold text-lg">$800</span>
+              </div>
             </div>
-            <h3 className="text-ocean-700 font-semibold text-sm mb-1">Privacy First</h3>
-            <p className="text-ocean-600/60 text-xs">Zano blockchain</p>
+            <div className="bg-white rounded-lg border border-sage-200 p-4 shadow-sm">
+              <div className="text-ocean-600/60 text-xs uppercase tracking-wider mb-2">Heart Bypass</div>
+              <div className="flex items-center gap-2 justify-center">
+                <span className="text-red-500 line-through text-sm">$150,000 US</span>
+                <span className="text-emerald-600 font-bold text-lg">$25,000</span>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg border border-sage-200 p-4 shadow-sm">
+              <div className="text-ocean-600/60 text-xs uppercase tracking-wider mb-2">Knee Replacement</div>
+              <div className="flex items-center gap-2 justify-center">
+                <span className="text-red-500 line-through text-sm">$50,000 US</span>
+                <span className="text-emerald-600 font-bold text-lg">$6,000</span>
+              </div>
+            </div>
           </div>
-
-          <div className="text-center p-4 rounded-xl bg-white/60 border border-sage-200 shadow-lg">
-            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-gold-500 to-ocean-500 flex items-center justify-center shadow-md">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <h3 className="text-ocean-700 font-semibold text-sm mb-1">518 Facilities</h3>
-            <p className="text-ocean-600/60 text-xs">39 countries</p>
-          </div>
-
-          <div className="text-center p-4 rounded-xl bg-white/60 border border-sage-200 shadow-lg">
-            <div className="w-10 h-10 mx-auto mb-2 rounded-full bg-gradient-to-br from-ocean-500 to-ocean-600 flex items-center justify-center shadow-md">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 className="text-ocean-700 font-semibold text-sm mb-1">Direct Access</h3>
-            <p className="text-ocean-600/60 text-xs">No middlemen</p>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-10 text-center"
-        >
-          <p className="text-ocean-600/50 text-xs italic font-display">
-            "In the desert of captured healthcare, Oasara is your oasis."
+          <p className="text-center text-ocean-600/50 text-sm mt-6">
+            Your Oasis for Medical Sovereignty
           </p>
-        </motion.div>
-      </div>
+        </div>
+      </footer>
     </div>
   );
 };

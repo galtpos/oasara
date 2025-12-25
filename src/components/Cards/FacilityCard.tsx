@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Facility } from '../../lib/supabase';
 import RequestZanoButton from '../Outreach/RequestZanoButton';
@@ -21,10 +21,7 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
     (facility.testimonials?.length || 0) > 0;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+    <div
       onClick={onClick}
       className="card cursor-pointer"
     >
@@ -377,7 +374,7 @@ const FacilityCard: React.FC<FacilityCardProps> = ({ facility, onClick }) => {
           ...(facility.popular_procedures?.map(p => p.name) || [])
         ]}
       />
-    </motion.div>
+    </div>
   );
 };
 

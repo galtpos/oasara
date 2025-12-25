@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuthState } from '../../hooks/useAuth';
 
 interface ContactFacilityModalProps {
   isOpen: boolean;
@@ -20,6 +21,11 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
   procedures = [],
   selectedProcedure = ''
 }) => {
+  // Get authenticated user's info
+  const { user, profile } = useAuthState();
+  const userEmail = user?.email || '';
+  const userName = profile?.name || user?.user_metadata?.name || '';
+
   // Generate default message template
   const generateDefaultMessage = useCallback((procedure: string) => {
     const procedureText = procedure
@@ -42,8 +48,8 @@ Thank you for your time. I look forward to your response.`;
   }, []);
 
   const [formData, setFormData] = useState({
-    senderName: '',
-    senderEmail: '',
+    senderName: userName,
+    senderEmail: userEmail,
     senderPhone: '',
     procedure: selectedProcedure,
     preferredContact: 'email' as 'email' | 'phone' | 'whatsapp',
@@ -65,12 +71,12 @@ Thank you for your time. I look forward to your response.`;
     }
   }, [isOpen, selectedProcedure, generateDefaultMessage]);
 
-  // Reset form when modal opens
+  // Reset form when modal opens - pre-fill with user's info
   useEffect(() => {
     if (isOpen) {
       setFormData({
-        senderName: '',
-        senderEmail: '',
+        senderName: userName,
+        senderEmail: userEmail,
         senderPhone: '',
         procedure: selectedProcedure,
         preferredContact: 'email',
@@ -79,7 +85,7 @@ Thank you for your time. I look forward to your response.`;
       setStatus('idle');
       setErrorMessage('');
     }
-  }, [isOpen, selectedProcedure, generateDefaultMessage]);
+  }, [isOpen, selectedProcedure, generateDefaultMessage, userName, userEmail]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,5 +1,6 @@
 import React from 'react';
 import SiteHeader from '../components/Layout/SiteHeader';
+import MedicalTrustsTab from '../components/TrustMap/MedicalTrustsTab';
 import OnlineTrustServicesComparison from '../components/TrustServices/OnlineTrustServicesComparison';
 
 const MedicalTrusts: React.FC = () => {
@@ -7,6 +8,7 @@ const MedicalTrusts: React.FC = () => {
     <div className="min-h-screen bg-white">
       <SiteHeader />
       <main id="main-content" tabIndex={-1}>
+        <MedicalTrustsTab />
         <OnlineTrustServicesComparison />
       </main>
 

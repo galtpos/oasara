@@ -30,21 +30,22 @@ import FeedbackManagement from './admin/pages/FeedbackManagement';
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Auth Routes (Public) */}
-      <Route path="/welcome" element={<LandingGate />} />
+      {/* All Routes - PUBLIC (no auth required) */}
+      <Route path="/" element={<PublicSite />} />
+      <Route path="/app" element={<PublicSite />} />
+      <Route path="/welcome" element={<PublicSite />} />
+      <Route path="/hub" element={<MedicalTourismHub />} />
+      <Route path="/why-zano" element={<WhyZano />} />
+      <Route path="/action" element={<ActionCenter />} />
+      <Route path="/feedback" element={<Feedback />} />
+      <Route path="/medical-trusts" element={<MedicalTrusts />} />
+      <Route path="/bounty" element={<BountyBoard />} />
+
+      {/* Auth routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/auth/confirm" element={<ConfirmEmail />} />
-      <Route path="/early-access" element={<EarlyAccess />} />
-      <Route path="/bounty" element={<BountyBoard />} />
-
-      {/* Protected Routes - Require authentication */}
-      <Route path="/" element={<ProtectedRoute><PublicSite /></ProtectedRoute>} />
-      <Route path="/hub" element={<ProtectedRoute><MedicalTourismHub /></ProtectedRoute>} />
-      <Route path="/why-zano" element={<ProtectedRoute><WhyZano /></ProtectedRoute>} />
-      <Route path="/action" element={<ProtectedRoute><ActionCenter /></ProtectedRoute>} />
-      <Route path="/feedback" element={<ProtectedRoute><Feedback /></ProtectedRoute>} />
-      <Route path="/medical-trusts" element={<ProtectedRoute><MedicalTrusts /></ProtectedRoute>} />
+      <Route path="/early-access" element={<Navigate to="/signup" replace />} />
 
       {/* Admin Login */}
       <Route path="/admin/login" element={<AdminLogin />} />

@@ -89,7 +89,7 @@ const getLucideIcon = (iconName: string): React.ComponentType<{ className?: stri
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
 
-  const IconComponent = (LucideIcons as Record<string, React.ComponentType<{ className?: string }>>)[pascalCase];
+  const IconComponent = (LucideIcons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[pascalCase];
   return IconComponent || null;
 };
 

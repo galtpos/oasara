@@ -102,13 +102,16 @@ export function useAuthState(): AuthState & {
         .from('user_profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      // If no profile exists, that's okay - user is still authenticated
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+      }
 
       setState(prev => ({
         ...prev,
-        profile: data as UserProfile,
+        profile: data as UserProfile | null,
         loading: false,
       }));
     } catch (error) {

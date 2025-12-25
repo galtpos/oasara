@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import SiteHeader from '../components/Layout/SiteHeader';
 import { supabase } from '../lib/supabase';
+import { useAuthState } from '../hooks/useAuth';
+import { telegramService } from '../lib/telegramService';
 
 interface FeedbackItem {
   id: string;
@@ -31,15 +33,20 @@ const BOUNTY_AMOUNTS: Record<string, number> = {
 };
 
 const BountyBoard: React.FC = () => {
+  // Get authenticated user's info
+  const { user, profile } = useAuthState();
+  const userEmail = user?.email || '';
+  const userName = profile?.name || user?.user_metadata?.name || '';
+
   const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'accepted' | 'pending'>('all');
   const [activeTab, setActiveTab] = useState<'submissions' | 'leaderboard'>('submissions');
 
-  // Form state
+  // Form state - pre-filled with user's info
   const [showForm, setShowForm] = useState(false);
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState(userEmail);
+  const [name, setName] = useState(userName);
   const [category, setCategory] = useState('feature');
   const [message, setMessage] = useState('');
   const [walletAddress, setWalletAddress] = useState('');
@@ -55,21 +62,34 @@ const BountyBoard: React.FC = () => {
   ];
 
   useEffect(() => {
+    console.log('=== BountyBoard MOUNT - calling fetchFeedback ===');
     fetchFeedback();
   }, []);
 
+  // Update form when user auth changes
+  useEffect(() => {
+    if (userEmail) setEmail(userEmail);
+    if (userName) setName(userName);
+  }, [userEmail, userName]);
+
   const fetchFeedback = async () => {
+    console.log('=== BountyBoard fetchFeedback START ===');
     try {
       const { data, error } = await supabase
         .from('feedback')
-        .select('id, name, category, message, status, accepted, bounty_paid, admin_response, wallet_address, created_at')
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('=== BountyBoard RESULT ===', { dataLength: data?.length, error });
+      if (error) {
+        console.error('=== BountyBoard ERROR ===', error);
+        throw error;
+      }
       setFeedbackList(data || []);
     } catch (err) {
-      console.error('Error fetching feedback:', err);
+      console.error('=== BountyBoard CATCH ===', err);
     } finally {
+      console.log('=== BountyBoard DONE ===');
       setLoading(false);
     }
   };
@@ -97,9 +117,17 @@ const BountyBoard: React.FC = () => {
 
       if (insertError) throw insertError;
 
+      // Send Telegram notification
+      telegramService.notifyBountySubmission({
+        name: name.trim() || 'Anonymous',
+        email: email.toLowerCase().trim() || 'Not provided',
+        category,
+        message: message.trim(),
+        bountyAmount: BOUNTY_AMOUNTS[category] || 20,
+      });
+
       setSubmitSuccess(true);
-      setEmail('');
-      setName('');
+      // Keep user's email/name, clear just the submission fields
       setMessage('');
       setWalletAddress('');
       setCategory('feature');

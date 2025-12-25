@@ -1,74 +1,111 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const ConfirmEmail: React.FC = () => {
-  const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const confirmEmail = async () => {
-      // Supabase handles the token verification automatically via the URL hash
-      const { data: { session }, error } = await supabase.auth.getSession();
+    const processAuth = async () => {
+      console.log('=== Processing auth ===');
+      console.log('URL:', window.location.href);
+      console.log('Hash:', window.location.hash);
 
-      if (error) {
-        setError(error.message);
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+
+      const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
+      const errorParam = params.get('error');
+      const errorDescription = params.get('error_description');
+
+      console.log('Tokens:', {
+        access: accessToken?.substring(0, 20) + '...',
+        refresh: refreshToken?.substring(0, 20) + '...',
+        error: errorParam
+      });
+
+      // Check for errors first
+      if (errorParam) {
+        setError(errorDescription || errorParam);
         setStatus('error');
         return;
       }
 
-      if (session) {
-        setStatus('success');
-        // Redirect to home after 3 seconds
-        setTimeout(() => {
-          navigate('/');
-        }, 3000);
-      } else {
-        // Check if there's a token_hash in the URL (email confirmation)
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
-        const type = hashParams.get('type');
+      // Must have access token
+      if (!accessToken) {
+        // Maybe already logged in?
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setStatus('success');
+          window.location.replace('/');
+          return;
+        }
+        setError('No access token found. Please request a new magic link.');
+        setStatus('error');
+        return;
+      }
 
-        if (accessToken && (type === 'signup' || type === 'magiclink')) {
-          // Session should be set automatically by Supabase
-          const { data, error: refreshError } = await supabase.auth.refreshSession();
+      // Set the session manually
+      try {
+        console.log('Calling setSession...');
+        const { data, error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken || ''
+        });
 
-          if (refreshError) {
-            setError(refreshError.message);
-            setStatus('error');
-          } else if (data.session) {
-            setStatus('success');
-            setTimeout(() => {
-              navigate('/');
-            }, 3000);
-          }
+        console.log('setSession result:', {
+          hasData: !!data,
+          hasSession: !!data?.session,
+          error: sessionError?.message
+        });
+
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          setError(sessionError.message);
+          setStatus('error');
+          return;
+        }
+
+        if (data?.session) {
+          console.log('Session established! User:', data.session.user?.email);
+          setStatus('success');
+          // Clear hash and redirect
+          window.history.replaceState(null, '', window.location.pathname);
+          setTimeout(() => {
+            window.location.replace('/');
+          }, 1500);
         } else {
-          // No token found, might be expired or invalid
-          setError('Invalid or expired confirmation link. Please request a new one.');
+          setError('Failed to establish session. Please try again.');
           setStatus('error');
         }
+      } catch (err: any) {
+        console.error('setSession threw:', err);
+        setError(err.message || 'Authentication failed');
+        setStatus('error');
       }
     };
 
-    confirmEmail();
-  }, [navigate]);
+    processAuth();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-50 via-sage-100/30 to-sage-50 flex items-center justify-center px-6 py-12 relative overflow-hidden">
-      {/* Decorative background */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gold-500 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gold-400 rounded-full blur-3xl"></div>
-      </div>
-
-      <div className="w-full max-w-md relative z-10">
+    <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/">
-            <h1 className="font-display text-4xl bg-gradient-to-r from-gold-500 via-gold-600 to-ocean-600 bg-clip-text text-transparent tracking-tight">
+            <h1
+              className="font-display text-4xl tracking-[0.3em]"
+              style={{
+                background: 'linear-gradient(180deg, #D4B86A 0%, #A67C00 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text'
+              }}
+            >
               OASARA
             </h1>
           </Link>
@@ -77,63 +114,49 @@ const ConfirmEmail: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white/80 backdrop-blur-sm border border-sage-200 shadow-xl rounded-2xl p-8"
+          className="bg-white shadow-xl border border-sage-200 rounded-2xl p-8"
         >
           {status === 'verifying' && (
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-lg animate-pulse">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-b from-gold-500 to-gold-700 flex items-center justify-center shadow-lg animate-pulse">
                 <svg className="w-8 h-8 text-white animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </div>
-              <h2 className="font-display text-2xl text-ocean-700 mb-2">Verifying Your Email</h2>
-              <p className="text-ocean-600/70">Please wait while we confirm your account...</p>
+              <h2 className="font-display text-2xl text-ocean-700 mb-2">Signing You In</h2>
+              <p className="text-ocean-600/70">Please wait...</p>
             </div>
           )}
 
           {status === 'success' && (
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-b from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <h2 className="font-display text-2xl text-ocean-700 mb-2">You're In!</h2>
               <p className="text-ocean-600/70 mb-4">
-                Your account is active. Redirecting to the marketplace...
+                Welcome to OASARA. Redirecting...
               </p>
-              <Link
-                to="/"
-                className="inline-block px-6 py-2 rounded-lg bg-gradient-to-r from-gold-400 to-gold-600 text-white font-medium hover:shadow-lg transition-all"
-              >
-                Explore Facilities
-              </Link>
             </div>
           )}
 
           {status === 'error' && (
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-400 to-red-600 flex items-center justify-center shadow-lg">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-b from-red-500 to-red-600 flex items-center justify-center shadow-lg">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
               <h2 className="font-display text-2xl text-ocean-700 mb-2">Verification Failed</h2>
-              <p className="text-ocean-600/70 mb-4">{error}</p>
-              <div className="space-y-3">
-                <Link
-                  to="/signup"
-                  className="block px-6 py-2 rounded-lg bg-gradient-to-r from-gold-400 to-gold-600 text-white font-medium hover:shadow-lg transition-all"
-                >
-                  Sign Up Again
-                </Link>
-                <Link
-                  to="/login"
-                  className="block px-6 py-2 rounded-lg bg-gold-100 text-ocean-700 border border-gold-300 font-medium hover:bg-gold-200 transition-all"
-                >
-                  Back to Login
-                </Link>
-              </div>
+              <p className="text-ocean-600/70 mb-6">{error}</p>
+              <Link
+                to="/signup"
+                className="inline-block px-6 py-3 rounded-md bg-gradient-to-b from-gold-500 to-gold-700 text-white font-medium shadow-[0_4px_0_#8B6914] hover:translate-y-[-2px] transition-all"
+              >
+                Request New Link
+              </Link>
             </div>
           )}
         </motion.div>

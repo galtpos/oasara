@@ -7,20 +7,43 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuthState();
+  const { user, loading, session } = useAuthState();
   const location = useLocation();
+  const [checked, setChecked] = React.useState(false);
 
-  // Admin bypass - check URL param or localStorage
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('bypass') === 'aaron2025') {
-    localStorage.setItem('adminBypass', 'true');
-  }
-  if (localStorage.getItem('adminBypass') === 'true') {
-    return <>{children}</>;
-  }
+  // Check localStorage directly for faster auth detection
+  React.useEffect(() => {
+    const checkLocalStorage = () => {
+      const stored = localStorage.getItem('oasara.auth.token');
+      if (stored) {
+        try {
+          const data = JSON.parse(stored);
+          if (data?.access_token) {
+            // Session exists in storage, wait for Supabase to confirm
+            return;
+          }
+        } catch {}
+      }
+      // No stored session, mark as checked
+      setChecked(true);
+    };
+
+    checkLocalStorage();
+
+    // Fallback timeout - only if no session found
+    const timer = setTimeout(() => setChecked(true), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Once loading is done, mark as checked
+  React.useEffect(() => {
+    if (!loading) {
+      setChecked(true);
+    }
+  }, [loading]);
 
   // Show loading state while checking auth
-  if (loading) {
+  if (loading && !checked) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-50 via-sage-100/30 to-sage-50 flex items-center justify-center">
         <div className="text-center">
@@ -36,7 +59,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // Redirect to landing gate if not authenticated
-  if (!user) {
+  if (!user && !session) {
     return <Navigate to="/welcome" state={{ from: location.pathname }} replace />;
   }
 

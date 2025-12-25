@@ -63,7 +63,7 @@ const SiteHeader: React.FC = () => {
                 Bounty
                 <span className="text-xs bg-gradient-to-r from-gold-500 to-gold-600 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
               </Link>
-              <Link to="/early-access" className="btn-gold">
+              <Link to="/signup" className="btn-gold">
                 Join
               </Link>
             </nav>

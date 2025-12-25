@@ -180,6 +180,40 @@ class TelegramService {
   }
 
   /**
+   * Send bounty board submission notification
+   */
+  async notifyBountySubmission(data: {
+    name: string;
+    email: string;
+    category: string;
+    message: string;
+    bountyAmount: number;
+  }): Promise<boolean> {
+    const categoryEmojis: Record<string, string> = {
+      feature: '💡',
+      bug: '🐛',
+      ux: '✨'
+    };
+
+    return this.sendNotification({
+      type: 'contact_form',
+      title: `${categoryEmojis[data.category] || '📝'} New Bounty Submission!`,
+      message: `Someone submitted a ${data.category} idea for $${data.bountyAmount} bounty!`,
+      data: {
+        name: data.name || 'Anonymous',
+        email: data.email || 'Not provided',
+        category: data.category,
+        bounty: `$${data.bountyAmount} fUSD`,
+        message: data.message.length > 150
+          ? data.message.substring(0, 150) + '...'
+          : data.message,
+        timestamp: new Date().toISOString(),
+      },
+      priority: 'high'
+    });
+  }
+
+  /**
    * Send error notification
    */
   async notifyError(error: string, context: string, details?: any): Promise<boolean> {

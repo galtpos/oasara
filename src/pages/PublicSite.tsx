@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion'; // Still needed for How It Works section
 import SiteHeader from '../components/Layout/SiteHeader';
 import GlobalFacilityMap from '../components/Map/GlobalFacilityMap';
 import FacilityCard from '../components/Cards/FacilityCard';
@@ -457,44 +457,30 @@ const PublicSite: React.FC = () => {
 
           {/* Facility Cards */}
           <div className="h-full overflow-y-auto space-y-4 pr-2">
-            <AnimatePresence mode="popLayout">
-              {filteredFacilities.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="glass-morphism rounded p-16 text-center"
-                >
-                  <h3 className="font-display text-3xl text-sage-700 mb-3">
-                    No Facilities Found
-                  </h3>
-                  <p className="text-sage-500 mb-6 text-base">
-                    Try adjusting your filters or search query
-                  </p>
-                  <button
-                    onClick={clearAllFilters}
-                    className="btn-gold"
-                  >
-                    Clear All Filters
-                  </button>
-                </motion.div>
-              ) : (
-                filteredFacilities.map((facility) => (
-                  <motion.div
-                    key={facility.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                  >
-                    <FacilityCard
-                      facility={facility}
-                      onClick={() => setSelectedFacility(facility)}
-                    />
-                  </motion.div>
-                ))
-              )}
-            </AnimatePresence>
+            {filteredFacilities.length === 0 ? (
+            <div className="glass-morphism rounded p-16 text-center">
+              <h3 className="font-display text-3xl text-sage-700 mb-3">
+                No Facilities Found
+              </h3>
+              <p className="text-sage-500 mb-6 text-base">
+                Try adjusting your filters or search query
+              </p>
+              <button
+                onClick={clearAllFilters}
+                className="btn-gold"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          ) : (
+            filteredFacilities.map((facility) => (
+              <FacilityCard
+                key={facility.id}
+                facility={facility}
+                onClick={() => setSelectedFacility(facility)}
+              />
+            ))
+          )}
           </div>
         </div>
       </main>
