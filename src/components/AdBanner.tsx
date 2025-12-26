@@ -63,8 +63,9 @@ interface AdBannerProps {
 // ============================================
 
 // All sites fetch ads from the central ad server hosted on freedomforge project
-const AD_SERVER_URL = 'https://uefznzzkrzqxgxxwslox.supabase.co';
-const AD_SERVER_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZnpuenprcnpxeGd4eHdzbG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNDIzODQsImV4cCI6MjA3MTgxODM4NH0.YmwwuEhG7Siv8zyL9XFjthNuqJrST3C4hs3qESb-grM';
+// Keys loaded from environment variables (REACT_APP_FREEDOMFORGE_URL, REACT_APP_FREEDOMFORGE_ANON_KEY)
+const AD_SERVER_URL = process.env.REACT_APP_FREEDOMFORGE_URL || '';
+const AD_SERVER_KEY = process.env.REACT_APP_FREEDOMFORGE_ANON_KEY || '';
 
 const DEFAULT_SUPABASE_URL = AD_SERVER_URL;
 const DEFAULT_SUPABASE_KEY = AD_SERVER_KEY;

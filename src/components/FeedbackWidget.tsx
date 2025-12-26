@@ -4,9 +4,10 @@ import './feedback-widget.css'
 import { supabase } from '../lib/supabase'
 
 // Central feedback Supabase (freedomforge project - shared across all sites)
+// Keys loaded from environment variables
 const feedbackSupabase = createClient(
-  'https://uefznzzkrzqxgxxwslox.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZnpuenprcnpxeGd4eHdzbG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNDIzODQsImV4cCI6MjA3MTgxODM4NH0.YmwwuEhG7Siv8zyL9XFjthNuqJrST3C4hs3qESb-grM'
+  process.env.REACT_APP_FREEDOMFORGE_URL || '',
+  process.env.REACT_APP_FREEDOMFORGE_ANON_KEY || ''
 )
 
 interface FeedbackWidgetProps {

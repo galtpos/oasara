@@ -11,16 +11,8 @@ function getSupabaseClient(): SupabaseClient {
     return supabaseInstance;
   }
 
-  // Debug logging only on first initialization
-  console.log('SUPABASE INIT:', {
-    url: supabaseUrl,
-    keyLength: supabaseAnonKey.length,
-    keyStart: supabaseAnonKey.substring(0, 20),
-    keyEnd: supabaseAnonKey.substring(supabaseAnonKey.length - 20)
-  })
-
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('MISSING SUPABASE CREDENTIALS!', { url: !!supabaseUrl, key: !!supabaseAnonKey })
+    console.error('Missing Supabase configuration. Check environment variables.')
   }
 
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
