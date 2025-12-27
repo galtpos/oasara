@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import WalletEducationPlayer, { Tutorial } from '../Videos/WalletEducationPlayer';
 import { supabase, getVideoProgress, updateVideoProgress, getFaucetStatus, WalletEducationProgress } from '../../lib/supabase';
 
-// New wallet education tutorials with self-hosted audio
+// New wallet education tutorials with self-hosted audio and screenshots
 const walletTutorials: Tutorial[] = [
   {
     id: '01_why_patient',
@@ -11,6 +11,7 @@ const walletTutorials: Tutorial[] = [
     description: 'Understanding why traditional payments fail medical tourists and how Zano solves it.',
     duration: '2:00',
     audioSrc: '/tutorials/01_why_patient/audio/narration.mp3',
+    screenshotSrc: '/tutorials/01_why_patient/screenshots/01_problem.png',
     level: 1
   },
   {
@@ -19,6 +20,7 @@ const walletTutorials: Tutorial[] = [
     description: 'How chargebacks, freezes, and fees hurt your practice - and the better way.',
     duration: '2:00',
     audioSrc: '/tutorials/02_why_provider/audio/narration.mp3',
+    screenshotSrc: '/tutorials/02_why_provider/screenshots/01_benefits.png',
     forProvider: true
   },
   {
@@ -27,6 +29,7 @@ const walletTutorials: Tutorial[] = [
     description: 'Step-by-step guide to downloading the Zano wallet on any platform.',
     duration: '3:00',
     audioSrc: '/tutorials/03_download/audio/narration.mp3',
+    screenshotSrc: '/tutorials/03_download/screenshots/01_download_page.png',
     level: 1
   },
   {
@@ -35,6 +38,7 @@ const walletTutorials: Tutorial[] = [
     description: 'Watch the entire wallet setup process before you do it yourself.',
     duration: '3:00',
     audioSrc: '/tutorials/04_watch_me/audio/narration.mp3',
+    screenshotSrc: '/tutorials/04_watch_me/screenshots/01_zano_home.png',
     level: 1
   },
   {
@@ -43,6 +47,7 @@ const walletTutorials: Tutorial[] = [
     description: 'The most important video - creating your wallet and protecting your funds.',
     duration: '5:00',
     audioSrc: '/tutorials/05_create_wallet/audio/narration.mp3',
+    screenshotSrc: '/tutorials/05_create_wallet/screenshots/01_wallet_guide.png',
     level: 1
   },
   {
@@ -51,6 +56,7 @@ const walletTutorials: Tutorial[] = [
     description: 'Receive funds, make your first transaction, and become financially sovereign.',
     duration: '4:00',
     audioSrc: '/tutorials/06_get_send/audio/narration.mp3',
+    screenshotSrc: '/tutorials/06_get_send/screenshots/01_getting_started.png',
     level: 2
   },
   {
@@ -59,6 +65,7 @@ const walletTutorials: Tutorial[] = [
     description: 'How clinics can accept private payments from patients.',
     duration: '4:00',
     audioSrc: '/tutorials/07_accept_payments/audio/narration.mp3',
+    screenshotSrc: '/tutorials/07_accept_payments/screenshots/01_features.png',
     forProvider: true
   }
 ];

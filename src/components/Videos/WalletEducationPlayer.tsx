@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 
 export interface Tutorial {
   id: string;
@@ -7,6 +6,7 @@ export interface Tutorial {
   description: string;
   duration: string;
   audioSrc: string;
+  screenshotSrc?: string;
   level?: number;
   forProvider?: boolean;
 }
@@ -31,6 +31,9 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  // Default screenshot path based on tutorial ID
+  const screenshotUrl = tutorial.screenshotSrc || `/tutorials/${tutorial.id}/screenshots/01_${tutorial.id.split('_').slice(1).join('_') || 'screenshot'}.png`;
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -95,11 +98,25 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
 
   return (
     <div className="bg-white rounded-xl border border-sage-200 shadow-card overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Audio Player Visual */}
-      <div className="aspect-video bg-gradient-to-br from-ocean-700 via-ocean-600 to-gold-600 relative flex flex-col items-center justify-center p-6">
+      {/* Screenshot with Audio Controls */}
+      <div className="aspect-video relative">
+        {/* Screenshot Background */}
+        <img
+          src={screenshotUrl}
+          alt={tutorial.title}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback to gradient if image fails
+            (e.target as HTMLImageElement).style.display = 'none';
+          }}
+        />
+
+        {/* Dark Overlay for Controls */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
         {/* Completed Badge */}
         {(isCompleted || hasEnded) && (
-          <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+          <div className="absolute top-3 right-3 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1 z-10">
             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
             </svg>
@@ -109,42 +126,22 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
 
         {/* Level Badge */}
         {tutorial.level && (
-          <div className="absolute top-3 left-3 bg-gold-500 text-ocean-900 text-xs font-bold px-2 py-1 rounded-full">
+          <div className="absolute top-3 left-3 bg-gold-500 text-ocean-900 text-xs font-bold px-2 py-1 rounded-full z-10">
             Level {tutorial.level}
           </div>
         )}
 
         {/* Provider Badge */}
         {tutorial.forProvider && (
-          <div className="absolute top-3 left-3 bg-ocean-800 text-white text-xs font-bold px-2 py-1 rounded-full">
+          <div className="absolute top-3 left-3 bg-ocean-800 text-white text-xs font-bold px-2 py-1 rounded-full z-10">
             For Providers
           </div>
         )}
 
-        {/* Waveform/Visual */}
-        <div className="mb-4 flex items-end gap-1 h-16">
-          {[...Array(20)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="w-1.5 bg-white/60 rounded-full"
-              animate={{
-                height: isPlaying
-                  ? [8 + Math.random() * 40, 8 + Math.random() * 40]
-                  : 8
-              }}
-              transition={{
-                duration: 0.3,
-                repeat: isPlaying ? Infinity : 0,
-                repeatType: 'reverse'
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Play/Pause Button */}
+        {/* Play/Pause Button - Centered */}
         <button
           onClick={togglePlayPause}
-          className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-10"
           aria-label={isPlaying ? 'Pause' : 'Play'}
         >
           {isPlaying ? (
@@ -158,18 +155,18 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
           )}
         </button>
 
-        {/* Progress Bar */}
-        <div className="w-full mt-6">
+        {/* Progress Bar - Bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
           <div
             className="h-2 bg-white/30 rounded-full cursor-pointer"
             onClick={handleSeek}
           >
             <div
-              className="h-full bg-white rounded-full transition-all"
+              className="h-full bg-gold-500 rounded-full transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="flex justify-between mt-2 text-white/80 text-sm">
+          <div className="flex justify-between mt-2 text-white text-sm font-medium">
             <span>{formatTime(currentTime)}</span>
             <span>{duration > 0 ? formatTime(duration) : tutorial.duration}</span>
           </div>
