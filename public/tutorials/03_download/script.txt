@@ -1,0 +1,33 @@
+VIDEO 3: Download Zano Wallet
+Duration: ~3 minutes
+Voice: Clone-Aaron (Patient, step-by-step, encouraging)
+
+---
+
+Alright, let's get you set up with a Zano wallet. Every click in this video is a step away from the surveillance payment system. This is the first step to financial sovereignty, and it's easier than setting up a bank account.
+
+First, go to zano.org. That's Z-A-N-O dot org. This is the official Zano website. Don't trust any other links. Just go directly to zano.org.
+
+Now click on "Download" or go straight to zano.org/downloads.
+
+You'll see options for different platforms. Pick yours:
+
+If you're on Windows, download the Windows installer. It's a standard .exe file. Run it, follow the prompts, you're done.
+
+If you're on Mac, grab the macOS version. Open the DMG, drag Zano to your Applications folder. First time you open it, right-click and select "Open" if macOS asks about an unidentified developer. It's safe.
+
+If you're on Linux, there's an AppImage. Download it, make it executable, and run. You know the drill.
+
+For mobile, search "Zano" in the App Store or Google Play. Make sure it's the official app from the Zano team. Check the reviews. Check the developer name. Don't download knockoffs.
+
+I personally recommend starting with the desktop wallet if you're holding significant amounts. Desktop gives you full control. Mobile is convenient for smaller amounts and everyday transactions.
+
+Once you've downloaded the app, open it up. You'll see an option to create a new wallet. Don't do that yet. We're going to cover wallet creation and security in the next video.
+
+For now, just make sure the software is installed and opens correctly. If you see the Zano logo and a welcome screen, you're good.
+
+Take a breath. You just took the first step toward financial sovereignty. The download is done.
+
+Before you continue, verify: Can you open the Zano app and see the welcome screen? If yes, you're ready for the next video. If not, try the download again or check that you're running the right version for your device.
+
+Now we're going to create your wallet and secure it properly. See you in the next video.

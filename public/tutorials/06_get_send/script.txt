@@ -1,0 +1,39 @@
+VIDEO 6: Get and Send Your First Freedom Dollars
+Duration: ~4 minutes
+Voice: Clone-Aaron (Practical, encouraging, celebrating progress)
+
+---
+
+Your wallet is set up. Your recovery phrase is secure. Now let's put some money in there and make your first transaction.
+
+Here's the best way to get Freedom Dollar into your wallet:
+
+Use an exchange like TradeOgre. You buy Zano there, then convert to Freedom Dollar within the wallet. That's the most common method and what I recommend for most people.
+
+There are other ways too. If you know someone who already has Freedom Dollar, they can send it directly to you. And here's some good news: For Oasara users who complete this education series, we're giving the first 100 people five dollars in Freedom Dollar to get started. It's not a lot, but it's enough to prove the system works and make your first real transaction.
+
+Let's start with receiving. Open your Zano wallet and find your receiving address. It's a long string of letters and numbers. You can copy it or display it as a QR code.
+
+This address is safe to share. Think of it like a PO Box number. People can send you money, but they can't take anything out.
+
+When someone sends you Freedom Dollar, you'll see the transaction appear in your wallet. It confirms in about two minutes. No waiting for bank approval. No three-day holds. Just your money, in your wallet.
+
+Now let's send. Click "Send" in your wallet. Enter the recipient's address. Enter the amount. Double-check both. Triple-check both.
+
+Here's a safety tip: If you're nervous about sending to a new address, send one dollar first. Wait for it to arrive. Verify the recipient got it. Then send the rest. There's no shame in being careful.
+
+Once you click confirm, the transaction is final. There's no undo button. That's the trade-off for censorship resistance. Make sure you're sending to the right address before you confirm.
+
+The fee? Nearly free. Compare that to a 50 dollar wire transfer.
+
+And the privacy? No one except you and the recipient knows this transaction happened. Not your bank. Not your insurance company. Not the government. This is how money is supposed to work.
+
+You just became financially sovereign. You have a private wallet. You can receive funds. You can send funds. No one can freeze your account or reverse your transactions.
+
+This is what freedom feels like.
+
+Before you continue, verify: Have you received at least some Freedom Dollar in your wallet? Have you sent a test transaction successfully? If yes, you just earned your Self-Custodian credential. Check your profile. You should see your Money Sovereignty score go up.
+
+That's real progress. You now have more financial freedom than most people on the planet.
+
+For providers, stick around. The next video covers how to accept payments from patients.

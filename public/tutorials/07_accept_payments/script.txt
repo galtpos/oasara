@@ -1,0 +1,39 @@
+VIDEO 7: Accept Payments (Provider)
+Duration: ~4 minutes
+Voice: Clone-Aaron (Professional, business-focused, practical)
+
+---
+
+You're a medical provider. You want to accept private payments from patients. This video shows you exactly how.
+
+First, make sure you have the Zano wallet installed and your recovery phrase secured. If you haven't done that, go back to videos 3 through 5.
+
+Open your wallet and find your receiving address. This is what you'll share with patients.
+
+Here's what I recommend for clinics: Create a unique receiving address for each patient. Most wallets can create unlimited addresses. Label each one with the patient name or procedure, so you can match payments to services. This makes your accounting clean and simple.
+
+You can also use a single address for all patients if you prefer, or create payment requests with specific amounts. But starting with one address per patient is the easiest approach.
+
+When a patient pays, you'll see the transaction in your wallet within seconds. Full confirmation takes about two minutes. That's faster than a credit card authorization.
+
+Here's what you need to tell your accounting department: Freedom Dollar transactions are final. No chargebacks. No disputes. Once the money is in your wallet, it's yours.
+
+For record-keeping, you can export your transaction history from the wallet. Each transaction has a unique ID, timestamp, and amount. That's your receipt.
+
+Now, about converting to local currency. You have two options:
+
+Hold Freedom Dollar. It's designed to maintain purchasing power, so it's actually a reasonable way to save.
+
+Or convert through an exchange. TradeOgre and other exchanges let you swap Freedom Dollar for USDT or other assets, then withdraw to a bank account.
+
+Many providers keep some Freedom Dollar as savings and convert the rest for operating expenses. Find the balance that works for your business.
+
+One more thing: When you list on Oasara as a Zano-accepting facility, we'll highlight you to patients who want private payment options. Those patients are motivated. They've done the education. They have wallets funded and ready.
+
+You're not just accepting another payment method. You're protecting your patients' privacy and rejecting the surveillance payment system. That matters.
+
+Welcome aboard.
+
+Before you finish, verify: Can you generate a receiving address in your wallet? Do you know how to export your transaction history? If yes, you're ready to accept private payments.
+
+That's the end of the provider education series. You've completed something most providers never will. If you have questions, check the FAQ on Oasara or reach out to our support team. We're here to help.

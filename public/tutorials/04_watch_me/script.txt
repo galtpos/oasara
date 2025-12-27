@@ -1,0 +1,35 @@
+VIDEO 4: Watch Me Set Up a Wallet
+Duration: ~3 minutes
+Voice: Clone-Aaron (Casual, demonstrating, encouraging)
+
+---
+
+Alright, I'm going to walk through the entire wallet setup so you can see exactly what to expect. Watch this whole video first. Don't do anything yet. Just watch. Then you'll do it yourself in the next video.
+
+I'm opening the Zano wallet app. Here's the welcome screen.
+
+I'm clicking "Create New Wallet."
+
+First, it asks for a wallet name. I'm typing "Medical Savings." You can call yours whatever you want. This is just a label for you.
+
+Next, it asks for a password. This is important. I'm creating a strong password, at least 12 characters, mix of letters, numbers, and symbols. This password protects your wallet on this device.
+
+Now here's the critical part. The wallet is generating my recovery phrase. This is 25 words that can restore my wallet on any device.
+
+I'm writing these down on paper. Not typing them. Not taking a screenshot. Not saving them in a notes app. Paper. Pen. Physical paper.
+
+See that? Twenty-five words. I'm going to verify I wrote them correctly by reading them back.
+
+The app is now asking me to confirm some of the words. It's testing that I actually wrote them down. I'm entering word number 5... word number 12... word number 21.
+
+Confirmed. The wallet is created.
+
+Here's my main screen. I can see my balance, which is zero right now. I can see my receiving address. I can see my transaction history.
+
+That's it. The whole process took me about 3 minutes. Your first time might take 10 or 15 minutes, and that's perfectly fine. Go at your own pace.
+
+Now it's your turn. The next video walks you through doing this yourself, with all the security details you need to know.
+
+Don't skip that video. Your recovery phrase is everything. If you lose it, you lose your money. There's no customer support to call. No password reset. Just you and those 25 words.
+
+You've now seen the complete process. That's real progress. Next video, you'll do it yourself.
