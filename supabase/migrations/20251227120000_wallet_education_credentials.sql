@@ -104,8 +104,8 @@ CREATE POLICY "Admins can view all credentials"
   USING (
     EXISTS (
       SELECT 1 FROM user_profiles
-      WHERE user_profiles.user_id = auth.uid()
-      AND user_profiles.role = 'admin'
+      WHERE user_profiles.id = auth.uid()
+      AND user_profiles.user_type = 'admin'
     )
   );
 
@@ -129,8 +129,8 @@ CREATE POLICY "Admins can manage faucet claims"
   USING (
     EXISTS (
       SELECT 1 FROM user_profiles
-      WHERE user_profiles.user_id = auth.uid()
-      AND user_profiles.role = 'admin'
+      WHERE user_profiles.id = auth.uid()
+      AND user_profiles.user_type = 'admin'
     )
   );
 
