@@ -28,6 +28,7 @@ import FeedbackManagement from './admin/pages/FeedbackManagement';
 const USHospitals = lazy(() => import('./pages/USHospitals'));
 const USHospitalDetail = lazy(() => import('./pages/USHospitalDetail'));
 const USPrices = lazy(() => import('./pages/USPrices'));
+const PriceComparison = lazy(() => import('./pages/PriceComparison'));
 
 // Loading fallback for lazy-loaded pages
 const PageLoader = () => (
@@ -57,6 +58,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/us-hospitals" element={<Suspense fallback={<PageLoader />}><USHospitals /></Suspense>} />
       <Route path="/us-hospitals/:id" element={<Suspense fallback={<PageLoader />}><USHospitalDetail /></Suspense>} />
       <Route path="/us-prices" element={<Suspense fallback={<PageLoader />}><USPrices /></Suspense>} />
+      <Route path="/price-comparison" element={<Suspense fallback={<PageLoader />}><PriceComparison /></Suspense>} />
 
       {/* Auth routes */}
       <Route path="/login" element={<Login />} />
