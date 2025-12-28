@@ -29,8 +29,10 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [hasEnded, setHasEnded] = useState(false);
+  const [isInView, setIsInView] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const isVideoMode = !!tutorial.videoSrc;
   const mediaRef = isVideoMode ? videoRef : audioRef;
@@ -38,6 +40,30 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   const screenshotUrl = tutorial.screenshotSrc || `/tutorials/${tutorial.id}/screenshots/01_${tutorial.id.split('_').slice(1).join('_') || 'screenshot'}.png`;
+
+  // Generate poster image from video thumbnail (first frame)
+  const posterUrl = tutorial.videoSrc ? tutorial.videoSrc.replace('.mp4', '_poster.jpg') : screenshotUrl;
+
+  // Intersection Observer - only load video when in viewport
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsInView(true);
+            observer.disconnect(); // Once loaded, stop observing
+          }
+        });
+      },
+      { rootMargin: '200px' } // Start loading 200px before entering viewport
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const media = isVideoMode ? videoRef.current : audioRef.current;
@@ -101,15 +127,16 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl border border-sage-200 shadow-card overflow-hidden hover:shadow-lg transition-shadow">
+    <div ref={containerRef} className="bg-white rounded-xl border border-sage-200 shadow-card overflow-hidden hover:shadow-lg transition-shadow">
       <div className="aspect-video relative bg-ocean-900">
         {/* Video Mode */}
         {isVideoMode ? (
           <video
             ref={videoRef}
-            src={tutorial.videoSrc}
+            src={isInView ? tutorial.videoSrc : undefined}
+            poster={posterUrl}
             className="w-full h-full object-contain"
-            preload="metadata"
+            preload="none"
             playsInline
           />
         ) : (
