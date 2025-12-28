@@ -49,3 +49,14 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* OASARA Logo Gradient - Ocean Teal to Gold */
+.logo-gradient {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1E6068 0%, #2A7A85 50%, #F59E0B 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}

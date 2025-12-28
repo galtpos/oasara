@@ -131,25 +131,45 @@ export default function PriceComparison() {
             </Link>
           </div>
 
-          {/* Trust Signals */}
-          <div className="mt-12 flex flex-wrap justify-center gap-8">
-            <div className="flex items-center gap-2">
-              <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <span className="text-gray-700 font-medium">518 Accredited Facilities</span>
+          {/* Trust Signals - Oasara Branded */}
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="bg-gradient-to-br from-sage-50 to-ocean-50 rounded-xl p-6 border-2 border-ocean-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-full bg-ocean-500 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="font-display text-3xl font-bold text-ocean-700">518</div>
+              </div>
+              <div className="text-ocean-800 font-semibold">Accredited Facilities</div>
+              <div className="text-sm text-sage-600 mt-1">JCI-certified worldwide</div>
             </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-6 h-6 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-              <span className="text-gray-700 font-medium">10,000+ Successful Procedures</span>
+
+            <div className="bg-gradient-to-br from-gold-50 to-sage-50 rounded-xl p-6 border-2 border-gold-300 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-full bg-gold-500 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </div>
+                <div className="font-display text-3xl font-bold text-gold-700">10K+</div>
+              </div>
+              <div className="text-ocean-800 font-semibold">Successful Procedures</div>
+              <div className="text-sm text-sage-600 mt-1">Patient testimonials</div>
             </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
-              <span className="text-gray-700 font-medium">Privacy-First (Crypto Accepted)</span>
+
+            <div className="bg-gradient-to-br from-ocean-50 to-sage-100 rounded-xl p-6 border-2 border-ocean-200 shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-full bg-ocean-600 flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="font-display text-3xl font-bold text-ocean-700">₿</div>
+              </div>
+              <div className="text-ocean-800 font-semibold">Privacy-First</div>
+              <div className="text-sm text-sage-600 mt-1">Crypto payments accepted</div>
             </div>
           </div>
         </div>
