@@ -7,7 +7,7 @@ const SiteHeader: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
-  const isUSPricesActive = location.pathname.startsWith('/us-');
+  const isUSPricesActive = location.pathname.startsWith('/us-') || location.pathname === '/price-comparison';
 
   return (
     <>
@@ -69,7 +69,7 @@ const SiteHeader: React.FC = () => {
                       <span className="text-xs font-bold text-gold-600 uppercase tracking-wide">The Problem</span>
                     </div>
                     <Link
-                      to="/us-hospitals"
+                      to="/price-comparison"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-sage-50 transition-colors"
                     >
                       <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
@@ -78,8 +78,8 @@ const SiteHeader: React.FC = () => {
                         </svg>
                       </div>
                       <div>
-                        <div className="font-semibold text-ocean-800">Hospital Transparency Map</div>
-                        <div className="text-xs text-sage-600">84.3% refuse to publish prices</div>
+                        <div className="font-semibold text-ocean-800">Price Comparison</div>
+                        <div className="text-xs text-sage-600">See how much you could save</div>
                       </div>
                     </Link>
                     <Link
@@ -164,11 +164,11 @@ const SiteHeader: React.FC = () => {
                     US Prices
                   </div>
                   <Link
-                    to="/us-hospitals"
+                    to="/price-comparison"
                     onClick={() => setMobileMenuOpen(false)}
                     className="block px-4 py-2 text-ocean-700 hover:bg-sage-50 rounded-lg transition-colors ml-2"
                   >
-                    Hospital Map
+                    Price Comparison
                   </Link>
                   <Link
                     to="/us-prices"
