@@ -60,3 +60,20 @@ code {
   background-clip: text;
   text-fill-color: transparent;
 }
+
+/* Accessibility: Skip link - hidden by default, visible on keyboard focus */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 0.5rem 1rem;
+  background-color: #1E6068;
+  color: white;
+  text-decoration: none;
+  border-radius: 0 0 4px 0;
+}
+
+.skip-link:focus {
+  left: 0;
+  top: 0;
+}
