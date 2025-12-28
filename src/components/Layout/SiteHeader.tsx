@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 const SiteHeader: React.FC = () => {
   const location = useLocation();
   const [usPricesOpen, setUsPricesOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname === path;
   const isUSPricesActive = location.pathname.startsWith('/us-');
@@ -26,8 +27,26 @@ const SiteHeader: React.FC = () => {
               <h1 className="logo-gradient text-4xl">OASARA</h1>
             </Link>
 
-            {/* Navigation */}
-            <nav className="flex items-center gap-8" aria-label="Main navigation">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="md:hidden flex items-center justify-center w-10 h-10 text-ocean-600 hover:text-ocean-800 transition-colors"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
+            >
+              {mobileMenuOpen ? (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
               {/* US Prices Dropdown - THE PROBLEM */}
               <div
                 className="relative"
@@ -124,6 +143,98 @@ const SiteHeader: React.FC = () => {
               </Link>
             </nav>
           </div>
+
+          {/* Mobile Navigation Menu */}
+          {mobileMenuOpen && (
+            <nav className="md:hidden mt-4 pt-4 border-t border-sage-200" aria-label="Mobile navigation">
+              <div className="flex flex-col space-y-3">
+                <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  }`}
+                >
+                  Facilities
+                </Link>
+
+                {/* US Prices Mobile */}
+                <div className="border-t border-sage-100 pt-2">
+                  <div className="px-4 py-1 text-xs font-bold text-gold-600 uppercase tracking-wide">
+                    US Prices
+                  </div>
+                  <Link
+                    to="/us-hospitals"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-ocean-700 hover:bg-sage-50 rounded-lg transition-colors ml-2"
+                  >
+                    Hospital Map
+                  </Link>
+                  <Link
+                    to="/us-prices"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block px-4 py-2 text-ocean-700 hover:bg-sage-50 rounded-lg transition-colors ml-2"
+                  >
+                    Compare Prices
+                  </Link>
+                </div>
+
+                <Link
+                  to="/why-zano"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/why-zano') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  }`}
+                >
+                  Why Zano?
+                </Link>
+                <Link
+                  to="/action"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/action') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  }`}
+                >
+                  Take Action
+                </Link>
+                <Link
+                  to="/hub"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/hub') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  }`}
+                >
+                  Guide
+                </Link>
+                <Link
+                  to="/medical-trusts"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/medical-trusts') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  }`}
+                >
+                  Trust Laws
+                </Link>
+                <Link
+                  to="/bounty"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                    isActive('/bounty') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  }`}
+                >
+                  <span>Bounty</span>
+                  <span className="text-xs bg-gradient-to-r from-gold-500 to-gold-600 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
+                </Link>
+                <Link
+                  to="/signup"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="mx-4 mt-2 btn-gold text-center"
+                >
+                  Join
+                </Link>
+              </div>
+            </nav>
+          )}
         </div>
       </header>
     </>
