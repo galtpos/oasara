@@ -40,10 +40,9 @@ const walletTutorials: Tutorial[] = [
   {
     id: '05_accept_payments',
     title: 'Accept Payments (Provider)',
-    description: 'How clinics can accept private payments from patients.',
-    duration: '4:00',
-    audioSrc: '/tutorials/07_accept_payments/audio/narration.mp3',
-    screenshotSrc: '/tutorials/07_accept_payments/screenshots/01_features.png',
+    description: 'Share your wallet address, receive instant payments. No fees, no chargebacks, no middlemen.',
+    duration: '0:39',
+    videoSrc: '/videos/tutorials/07_accept_payments.mp4',
     forProvider: true
   }
 ];
