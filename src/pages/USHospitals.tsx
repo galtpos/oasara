@@ -15,6 +15,7 @@ export default function USHospitals() {
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<Partial<HospitalFilters>>({});
   const [filtersCollapsed, setFiltersCollapsed] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false); // Lazy load map for performance
 
   // Filter options from DB
   const [filterOptions, setFilterOptions] = useState<{
@@ -226,6 +227,34 @@ export default function USHospitals() {
               >
                 Try Again
               </button>
+            </div>
+          ) : !mapVisible ? (
+            // Show map preview/button before loading the heavy Mapbox component
+            <div
+              className="bg-white border-2 border-sage-200 rounded-xl p-12 text-center"
+              style={{ minHeight: 'calc(100vh - 200px)' }}
+            >
+              <div className="max-w-md mx-auto">
+                <svg className="w-16 h-16 text-ocean-600 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <h3 className="text-2xl font-display font-bold text-ocean-800 mb-3">
+                  Interactive Hospital Map
+                </h3>
+                <p className="text-sage-600 mb-6">
+                  View {hospitals.length.toLocaleString()} hospitals on an interactive map.
+                  Filter by state, type, ownership, and transparency tier.
+                </p>
+                <button
+                  onClick={() => setMapVisible(true)}
+                  className="px-8 py-4 bg-ocean-600 hover:bg-ocean-700 text-white font-bold rounded-lg transition-all transform hover:scale-105 shadow-lg"
+                >
+                  Load Interactive Map
+                </button>
+                <p className="text-xs text-sage-500 mt-4">
+                  Loading the map may take a few seconds depending on your connection
+                </p>
+              </div>
             </div>
           ) : (
             <USHospitalMap
