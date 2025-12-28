@@ -44,11 +44,22 @@ const ProcedureSearch: React.FC<ProcedureSearchProps> = ({
         ${isFocused ? 'border-2 border-ocean-400 shadow-lg' : 'border-2 border-sage-200'}
       `}>
         <div className="flex items-center gap-4">
+          {/* Search Icon */}
+          <svg
+            className="w-6 h-6 text-ocean-400 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+
           {/* Accessible label for screen readers */}
           <label htmlFor="procedure-search" className="sr-only">
             Search procedures, facilities, or destinations
           </label>
-          {/* Input - No icon, just clean text */}
+          {/* Input with auto-search as you type */}
           <input
             id="procedure-search"
             type="search"

@@ -11,274 +11,155 @@
           - /url: /
           - heading "OASARA" [level=1] [ref=e9]
         - navigation "Main navigation" [ref=e10]:
-          - link "Facilities" [ref=e11] [cursor=pointer]:
+          - button "US Prices" [ref=e12] [cursor=pointer]:
+            - generic [ref=e13]: US Prices
+            - img [ref=e14]
+          - link "Facilities" [ref=e16] [cursor=pointer]:
             - /url: /
-          - link "Why Zano?" [ref=e12] [cursor=pointer]:
+          - link "Why Zano?" [ref=e17] [cursor=pointer]:
             - /url: /why-zano
-          - link "Take Action" [ref=e13] [cursor=pointer]:
+          - link "Take Action" [ref=e18] [cursor=pointer]:
             - /url: /action
-          - link "Guide" [ref=e14] [cursor=pointer]:
+          - link "Guide" [ref=e19] [cursor=pointer]:
             - /url: /hub
-          - link "Trust Laws" [ref=e15] [cursor=pointer]:
+          - link "Trust Laws" [ref=e20] [cursor=pointer]:
             - /url: /medical-trusts
-          - link "Bounty $50" [ref=e16] [cursor=pointer]:
+          - link "Bounty $50" [ref=e21] [cursor=pointer]:
             - /url: /bounty
             - text: Bounty
-            - generic [ref=e17]: $50
-          - link "Join" [ref=e18] [cursor=pointer]:
+            - generic [ref=e22]: $50
+          - link "Join" [ref=e23] [cursor=pointer]:
             - /url: /signup
-    - generic [ref=e20]:
-      - generic [ref=e21]: Earn up to $50 fUSD!
-      - generic [ref=e22]: Features, bugs, UX improvements - get paid for accepted contributions.
-      - link "View Bounty Board" [ref=e23] [cursor=pointer]:
+    - generic [ref=e25]:
+      - generic [ref=e26]: Earn up to $50 fUSD!
+      - generic [ref=e27]: Features, bugs, UX improvements - get paid for accepted contributions.
+      - link "View Bounty Board" [ref=e28] [cursor=pointer]:
         - /url: /bounty
         - text: View Bounty Board
-        - img [ref=e24]
-    - generic [ref=e28]:
-      - heading "Save 60-80% on Medical Procedures" [level=2] [ref=e29]
-      - paragraph [ref=e30]: Compare 0+ JCI-accredited facilities across 0 countries. Transparent pricing. No middleman fees. Your medical sovereignty.
-      - generic [ref=e31]:
-        - button "How It Works" [ref=e32] [cursor=pointer]:
-          - img [ref=e33]
+        - img [ref=e29]
+    - generic [ref=e33]:
+      - heading "Save 60-80% on Medical Procedures" [level=2] [ref=e34]
+      - paragraph [ref=e35]: Compare 0+ JCI-accredited facilities across 0 countries. Transparent pricing. No middleman fees. Your medical sovereignty.
+      - generic [ref=e36]:
+        - button "How It Works" [ref=e37] [cursor=pointer]:
+          - img [ref=e38]
           - text: How It Works
-        - generic [ref=e35]:
-          - generic [ref=e36]:
-            - img [ref=e37]
-            - generic [ref=e39]: JCI Accredited
-          - generic [ref=e40]:
-            - img [ref=e41]
-            - generic [ref=e43]: Verified Facilities
-          - generic [ref=e44]:
-            - img [ref=e45]
-            - generic [ref=e47]: Privacy First
-    - generic [ref=e48]:
-      - generic [ref=e49]:
-        - generic [ref=e50]: "0"
-        - generic [ref=e51]: Facilities
-      - generic [ref=e52]:
-        - generic [ref=e53]: "0"
-        - generic [ref=e54]: Countries
-      - generic [ref=e55]:
-        - generic [ref=e56]: "0"
-        - generic [ref=e57]: Total Pledges
-      - generic [ref=e58]:
-        - generic [ref=e59]: "0"
-        - generic [ref=e60]: Medical Trusts
-      - generic [ref=e61]:
-        - generic [ref=e62]: "0"
-        - generic [ref=e63]: Medical Tourists
-      - generic [ref=e64]:
-        - generic [ref=e65]: "0"
-        - generic [ref=e66]: Cancelled Insurance
-      - generic [ref=e67]:
-        - img [ref=e68]
-        - generic [ref=e70]: JCI Accredited Healthcare
-    - generic [ref=e71]:
-      - generic [ref=e75]:
-        - generic [ref=e76]: Search procedures, facilities, or destinations
-        - searchbox "Search procedures, facilities, or destinations" [ref=e77]
-      - generic [ref=e78]:
-        - button "Country ▾" [ref=e80] [cursor=pointer]:
-          - generic [ref=e81]: Country
-          - generic [ref=e82]: ▾
-        - button "Specialty ▾" [ref=e84] [cursor=pointer]:
-          - generic [ref=e85]: Specialty
-          - generic [ref=e86]: ▾
-        - button "Zano Ready Only" [ref=e87] [cursor=pointer]
-        - generic [ref=e88]:
-          - generic [ref=e89]: "Sort by:"
-          - combobox "Sort by:" [ref=e90] [cursor=pointer]:
+        - generic [ref=e40]:
+          - generic [ref=e41]:
+            - img [ref=e42]
+            - generic [ref=e44]: JCI Accredited
+          - generic [ref=e45]:
+            - img [ref=e46]
+            - generic [ref=e48]: Verified Facilities
+          - generic [ref=e49]:
+            - img [ref=e50]
+            - generic [ref=e52]: Privacy First
+    - generic [ref=e53]:
+      - generic [ref=e54]: 0Facilities
+      - generic [ref=e55]: 0Countries
+      - generic [ref=e56]: 0Total Pledges
+      - generic [ref=e57]: 0Medical Trusts
+      - generic [ref=e58]: 0Medical Tourists
+      - generic [ref=e59]: 0Cancelled Insurance
+      - generic [ref=e60]:
+        - generic [ref=e61]: 6,000+
+        - text: US Hospitals Compared
+      - generic [ref=e62]:
+        - img [ref=e63]
+        - generic [ref=e65]: JCI Accredited Healthcare
+    - generic [ref=e66]:
+      - generic [ref=e70]:
+        - generic [ref=e71]: Search procedures, facilities, or destinations
+        - searchbox "Search procedures, facilities, or destinations" [ref=e72]
+      - generic [ref=e73]:
+        - button "Country ▾" [ref=e75] [cursor=pointer]:
+          - generic [ref=e76]: Country
+          - generic [ref=e77]: ▾
+        - button "Specialty ▾" [ref=e79] [cursor=pointer]:
+          - generic [ref=e80]: Specialty
+          - generic [ref=e81]: ▾
+        - button "Zano Ready Only" [ref=e82] [cursor=pointer]
+        - generic [ref=e83]:
+          - generic [ref=e84]: "Sort by:"
+          - combobox "Sort by:" [ref=e85] [cursor=pointer]:
             - option "Highest Rated" [selected]
             - option "Most Reviews"
             - option "Name (A-Z)"
             - option "Country"
-    - main [ref=e91]:
-      - generic [ref=e92]:
-        - paragraph [ref=e97]: Loading Your Oasis...
-        - generic [ref=e99]:
-          - heading "No Facilities Found" [level=3] [ref=e100]
-          - paragraph [ref=e101]: Try adjusting your filters or search query
-          - button "Clear All Filters" [ref=e102] [cursor=pointer]
-    - generic [ref=e104]:
-      - generic [ref=e105]:
-        - heading "The US Healthcare Disaster" [level=2] [ref=e106]
-        - paragraph [ref=e107]: Understanding why millions are seeking alternatives
-      - generic [ref=e108]:
-        - generic [ref=e109]:
-          - iframe [ref=e111]:
-            - generic "YouTube Video Player" [ref=f1e3]:
-              - generic [ref=f1e5]:
-                - link "Photo image of Global News" [ref=f1e8] [cursor=pointer]:
-                  - /url: https://www.youtube.com/channel/UChLtXXpo4Ge1ReTEboVvTDg?embeds_referring_euri=https%3A%2F%2Foasara.com%2F
-                - link "BC woman faces travel health insurance nightmare after shocking US $108K hospital bill" [ref=f1e11] [cursor=pointer]:
-                  - /url: https://www.youtube.com/watch?v=DGBrpdRPGeI
-                - button "More" [ref=f1e13] [cursor=pointer]:
-                  - generic [ref=f1e14]:
-                    - img
-          - heading "The US Healthcare Crisis Explained" [level=3] [ref=e113]
-        - generic [ref=e114]:
-          - iframe [ref=e116]:
-            - generic "YouTube Video Player" [ref=f2e3]:
-              - generic [ref=f2e5]:
-                - link "Photo image of Dr. Glaucomflecken" [ref=f2e8] [cursor=pointer]:
-                  - /url: https://www.youtube.com/channel/UCYDVFfp_AN1WBiNwaf9522w?embeds_referring_euri=https%3A%2F%2Foasara.com%2F
-                - 'link "30 Days of US Healthcare: United Healthcare Denies Everything" [ref=f2e11] [cursor=pointer]':
-                  - /url: https://www.youtube.com/watch?v=JfyECL2UtMw
-                - button "More" [ref=f2e13] [cursor=pointer]:
-                  - generic [ref=f2e14]:
-                    - img
-          - heading "Insurance Company Tactics" [level=3] [ref=e118]
-        - generic [ref=e119]:
-          - iframe [ref=e121]:
-            - generic "YouTube Video Player" [ref=f3e3]:
-              - generic [ref=f3e5]:
-                - link "Photo image of CBS Mornings" [ref=f3e8] [cursor=pointer]:
-                  - /url: https://www.youtube.com/channel/UC-SJ6nODDmufqBzPBwCvYvQ?embeds_referring_euri=https%3A%2F%2Foasara.com%2F
-                - link "A heart condition led a young man into medical bankruptcy even with health insurance" [ref=f3e11] [cursor=pointer]:
-                  - /url: https://www.youtube.com/watch?v=RyqY445tJaI
-                - button "More" [ref=f3e13] [cursor=pointer]:
-                  - generic [ref=f3e14]:
-                    - img
-              - button "Play" [ref=f3e17] [cursor=pointer]:
-                - img
-          - heading "Medical Debt in America" [level=3] [ref=e123]
-        - generic [ref=e124]:
-          - iframe [ref=e126]:
-            - generic "YouTube Video Player" [ref=f4e3]:
-              - generic [ref=f4e5]:
-                - link "Photo image of CBS Evening News" [ref=f4e8] [cursor=pointer]:
-                  - /url: https://www.youtube.com/channel/UCAeWdyKJXGWmVAXFpgLNNTg?embeds_referring_euri=https%3A%2F%2Foasara.com%2F
-                - link "Even with insurance, woman hit with $40,000 in medical bills" [ref=f4e11] [cursor=pointer]:
-                  - /url: https://www.youtube.com/watch?v=CRC9D5t8nIY
-                - button "More" [ref=f4e13] [cursor=pointer]:
-                  - generic [ref=f4e14]:
-                    - img
-              - button "Play" [ref=f4e17] [cursor=pointer]:
-                - img
-          - heading "Breaking Free from the System" [level=3] [ref=e128]
-    - generic [ref=e130]:
-      - generic [ref=e131]:
-        - heading "Why Medical Tourism?" [level=2] [ref=e132]
-        - paragraph [ref=e133]: Learn about the global healthcare revolution
-      - generic [ref=e134]:
-        - generic [ref=e135]:
-          - iframe [ref=e137]:
-            - generic "YouTube Video Player" [ref=f5e3]:
-              - generic [ref=f5e5]:
-                - link "Photo image of Molar City" [ref=f5e8] [cursor=pointer]:
-                  - /url: https://www.youtube.com/channel/UCNUEi89xH5HkfdFAmhwU8zQ?embeds_referring_euri=https%3A%2F%2Foasara.com%2F
-                - link "Los Algodones Mexico Medical Mecca by NBC news" [ref=f5e11] [cursor=pointer]:
-                  - /url: https://www.youtube.com/watch?v=TeX_rBzgWDs
-                - button "More" [ref=f5e13] [cursor=pointer]:
-                  - generic [ref=f5e14]:
-                    - img
-          - heading "Why Medical Tourism?" [level=3] [ref=e139]
-        - generic [ref=e140]:
-          - iframe [ref=e142]:
-            - generic "YouTube Video Player" [ref=f6e3]:
-              - generic [ref=f6e5]:
-                - link "Photo image of The Borderless Office" [ref=f6e8] [cursor=pointer]:
-                  - /url: https://www.youtube.com/channel/UCono6jdkXCGIWHMr84GNZ-Q?embeds_referring_euri=https%3A%2F%2Foasara.com%2F
-                - link "Dental Costs in Thailand vs. USA 🇺🇸" [ref=f6e11] [cursor=pointer]:
-                  - /url: https://www.youtube.com/watch?v=51igZA1_YSY
-                - button "More" [ref=f6e13] [cursor=pointer]:
-                  - generic [ref=f6e14]:
-                    - img
-          - heading "Medical Tourism Explained" [level=3] [ref=e144]
-        - generic [ref=e145]:
-          - iframe [ref=e147]:
-            - generic "YouTube Video Player" [ref=f7e3]:
-              - generic [ref=f7e5]:
-                - generic [ref=f7e6]:
-                  - 'link "America needs a VIP health checkup like this on in Turkey #health #medical #medicaltourism #türkiye"':
-                    - /url: https://www.youtube.com/shorts/NynZG7nObCo
-                - generic [ref=f7e7]:
-                  - 'generic "Photo image of Bryn Elise: Health & Beauty Tourism" [ref=f7e8]'
-                  - generic [ref=f7e11]: "Bryn Elise: Health & Beauty Tourism"
-              - button "Play" [ref=f7e14] [cursor=pointer]:
-                - img
-          - heading "Medical Tourism Quick Facts" [level=3] [ref=e149]
-        - generic [ref=e150]:
-          - iframe [ref=e152]:
-            - generic "YouTube Video Player" [ref=f8e3]:
-              - generic [ref=f8e5]:
-                - generic [ref=f8e7]:
-                  - 'link "Dentists in Thailand are on another level! #thailand #bangkok #medicaltourism"':
-                    - /url: https://www.youtube.com/shorts/L1sbjaiIo3A
-                - generic [ref=f8e8]:
-                  - generic "Photo image of Travis Leon" [ref=f8e9]
-                  - generic [ref=f8e12]: Travis Leon
-          - heading "Savings Spotlight" [level=3] [ref=e154]
-    - generic [ref=e156]:
-      - generic [ref=e157]:
-        - heading "Wallet Education" [level=2] [ref=e158]
-        - paragraph [ref=e159]: Learn how to set up your wallet, secure your recovery words, and make private payments.
-        - generic [ref=e160]:
-          - img [ref=e161]
+    - main [ref=e86]:
+      - generic [ref=e89]:
+        - heading "No Facilities Found" [level=3] [ref=e90]
+        - paragraph [ref=e91]: Try adjusting your filters or search query
+        - button "Clear All Filters" [ref=e92] [cursor=pointer]
+    - generic [ref=e94]:
+      - generic [ref=e95]:
+        - heading "Wallet Education" [level=2] [ref=e96]
+        - paragraph [ref=e97]: Learn how to set up your wallet, secure your recovery words, and make private payments.
+        - generic [ref=e98]:
+          - img [ref=e99]
           - text: Complete Level 2 and claim $5 FUSD! (100 of 100 remaining)
-      - generic [ref=e163]:
-        - button "Patient Path" [ref=e164] [cursor=pointer]
-        - button "Provider Path" [ref=e165] [cursor=pointer]
-      - generic [ref=e166]:
-        - generic [ref=e168]:
-          - generic [ref=e169]:
-            - generic [ref=e171]: Level 1
-            - button "Play" [ref=e172] [cursor=pointer]:
-              - img [ref=e173]
-            - generic [ref=e177]:
-              - generic [ref=e178]: 0:00
-              - generic [ref=e179]: 1:48
-          - generic [ref=e180]:
-            - heading "Why Private Payments Matter (Patient)" [level=3] [ref=e181]
-            - paragraph [ref=e182]: Understanding why traditional payments fail medical tourists and how Zano solves it.
-        - generic [ref=e184]:
-          - generic [ref=e185]:
-            - generic [ref=e187]: Level 1
-            - button "Play" [ref=e188] [cursor=pointer]:
-              - img [ref=e189]
-            - generic [ref=e193]:
-              - generic [ref=e194]: 0:00
-              - generic [ref=e195]: 5:21
-          - generic [ref=e196]:
-            - heading "Create Your Wallet & Secure Recovery Words" [level=3] [ref=e197]
-            - paragraph [ref=e198]: Download, install, and set up your Zano wallet with secure recovery words.
-        - generic [ref=e200]:
-          - generic [ref=e201]:
-            - generic [ref=e203]: Level 2
-            - button "Play" [ref=e204] [cursor=pointer]:
-              - img [ref=e205]
-            - generic [ref=e209]:
-              - generic [ref=e210]: 0:00
-              - generic [ref=e211]: 1:10
-          - generic [ref=e212]:
-            - heading "Get & Send Your First Freedom Dollars" [level=3] [ref=e213]
-            - paragraph [ref=e214]: Swap ZANO for fUSD (Freedom Dollars) - a private stablecoin worth $1. No banks, no middlemen.
-      - generic [ref=e215]:
-        - paragraph [ref=e216]: Sign in to track your progress and earn credentials.
-        - link "Sign Up Free" [ref=e217] [cursor=pointer]:
+      - generic [ref=e101]:
+        - button "Patient Path" [ref=e102] [cursor=pointer]
+        - button "Provider Path" [ref=e103] [cursor=pointer]
+      - generic [ref=e104]:
+        - generic [ref=e106]:
+          - generic [ref=e107]:
+            - generic [ref=e109]: Level 1
+            - button "Play" [ref=e110] [cursor=pointer]:
+              - img [ref=e111]
+            - generic [ref=e115]:
+              - generic [ref=e116]: 0:00
+              - generic [ref=e117]: 1:48
+          - generic [ref=e118]:
+            - heading "Why Private Payments Matter (Patient)" [level=3] [ref=e119]
+            - paragraph [ref=e120]: Understanding why traditional payments fail medical tourists and how Zano solves it.
+        - generic [ref=e122]:
+          - generic [ref=e123]:
+            - generic [ref=e125]: Level 1
+            - button "Play" [ref=e126] [cursor=pointer]:
+              - img [ref=e127]
+            - generic [ref=e131]:
+              - generic [ref=e132]: 0:00
+              - generic [ref=e133]: 5:21
+          - generic [ref=e134]:
+            - heading "Create Your Wallet & Secure Recovery Words" [level=3] [ref=e135]
+            - paragraph [ref=e136]: Download, install, and set up your Zano wallet with secure recovery words.
+        - generic [ref=e138]:
+          - generic [ref=e139]:
+            - generic [ref=e141]: Level 2
+            - button "Play" [ref=e142] [cursor=pointer]:
+              - img [ref=e143]
+            - generic [ref=e147]:
+              - generic [ref=e148]: 0:00
+              - generic [ref=e149]: 1:10
+          - generic [ref=e150]:
+            - heading "Get & Send Your First Freedom Dollars" [level=3] [ref=e151]
+            - paragraph [ref=e152]: Swap ZANO for fUSD (Freedom Dollars) - a private stablecoin worth $1. No banks, no middlemen.
+      - generic [ref=e153]:
+        - paragraph [ref=e154]: Sign in to track your progress and earn credentials.
+        - link "Sign Up Free" [ref=e155] [cursor=pointer]:
           - /url: /auth/signup
-      - link "More tutorials on YouTube" [ref=e219] [cursor=pointer]:
+      - link "More tutorials on YouTube" [ref=e157] [cursor=pointer]:
         - /url: https://www.youtube.com/@zanolist
-        - img [ref=e220]
+        - img [ref=e158]
         - text: More tutorials on YouTube
-    - contentinfo [ref=e222]:
-      - generic [ref=e223]:
-        - paragraph [ref=e224]: "\"In the desert of captured healthcare, Oasara is your oasis — a sanctuary where medical sovereignty flows freely, choices bloom abundantly, and every seeker finds their path to healing.\""
-        - paragraph [ref=e225]: Privacy-preserving medical marketplace. Your sovereignty. Your choice.
-  - generic [ref=e226]:
-    - button "Open Oasis Guide" [ref=e228] [cursor=pointer]:
-      - img [ref=e229]
+    - contentinfo [ref=e160]:
+      - generic [ref=e161]:
+        - paragraph [ref=e162]: "\"In the desert of captured healthcare, Oasara is your oasis — a sanctuary where medical sovereignty flows freely, choices bloom abundantly, and every seeker finds their path to healing.\""
+        - paragraph [ref=e163]: Privacy-preserving medical marketplace. Your sovereignty. Your choice.
+  - generic [ref=e164]:
+    - button "Open Oasis Guide" [ref=e166] [cursor=pointer]:
+      - img [ref=e167]
       - generic: Ask the Oasis Guide
-    - generic [ref=e231]: "!"
+    - generic [ref=e169]: "!"
   - generic:
     - generic:
-      - paragraph [ref=e232]:
-        - strong [ref=e233]: Earn up to $50 fUSD!
+      - paragraph [ref=e170]:
+        - strong [ref=e171]: Earn up to $50 fUSD!
         - text: Report bugs, suggest features, or improve UX.
-        - link "View Bounty Board" [ref=e234] [cursor=pointer]:
+        - link "View Bounty Board" [ref=e172] [cursor=pointer]:
           - /url: /bounty
-      - button "Got it" [ref=e235] [cursor=pointer]
-    - button "Send feedback" [ref=e236] [cursor=pointer]:
-      - img [ref=e237]
-  - button "×" [ref=e241] [cursor=pointer]
+      - button "Got it" [ref=e173] [cursor=pointer]
+    - button "Send feedback" [ref=e174] [cursor=pointer]:
+      - img [ref=e175]
 ```
