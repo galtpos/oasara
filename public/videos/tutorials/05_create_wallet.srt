@@ -1,0 +1,655 @@
+1
+00:00:00,000 --> 00:00:02,237
+Have you ever wished you had a bank account that
+
+2
+00:00:02,237 --> 00:00:04,475
+no government could freeze, no corporation could spy on, and
+
+3
+00:00:04,475 --> 00:00:06,713
+no inflation could erode?
+
+4
+00:00:06,713 --> 00:00:08,951
+Well, you're about to create one.
+
+5
+00:00:08,951 --> 00:00:11,189
+In the next few minutes, I'll walk you through setting
+
+6
+00:00:11,189 --> 00:00:13,426
+up your very own Zano privacy wallet.
+
+7
+00:00:13,426 --> 00:00:15,664
+Don't worry - if you can use a smartphone, you
+
+8
+00:00:15,664 --> 00:00:17,902
+can do this.
+
+9
+00:00:17,902 --> 00:00:20,140
+Let's get started.
+
+10
+00:00:20,140 --> 00:00:21,838
+First things first - you need to create a PIN
+
+11
+00:00:21,838 --> 00:00:23,536
+code.
+
+12
+00:00:23,536 --> 00:00:25,234
+Think of this like the combination to a safe.
+
+13
+00:00:25,234 --> 00:00:26,932
+Pick four numbers that you'll remember, but here's the important
+
+14
+00:00:26,932 --> 00:00:28,630
+part: don't use your birthday.
+
+15
+00:00:28,630 --> 00:00:30,328
+That's the first thing anyone trying to break in would
+
+16
+00:00:30,328 --> 00:00:32,026
+guess.
+
+17
+00:00:32,026 --> 00:00:33,724
+Your anniversary might work...
+
+18
+00:00:33,724 --> 00:00:35,421
+assuming you remember it.
+
+19
+00:00:35,421 --> 00:00:37,119
+I won't judge.
+
+20
+00:00:37,119 --> 00:00:39,150
+Now type those same four numbers again.
+
+21
+00:00:39,150 --> 00:00:41,181
+Yes, we're asking you to do something you just did.
+
+22
+00:00:41,181 --> 00:00:43,212
+It's annoying, but it catches typos.
+
+23
+00:00:43,212 --> 00:00:45,244
+Trust the process.
+
+24
+00:00:45,244 --> 00:00:46,820
+Welcome to your wallet home screen.
+
+25
+00:00:46,820 --> 00:00:48,396
+Right now it's empty - like a new house before
+
+26
+00:00:48,396 --> 00:00:49,972
+you move in.
+
+27
+00:00:49,972 --> 00:00:51,548
+See that 'Add Wallet' button at the bottom?
+
+28
+00:00:51,548 --> 00:00:53,124
+That's where we're headed.
+
+29
+00:00:53,124 --> 00:00:54,700
+Tap it.
+
+30
+00:00:54,700 --> 00:00:57,460
+Time to name your wallet.
+
+31
+00:00:57,460 --> 00:01:00,220
+Think of it like naming a savings account.
+
+32
+00:01:00,220 --> 00:01:02,981
+'Vacation Fund,' 'Emergency Cash,' 'Freedom Money' - whatever speaks to
+
+33
+00:01:02,981 --> 00:01:05,741
+you.
+
+34
+00:01:05,741 --> 00:01:08,501
+Pro tip: Don't name it 'My Life Savings.' Let's not
+
+35
+00:01:08,501 --> 00:01:11,261
+make it easy for the bad guys.
+
+36
+00:01:11,261 --> 00:01:13,361
+Now we're adding a password.
+
+37
+00:01:13,361 --> 00:01:15,461
+'Wait,' you might say, 'didn't I just create a PIN?'
+
+38
+00:01:15,461 --> 00:01:17,561
+Yes, you did.
+
+39
+00:01:17,561 --> 00:01:19,661
+This is double protection.
+
+40
+00:01:19,661 --> 00:01:21,761
+The PIN opens the app.
+
+41
+00:01:21,761 --> 00:01:23,860
+The password opens this specific wallet.
+
+42
+00:01:23,860 --> 00:01:25,960
+Two locks are better than one.
+
+43
+00:01:25,960 --> 00:01:28,060
+Write this password down somewhere safe - not on a
+
+44
+00:01:28,060 --> 00:01:30,160
+sticky note on your monitor.
+
+45
+00:01:30,160 --> 00:01:32,260
+And if you forget this password?
+
+46
+00:01:32,260 --> 00:01:34,360
+Don't panic.
+
+47
+00:01:34,360 --> 00:01:36,460
+Those 25 words we're about to create can restore everything.
+
+48
+00:01:36,460 --> 00:01:38,559
+The password just protects this specific device.
+
+49
+00:01:38,559 --> 00:01:40,869
+You've filled out all the paperwork.
+
+50
+00:01:40,869 --> 00:01:43,178
+Now tap 'Create new Wallet' at the bottom.
+
+51
+00:01:43,178 --> 00:01:45,487
+It's like signing the closing documents on a house, except
+
+52
+00:01:45,487 --> 00:01:47,796
+way less stressful and no one's asking for your firstborn
+
+53
+00:01:47,796 --> 00:01:50,105
+as a down payment.
+
+54
+00:01:50,105 --> 00:01:51,533
+Okay, pause.
+
+55
+00:01:51,533 --> 00:01:52,960
+I need you to actually stop and listen to this
+
+56
+00:01:52,960 --> 00:01:54,388
+part.
+
+57
+00:01:54,388 --> 00:01:55,815
+What you're about to see is the single most important
+
+58
+00:01:55,815 --> 00:01:57,243
+thing in this entire process.
+
+59
+00:01:57,243 --> 00:01:58,671
+It's called your recovery phrase - 25 words that ARE
+
+60
+00:01:58,671 --> 00:02:00,098
+your wallet.
+
+61
+00:02:00,098 --> 00:02:01,526
+Before you tap that button, I need you to grab
+
+62
+00:02:01,526 --> 00:02:02,953
+a pen and paper.
+
+63
+00:02:02,953 --> 00:02:04,381
+Not later.
+
+64
+00:02:04,381 --> 00:02:05,808
+Not 'I'll remember it.' Right now.
+
+65
+00:02:05,808 --> 00:02:07,236
+Seriously.
+
+66
+00:02:07,236 --> 00:02:08,663
+I'll wait.
+
+67
+00:02:08,663 --> 00:02:10,091
+Go get that pen.
+
+68
+00:02:10,091 --> 00:02:11,518
+Got it?
+
+69
+00:02:11,518 --> 00:02:12,946
+Good.
+
+70
+00:02:12,946 --> 00:02:14,373
+Let's continue.
+
+71
+00:02:14,373 --> 00:02:16,138
+Here they are.
+
+72
+00:02:16,138 --> 00:02:17,903
+Twenty-five random words.
+
+73
+00:02:17,903 --> 00:02:19,668
+They look meaningless, but these words ARE your wallet.
+
+74
+00:02:19,668 --> 00:02:21,432
+Let me explain what that means.
+
+75
+00:02:21,432 --> 00:02:23,197
+If you lose your phone tomorrow, these 25 words let
+
+76
+00:02:23,197 --> 00:02:24,962
+you restore your entire wallet on a new device.
+
+77
+00:02:24,962 --> 00:02:26,727
+Every coin.
+
+78
+00:02:26,727 --> 00:02:28,492
+Every transaction.
+
+79
+00:02:28,492 --> 00:02:30,256
+Everything.
+
+80
+00:02:30,256 --> 00:02:32,021
+But here's the flip side - and this is critical
+
+81
+00:02:32,021 --> 00:02:33,786
+- if someone else gets these words, they get your
+
+82
+00:02:33,786 --> 00:02:35,551
+money.
+
+83
+00:02:35,551 --> 00:02:37,316
+All of it.
+
+84
+00:02:37,316 --> 00:02:39,080
+Gone.
+
+85
+00:02:39,080 --> 00:02:40,845
+No bank to call.
+
+86
+00:02:40,845 --> 00:02:42,610
+No fraud department.
+
+87
+00:02:42,610 --> 00:02:44,375
+No reversing the transaction.
+
+88
+00:02:44,375 --> 00:02:46,140
+Take your time here.
+
+89
+00:02:46,140 --> 00:02:47,904
+There's no timer.
+
+90
+00:02:47,904 --> 00:02:49,669
+This is your money we're protecting.
+
+91
+00:02:49,669 --> 00:02:51,434
+So write them down.
+
+92
+00:02:51,434 --> 00:02:53,199
+Check them twice.
+
+93
+00:02:53,199 --> 00:02:54,964
+Not sure your handwriting is right?
+
+94
+00:02:54,964 --> 00:02:56,728
+Tap 'Copy' first, paste into a notes app, then verify
+
+95
+00:02:56,728 --> 00:02:58,493
+what you wrote matches.
+
+96
+00:02:58,493 --> 00:03:00,258
+Then hide them like your grandmother hid her secret recipes
+
+97
+00:03:00,258 --> 00:03:02,023
+- somewhere only you know about.
+
+98
+00:03:02,023 --> 00:03:03,788
+Never, ever share these words with anyone.
+
+99
+00:03:03,788 --> 00:03:05,552
+Not tech support.
+
+100
+00:03:05,552 --> 00:03:07,317
+Not your bank.
+
+101
+00:03:07,317 --> 00:03:09,082
+Not even if someone claiming to be from Zano asks
+
+102
+00:03:09,082 --> 00:03:10,847
+for them.
+
+103
+00:03:10,847 --> 00:03:12,612
+We will never ask.
+
+104
+00:03:12,612 --> 00:03:14,376
+Anyone who does is trying to rob you.
+
+105
+00:03:14,376 --> 00:03:16,234
+And just like that - you did it!
+
+106
+00:03:16,234 --> 00:03:18,092
+You now have a private digital wallet that you, and
+
+107
+00:03:18,092 --> 00:03:19,950
+only you, control.
+
+108
+00:03:19,950 --> 00:03:21,808
+No bank can freeze it.
+
+109
+00:03:21,808 --> 00:03:23,666
+No government can seize it.
+
+110
+00:03:23,666 --> 00:03:25,524
+No corporation is tracking every purchase.
+
+111
+00:03:25,524 --> 00:03:27,382
+Welcome to financial freedom.
+
+112
+00:03:27,382 --> 00:03:29,240
+No suit and tie required.
+
+113
+00:03:29,240 --> 00:03:31,353
+This is your wallet dashboard.
+
+114
+00:03:31,353 --> 00:03:33,465
+Think of it like your bank account summary page.
+
+115
+00:03:33,465 --> 00:03:35,578
+Your balance is up top - zero for now, but
+
+116
+00:03:35,578 --> 00:03:37,691
+that's about to change.
+
+117
+00:03:37,691 --> 00:03:39,803
+Below you'll see buttons for the things you'll do most:
+
+118
+00:03:39,803 --> 00:03:41,916
+Send money out, Receive money in.
+
+119
+00:03:41,916 --> 00:03:44,029
+Simple as that.
+
+120
+00:03:44,029 --> 00:03:46,141
+Let's look at those next.
+
+121
+00:03:46,141 --> 00:03:48,281
+Want someone to send you money?
+
+122
+00:03:48,281 --> 00:03:50,421
+Tap 'Receive' and you'll see this screen.
+
+123
+00:03:50,421 --> 00:03:52,560
+That big square is a QR code - it's like
+
+124
+00:03:52,560 --> 00:03:54,700
+your mailing address in scannable form.
+
+125
+00:03:54,700 --> 00:03:56,840
+Here's the good news: this address is completely safe to
+
+126
+00:03:56,840 --> 00:03:58,979
+share.
+
+127
+00:03:58,979 --> 00:04:01,119
+It's public, like your email address.
+
+128
+00:04:01,119 --> 00:04:03,259
+People can send money TO you using this, but they
+
+129
+00:04:03,259 --> 00:04:05,398
+can't take money FROM you.
+
+130
+00:04:05,398 --> 00:04:07,538
+Think of it like giving someone your P.O.
+
+131
+00:04:07,538 --> 00:04:09,678
+Box number, not your house keys.
+
+132
+00:04:09,678 --> 00:04:11,809
+When you're ready to send money to someone else, tap
+
+133
+00:04:11,809 --> 00:04:13,940
+'Send.' You'll enter their wallet address - that long string
+
+134
+00:04:13,940 --> 00:04:16,071
+of letters and numbers - and the amount.
+
+135
+00:04:16,071 --> 00:04:18,202
+One very important warning: triple-check that address before you hit
+
+136
+00:04:18,202 --> 00:04:20,333
+send.
+
+137
+00:04:20,333 --> 00:04:22,464
+Unlike that embarrassing email you sent to the wrong person,
+
+138
+00:04:22,464 --> 00:04:24,595
+crypto transactions cannot be unsent.
+
+139
+00:04:24,595 --> 00:04:26,726
+Cannot be reversed.
+
+140
+00:04:26,726 --> 00:04:28,857
+Cannot be undone.
+
+141
+00:04:28,857 --> 00:04:30,988
+Copy and paste addresses whenever possible.
+
+142
+00:04:30,988 --> 00:04:33,119
+Don't try to type them manually.
+
+143
+00:04:33,119 --> 00:04:35,250
+Your fingers will thank you, and so will your wallet.
+
+144
+00:04:35,250 --> 00:04:37,381
+And if you do make a mistake?
+
+145
+00:04:37,381 --> 00:04:39,512
+Your only hope is to contact the person who received
+
+146
+00:04:39,512 --> 00:04:41,643
+it and ask them nicely to send it back.
+
+147
+00:04:41,643 --> 00:04:43,774
+They're the only ones who can.
+
+148
+00:04:43,774 --> 00:04:45,905
+So...
+
+149
+00:04:45,905 --> 00:04:48,036
+don't make mistakes.
+
+150
+00:04:48,036 --> 00:04:50,167
+Check three times.
+
+151
+00:04:50,167 --> 00:04:52,054
+That's it.
+
+152
+00:04:52,054 --> 00:04:53,940
+You've just set up your first privacy wallet.
+
+153
+00:04:53,940 --> 00:04:55,827
+You now have something most people don't - a financial
+
+154
+00:04:55,827 --> 00:04:57,713
+tool that actually belongs to you.
+
+155
+00:04:57,713 --> 00:04:59,599
+Remember: guard those 25 words like your life depends on
+
+156
+00:04:59,599 --> 00:05:01,486
+it.
+
+157
+00:05:01,486 --> 00:05:03,372
+Because your financial freedom does.
+
+158
+00:05:03,372 --> 00:05:05,259
+For more tutorials on using your new wallet - sending,
+
+159
+00:05:05,259 --> 00:05:07,145
+receiving, and keeping your funds secure - check out the
+
+160
+00:05:07,145 --> 00:05:09,031
+other guides in this series.
+
+161
+00:05:09,031 --> 00:05:10,918
+You just took your financial future into your own hands.
+
+162
+00:05:10,918 --> 00:05:12,804
+That's not nothing.
+
+163
+00:05:12,804 --> 00:05:14,691
+That's everything.
+
+164
+00:05:14,691 --> 00:05:16,577
+Welcome aboard.

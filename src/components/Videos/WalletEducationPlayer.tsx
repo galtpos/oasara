@@ -5,8 +5,9 @@ export interface Tutorial {
   title: string;
   description: string;
   duration: string;
-  audioSrc: string;
+  audioSrc?: string;
   screenshotSrc?: string;
+  videoSrc?: string;
   level?: number;
   forProvider?: boolean;
 }
@@ -29,25 +30,28 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [hasEnded, setHasEnded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const isVideoMode = !!tutorial.videoSrc;
+  const mediaRef = isVideoMode ? videoRef : audioRef;
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  // Default screenshot path based on tutorial ID
   const screenshotUrl = tutorial.screenshotSrc || `/tutorials/${tutorial.id}/screenshots/01_${tutorial.id.split('_').slice(1).join('_') || 'screenshot'}.png`;
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const media = isVideoMode ? videoRef.current : audioRef.current;
+    if (!media) return;
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-      if (onProgress && audio.duration) {
-        onProgress(tutorial.id, audio.currentTime, audio.duration);
+      setCurrentTime(media.currentTime);
+      if (onProgress && media.duration) {
+        onProgress(tutorial.id, media.currentTime, media.duration);
       }
     };
 
     const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
+      setDuration(media.duration);
     };
 
     const handleEnded = () => {
@@ -58,25 +62,25 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
       }
     };
 
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('ended', handleEnded);
+    media.addEventListener('timeupdate', handleTimeUpdate);
+    media.addEventListener('loadedmetadata', handleLoadedMetadata);
+    media.addEventListener('ended', handleEnded);
 
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('ended', handleEnded);
+      media.removeEventListener('timeupdate', handleTimeUpdate);
+      media.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      media.removeEventListener('ended', handleEnded);
     };
-  }, [tutorial.id, onComplete, onProgress]);
+  }, [tutorial.id, onComplete, onProgress, isVideoMode]);
 
   const togglePlayPause = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const media = isVideoMode ? videoRef.current : audioRef.current;
+    if (!media) return;
 
     if (isPlaying) {
-      audio.pause();
+      media.pause();
     } else {
-      audio.play();
+      media.play();
     }
     setIsPlaying(!isPlaying);
   };
@@ -88,31 +92,43 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const audio = audioRef.current;
-    if (!audio || !duration) return;
+    const media = isVideoMode ? videoRef.current : audioRef.current;
+    if (!media || !duration) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
-    audio.currentTime = percent * duration;
+    media.currentTime = percent * duration;
   };
 
   return (
     <div className="bg-white rounded-xl border border-sage-200 shadow-card overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Screenshot with Audio Controls */}
-      <div className="aspect-video relative">
-        {/* Screenshot Background */}
-        <img
-          src={screenshotUrl}
-          alt={tutorial.title}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            // Fallback to gradient if image fails
-            (e.target as HTMLImageElement).style.display = 'none';
-          }}
-        />
+      <div className="aspect-video relative bg-ocean-900">
+        {/* Video Mode */}
+        {isVideoMode ? (
+          <video
+            ref={videoRef}
+            src={tutorial.videoSrc}
+            className="w-full h-full object-contain"
+            preload="metadata"
+            playsInline
+          />
+        ) : (
+          <>
+            {/* Audio Mode - Screenshot Background */}
+            <img
+              src={screenshotUrl}
+              alt={tutorial.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+            <audio ref={audioRef} src={tutorial.audioSrc} preload="metadata" />
+          </>
+        )}
 
         {/* Dark Overlay for Controls */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
 
         {/* Completed Badge */}
         {(isCompleted || hasEnded) && (
@@ -138,22 +154,32 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
           </div>
         )}
 
-        {/* Play/Pause Button - Centered */}
-        <button
-          onClick={togglePlayPause}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-10"
-          aria-label={isPlaying ? 'Pause' : 'Play'}
-        >
-          {isPlaying ? (
-            <svg className="w-7 h-7 text-ocean-600" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-          ) : (
-            <svg className="w-7 h-7 text-ocean-600 ml-1" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-            </svg>
-          )}
-        </button>
+        {/* Play/Pause Button - Centered (only show when not playing video) */}
+        {(!isVideoMode || !isPlaying) && (
+          <button
+            onClick={togglePlayPause}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-10"
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? (
+              <svg className="w-7 h-7 text-ocean-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-7 h-7 text-ocean-600 ml-1" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+              </svg>
+            )}
+          </button>
+        )}
+
+        {/* Click to pause for video mode */}
+        {isVideoMode && isPlaying && (
+          <div
+            className="absolute inset-0 cursor-pointer z-5"
+            onClick={togglePlayPause}
+          />
+        )}
 
         {/* Progress Bar - Bottom */}
         <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
@@ -171,8 +197,6 @@ const WalletEducationPlayer: React.FC<WalletEducationPlayerProps> = ({
             <span>{duration > 0 ? formatTime(duration) : tutorial.duration}</span>
           </div>
         </div>
-
-        <audio ref={audioRef} src={tutorial.audioSrc} preload="metadata" />
       </div>
 
       {/* Video Info */}

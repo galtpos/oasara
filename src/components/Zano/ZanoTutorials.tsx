@@ -3,55 +3,34 @@ import { motion } from 'framer-motion';
 import WalletEducationPlayer, { Tutorial } from '../Videos/WalletEducationPlayer';
 import { supabase, getVideoProgress, updateVideoProgress, getFaucetStatus, WalletEducationProgress } from '../../lib/supabase';
 
-// New wallet education tutorials with self-hosted audio and screenshots
+// Wallet education tutorials with self-hosted videos
 const walletTutorials: Tutorial[] = [
   {
     id: '01_why_patient',
     title: 'Why Private Payments Matter (Patient)',
     description: 'Understanding why traditional payments fail medical tourists and how Zano solves it.',
-    duration: '2:00',
-    audioSrc: '/tutorials/01_why_patient/audio/narration.mp3',
-    screenshotSrc: '/tutorials/01_why_patient/screenshots/01_problem.png',
+    duration: '1:48',
+    videoSrc: '/videos/tutorials/01_why_patient.mp4',
     level: 1
   },
   {
     id: '02_why_provider',
     title: 'Why Private Payments Matter (Provider)',
     description: 'How chargebacks, freezes, and fees hurt your practice - and the better way.',
-    duration: '2:00',
-    audioSrc: '/tutorials/02_why_provider/audio/narration.mp3',
-    screenshotSrc: '/tutorials/02_why_provider/screenshots/01_benefits.png',
+    duration: '1:53',
+    videoSrc: '/videos/tutorials/02_why_provider.mp4',
     forProvider: true
   },
   {
-    id: '03_download',
-    title: 'Download Zano Wallet',
-    description: 'Step-by-step guide to downloading the Zano wallet on any platform.',
-    duration: '3:00',
-    audioSrc: '/tutorials/03_download/audio/narration.mp3',
-    screenshotSrc: '/tutorials/03_download/screenshots/01_download_page.png',
-    level: 1
-  },
-  {
-    id: '04_watch_me',
-    title: 'Watch Me Set Up a Wallet',
-    description: 'Watch the entire wallet setup process before you do it yourself.',
-    duration: '3:00',
-    audioSrc: '/tutorials/04_watch_me/audio/narration.mp3',
-    screenshotSrc: '/tutorials/04_watch_me/screenshots/01_zano_home.png',
-    level: 1
-  },
-  {
-    id: '05_create_wallet',
+    id: '03_create_wallet',
     title: 'Create Your Wallet & Secure Recovery Words',
-    description: 'The most important video - creating your wallet and protecting your funds.',
-    duration: '5:00',
-    audioSrc: '/tutorials/05_create_wallet/audio/narration.mp3',
-    screenshotSrc: '/tutorials/05_create_wallet/screenshots/01_wallet_guide.png',
+    description: 'Download, install, and set up your Zano wallet with secure recovery words.',
+    duration: '5:16',
+    videoSrc: '/videos/tutorials/05_create_wallet.mp4',
     level: 1
   },
   {
-    id: '06_get_send',
+    id: '04_get_send',
     title: 'Get & Send Your First Freedom Dollars',
     description: 'Receive funds, make your first transaction, and become financially sovereign.',
     duration: '4:00',
@@ -60,7 +39,7 @@ const walletTutorials: Tutorial[] = [
     level: 2
   },
   {
-    id: '07_accept_payments',
+    id: '05_accept_payments',
     title: 'Accept Payments (Provider)',
     description: 'How clinics can accept private payments from patients.',
     duration: '4:00',
