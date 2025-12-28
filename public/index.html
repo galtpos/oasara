@@ -12,10 +12,11 @@
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
-    <!-- Google Fonts: Cinzel + Inter -->
+    <!-- Google Fonts: Cinzel + Inter (optimized weights) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Only load 400 (regular) and 700 (bold) for faster mobile loading -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
     <title>OASARA - Medical Tourism Marketplace</title>
   </head>
