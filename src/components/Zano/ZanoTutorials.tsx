@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import WalletEducationPlayer, { Tutorial } from '../Videos/WalletEducationPlayer';
 import { supabase, getVideoProgress, updateVideoProgress, getFaucetStatus, WalletEducationProgress } from '../../lib/supabase';
 
@@ -167,12 +166,7 @@ const ZanoTutorials: React.FC<ZanoTutorialsProps> = ({ variant = 'full' }) => {
     <div id="tutorials" className="py-12 bg-gradient-to-br from-ocean-50 via-white to-sage-50">
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-8"
-        >
+        <div className="text-center mb-8">
           <h2 className="font-display text-3xl text-ocean-800 font-bold mb-3">
             Wallet Education
           </h2>
@@ -205,7 +199,7 @@ const ZanoTutorials: React.FC<ZanoTutorialsProps> = ({ variant = 'full' }) => {
               Complete Level 2 and claim $5 FUSD! ({faucetStatus.remaining} of 100 remaining)
             </div>
           )}
-        </motion.div>
+        </div>
 
         {/* Tab Navigation */}
         <div className="flex justify-center gap-2 mb-8">
@@ -233,32 +227,21 @@ const ZanoTutorials: React.FC<ZanoTutorialsProps> = ({ variant = 'full' }) => {
 
         {/* Video Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {displayTutorials.map((tutorial, index) => (
-            <motion.div
-              key={tutorial.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
-            >
+          {displayTutorials.map((tutorial) => (
+            <div key={tutorial.id}>
               <WalletEducationPlayer
                 tutorial={tutorial}
                 isCompleted={isCompleted(tutorial.id)}
                 onComplete={handleComplete}
                 onProgress={handleProgress}
               />
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Not Logged In Message */}
         {!userId && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            className="text-center mt-8 p-6 bg-sage-50 rounded-xl border border-sage-200"
-          >
+          <div className="text-center mt-8 p-6 bg-sage-50 rounded-xl border border-sage-200">
             <p className="text-sage-600 mb-4">
               Sign in to track your progress and earn credentials.
             </p>
@@ -268,16 +251,11 @@ const ZanoTutorials: React.FC<ZanoTutorialsProps> = ({ variant = 'full' }) => {
             >
               Sign Up Free
             </a>
-          </motion.div>
+          </div>
         )}
 
         {/* Legacy YouTube CTA */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          className="text-center mt-8"
-        >
+        <div className="text-center mt-8">
           <a
             href="https://www.youtube.com/@zanolist"
             target="_blank"
@@ -289,7 +267,7 @@ const ZanoTutorials: React.FC<ZanoTutorialsProps> = ({ variant = 'full' }) => {
             </svg>
             More tutorials on YouTube
           </a>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
