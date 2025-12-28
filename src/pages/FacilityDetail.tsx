@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabase';
 import { CommentsSection } from '../components/Comments';
 import { ActivityWidget } from '../components/Activity';
 import ContactFacilityModal from '../components/Contact/ContactFacilityModal';
+import USPriceWidget from '../components/Pricing/USPriceWidget';
 
 interface Facility {
   id: string;
@@ -250,6 +251,33 @@ const FacilityDetail: React.FC = () => {
                       </div>
                     ))}
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* US Price Comparison */}
+            {facility.popular_procedures && facility.popular_procedures.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="bg-white/80 backdrop-blur-sm rounded-2xl border border-sage-200 shadow-card overflow-hidden"
+              >
+                <div className="px-6 py-4 bg-gradient-to-r from-ocean-50 to-sage-50/30 border-b border-sage-200">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-ocean-800">Compare with US Prices</h2>
+                    <span className="text-xs text-ocean-500">Powered by OwnNothing.org</span>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <p className="text-sm text-sage-600 mb-4">
+                    See how much you could save compared to US hospital prices for the same procedures.
+                    Data from CMS Price Transparency requirements.
+                  </p>
+                  <USPriceWidget
+                    procedures={facility.popular_procedures}
+                    compact={false}
+                  />
                 </div>
               </motion.div>
             )}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import LazyYouTubeEmbed from './LazyYouTubeEmbed';
 
 interface MedicalTourismVideosProps {
   variant?: 'full' | 'compact';
@@ -66,13 +67,7 @@ const MedicalTourismVideos: React.FC<MedicalTourismVideosProps> = ({ variant = '
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow"
               >
                 <div className={video.isShort ? "aspect-[9/16] max-h-[280px]" : "aspect-video"}>
-                  <iframe
-                    src={`https://www.youtube.com/embed/${video.id}`}
-                    title={video.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
-                  />
+                  <LazyYouTubeEmbed videoId={video.id} title={video.title} />
                 </div>
                 <div className="p-3">
                   <h3 className="font-semibold text-ocean-700 text-sm">{video.title}</h3>
@@ -115,13 +110,7 @@ const MedicalTourismVideos: React.FC<MedicalTourismVideosProps> = ({ variant = '
               className="bg-white rounded-2xl overflow-hidden shadow-lg border border-sage-200"
             >
               <div className="aspect-video">
-                <iframe
-                  src={`https://www.youtube.com/embed/${video.id}`}
-                  title={video.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full"
-                />
+                <LazyYouTubeEmbed videoId={video.id} title={video.title} />
               </div>
               <div className="p-4">
                 <h3 className="font-semibold text-ocean-700 text-lg mb-1">{video.title}</h3>
@@ -143,13 +132,7 @@ const MedicalTourismVideos: React.FC<MedicalTourismVideosProps> = ({ variant = '
               className="bg-white rounded-2xl overflow-hidden shadow-lg border border-sage-200 w-[200px]"
             >
               <div className="aspect-[9/16]">
-                <iframe
-                  src={`https://www.youtube.com/embed/${video.id}`}
-                  title={video.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full"
-                />
+                <LazyYouTubeEmbed videoId={video.id} title={video.title} />
               </div>
               <div className="p-3">
                 <h3 className="font-semibold text-ocean-700 text-sm">{video.title}</h3>

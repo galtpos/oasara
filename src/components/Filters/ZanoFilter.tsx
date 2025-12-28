@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 
 interface ZanoFilterProps {
   showZanoOnly: boolean;
@@ -8,9 +7,7 @@ interface ZanoFilterProps {
 
 const ZanoFilter: React.FC<ZanoFilterProps> = ({ showZanoOnly, onToggle }) => {
   return (
-    <motion.button
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
+    <button
       onClick={onToggle}
       className={`
         px-6 py-3 rounded-lg text-base transition-all font-semibold
@@ -21,7 +18,7 @@ const ZanoFilter: React.FC<ZanoFilterProps> = ({ showZanoOnly, onToggle }) => {
       `}
     >
       <span>Zano Ready Only</span>
-    </motion.button>
+    </button>
   );
 };
 

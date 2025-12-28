@@ -23,12 +23,9 @@ class TelegramService {
 
       if (this.botToken && this.chatId) {
         this.isEnabled = true;
-        console.log('✅ Telegram notifications enabled for OASARA');
-      } else {
-        console.log('⚠️ Telegram notifications disabled - missing bot token or chat ID');
       }
     } catch (error) {
-      console.error('Error initializing Telegram service:', error);
+      // Silent initialization failure
     }
   }
 
@@ -37,7 +34,6 @@ class TelegramService {
    */
   async sendNotification(notification: TelegramNotification): Promise<boolean> {
     if (!this.isEnabled || !this.botToken || !this.chatId) {
-      console.log('Telegram notifications disabled, skipping:', notification.title);
       return false;
     }
 
@@ -61,11 +57,8 @@ class TelegramService {
         throw new Error(`Telegram API error: ${response.status}`);
       }
 
-      console.log('✅ Telegram notification sent:', notification.title);
-
       return true;
     } catch (error) {
-      console.error('❌ Failed to send Telegram notification:', error);
       return false;
     }
   }

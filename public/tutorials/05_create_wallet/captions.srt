@@ -1,0 +1,179 @@
+1
+00:00:00,000 --> 00:00:05,000
+# Create Your Zano Wallet  Open the Zano wallet.
+
+2
+00:00:05,000 --> 00:00:10,000
+The first time you open it, you'll see this welcome screen.
+
+3
+00:00:10,000 --> 00:00:15,000
+This is where you'll create YOUR wallet - a wallet that belongs only to you.
+
+4
+00:00:15,000 --> 00:00:20,000
+Press your finger on the button that says Create New Wallet.
+
+5
+00:00:20,000 --> 00:00:25,000
+This will generate a brand new wallet just for you.
+
+6
+00:00:25,000 --> 00:00:30,000
+Give your wallet a name.
+
+7
+00:00:30,000 --> 00:00:35,000
+This is just for you to recognize it.
+
+8
+00:00:35,000 --> 00:00:40,000
+Type something simple like My Zano Wallet or your first name.
+
+9
+00:00:40,000 --> 00:00:45,000
+Now create a password.
+
+10
+00:00:45,000 --> 00:00:50,000
+This password protects YOUR wallet on YOUR computer.
+
+11
+00:00:50,000 --> 00:00:55,000
+Choose something you can remember but others cannot guess.
+
+12
+00:00:55,000 --> 00:01:00,000
+Write it down and keep it somewhere safe - NOT on your computer.
+
+13
+00:01:00,000 --> 00:01:05,000
+Type your password again to confirm it.
+
+14
+00:01:05,000 --> 00:01:10,000
+Take your time - accuracy matters more than speed.
+
+15
+00:01:10,000 --> 00:01:15,000
+STOP.
+
+16
+00:01:15,000 --> 00:01:20,000
+This is the most important screen you will ever see.
+
+17
+00:01:20,000 --> 00:01:25,000
+These words are your RECOVERY SEED.
+
+18
+00:01:25,000 --> 00:01:30,000
+They ARE your wallet.
+
+19
+00:01:30,000 --> 00:01:35,000
+Anyone who has these words can access your money.
+
+20
+00:01:35,000 --> 00:01:40,000
+Write them down on PAPER.
+
+21
+00:01:40,000 --> 00:01:45,000
+Not on your computer.
+
+22
+00:01:45,000 --> 00:01:50,000
+PAPER.
+
+23
+00:01:50,000 --> 00:01:55,000
+Store that paper somewhere safe - a lockbox, a safe, somewhere secure.
+
+24
+00:01:55,000 --> 00:02:00,000
+Write down every word in order.
+
+25
+00:02:00,000 --> 00:02:05,000
+One through twenty-four.
+
+26
+00:02:05,000 --> 00:02:10,000
+Double-check each word.
+
+27
+00:02:10,000 --> 00:02:15,000
+A single wrong letter could lock you out forever.
+
+28
+00:02:15,000 --> 00:02:20,000
+These words are more valuable than gold.
+
+29
+00:02:20,000 --> 00:02:25,000
+Treat them that way.
+
+30
+00:02:25,000 --> 00:02:30,000
+The wallet will now ask you to verify some words.
+
+31
+00:02:30,000 --> 00:02:35,000
+This confirms you wrote them down correctly.
+
+32
+00:02:35,000 --> 00:02:40,000
+Look at your paper and type the words it asks for.
+
+33
+00:02:40,000 --> 00:02:45,000
+Congratulations.
+
+34
+00:02:45,000 --> 00:02:50,000
+You have created YOUR wallet.
+
+35
+00:02:50,000 --> 00:02:55,000
+This wallet belongs to you and only you.
+
+36
+00:02:55,000 --> 00:03:00,000
+No bank can freeze it.
+
+37
+00:03:00,000 --> 00:03:05,000
+No government can seize it.
+
+38
+00:03:05,000 --> 00:03:10,000
+You are now in control of your own financial destiny.
+
+39
+00:03:10,000 --> 00:03:15,000
+This is your wallet dashboard.
+
+40
+00:03:15,000 --> 00:03:20,000
+From here you can receive payments, send payments, and check your balance.
+
+41
+00:03:20,000 --> 00:03:25,000
+In the next tutorial, we'll show you how to receive your first Zano.
+
+42
+00:03:25,000 --> 00:03:30,000
+You have taken a powerful step today.
+
+43
+00:03:30,000 --> 00:03:35,000
+You created a wallet that YOU control.
+
+44
+00:03:35,000 --> 00:03:40,000
+Remember: keep your recovery words SAFE.
+
+45
+00:03:40,000 --> 00:03:45,000
+They are your financial freedom.

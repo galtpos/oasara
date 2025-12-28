@@ -1,0 +1,9 @@
+file '01_wallet_dashboard.png'
+duration 38
+file '02_receive_qr.png'
+duration 38
+file '03_browser_bookmarks.png'
+duration 37
+file '04_swap_page.png'
+duration 37
+file '04_swap_page.png'

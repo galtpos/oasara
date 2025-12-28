@@ -1,31 +1,29 @@
-VIDEO 1: Why Private Payments Matter (Patient)
-Duration: ~2 minutes
-Voice: Clone-Aaron (Direct, no-bullshit, encouraging)
+# Why Zano for Patients
 
----
+When you travel for healthcare, you deserve privacy.
+Traditional payment methods leave a trail.
+Credit cards. Bank transfers. Wire services.
+Every one of them knows where your money went and why.
 
-Hey, I'm Aaron. I've helped thousands of people set up private wallets and take control of their money. Before you pay a dime for medical care abroad, we need to talk about something important.
+Insurance companies can see your medical history through payments.
+Banks can freeze accounts if they don't like your choices.
+Governments can track every dollar you spend on healthcare.
+Is that really the world you want to live in?
 
-The payment system is broken. And it's designed to work against you.
+Zano is different. It's a privacy-focused cryptocurrency.
+When you pay with Zano, only you and your provider know.
+No banks. No insurance companies. No government surveillance.
+Just private payment for private healthcare.
 
-Here's what happens when you use a credit card for medical tourism: Your bank reports the transaction. Your insurance company sees it. And suddenly, that procedure you flew to Mexico or Thailand for? It's on your permanent financial record.
+Download the Zano wallet. It takes five minutes.
+Get some Zano from an exchange or a friend.
+Pay your provider directly. Instantly. Privately.
+It's that simple.
 
-I've talked to people whose insurance got canceled because they paid for a knee replacement in Costa Rica. Not because anything was wrong with the surgery. Just because the insurance company didn't like that they went around the system.
+Oasara connects you with verified providers who accept Zano.
+Quality healthcare. Privacy-respecting payment. Global access.
+Your body. Your health. Your money. Your choice.
 
-Then there's the freeze problem. Banks freeze accounts for "suspicious international activity" all the time. Legitimate payments to legitimate doctors, frozen for weeks while you're sitting there post-surgery trying to figure out how to pay your hotel bill.
-
-And the fees? Credit cards take 3 to 5 percent. Wire transfers cost 50 bucks plus another 3 to 5 percent for currency conversion. That's money coming straight out of your savings.
-
-There's a better way.
-
-Zano and Freedom Dollar give you something the banking system can't: privacy.
-
-Your payment goes directly to your provider. No bank in the middle. No insurance company watching. No government reporting requirements. Just you, paying for your healthcare, like a free person should be able to.
-
-And it's not just about privacy. Transaction fees are nearly free. Payments settle in minutes, not days. And once you send it, no one can freeze it, reverse it, or hold it hostage.
-
-This is about taking back control of your medical decisions. Starting with how you pay for them.
-
-Ready to set up your wallet? Let's do it.
-
-You just took the first step by understanding WHY this matters. That's real progress. Next, we'll get the wallet downloaded.
+In the following tutorials, we'll show you exactly how to set up
+your Zano wallet and make your first private payment.
+Welcome to healthcare freedom.

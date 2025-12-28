@@ -141,13 +141,9 @@ const ActionCenter: React.FC = () => {
         });
 
         if (mailchimpResponse.error) {
-          console.warn('Mailchimp subscription warning:', mailchimpResponse.error);
           // Don't fail the whole submission if Mailchimp fails
-        } else {
-          console.log('✅ Successfully subscribed to Mailchimp with tags:', mailchimpTags);
         }
       } catch (mailchimpErr) {
-        console.warn('Mailchimp subscription error (non-fatal):', mailchimpErr);
         // Continue - database save was successful
       }
 

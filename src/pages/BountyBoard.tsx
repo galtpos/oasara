@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import SiteHeader from '../components/Layout/SiteHeader';
 import { supabase } from '../lib/supabase';
 import { useAuthState } from '../hooks/useAuth';
@@ -40,6 +39,7 @@ const BountyBoard: React.FC = () => {
 
   const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'all' | 'accepted' | 'pending'>('all');
   const [activeTab, setActiveTab] = useState<'submissions' | 'leaderboard'>('submissions');
 
@@ -62,7 +62,6 @@ const BountyBoard: React.FC = () => {
   ];
 
   useEffect(() => {
-    console.log('=== BountyBoard MOUNT - calling fetchFeedback ===');
     fetchFeedback();
   }, []);
 
@@ -73,23 +72,21 @@ const BountyBoard: React.FC = () => {
   }, [userEmail, userName]);
 
   const fetchFeedback = async () => {
-    console.log('=== BountyBoard fetchFeedback START ===');
     try {
+      setFetchError(null);
       const { data, error } = await supabase
         .from('feedback')
         .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('=== BountyBoard RESULT ===', { dataLength: data?.length, error });
       if (error) {
-        console.error('=== BountyBoard ERROR ===', error);
         throw error;
       }
       setFeedbackList(data || []);
-    } catch (err) {
-      console.error('=== BountyBoard CATCH ===', err);
+    } catch (err: any) {
+      console.error('[BountyBoard] Error fetching feedback:', err);
+      setFetchError(err?.message || 'Failed to load submissions. Please try again.');
     } finally {
-      console.log('=== BountyBoard DONE ===');
       setLoading(false);
     }
   };
@@ -449,6 +446,20 @@ const BountyBoard: React.FC = () => {
                 <div className="text-center py-12">
                   <div className="w-12 h-12 mx-auto border-4 border-gold-400 border-t-transparent rounded-full animate-spin"></div>
                   <p className="mt-4 text-ocean-600/70">Loading submissions...</p>
+                </div>
+              ) : fetchError ? (
+                <div className="text-center py-12 bg-red-50 rounded-2xl border border-red-200">
+                  <svg className="w-12 h-12 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <p className="text-red-700 font-medium mb-2">Unable to load submissions</p>
+                  <p className="text-red-600 text-sm mb-4">{fetchError}</p>
+                  <button
+                    onClick={() => { setLoading(true); fetchFeedback(); }}
+                    className="px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors"
+                  >
+                    Try Again
+                  </button>
                 </div>
               ) : filteredFeedback.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-2xl border border-sage-200">

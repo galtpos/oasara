@@ -1,0 +1,85 @@
+# Freedom Dollar Swap Tutorial - Annotations
+# Per Educational Advisory Board guidelines:
+# - Joseph Coughlin: Large, clear indicators for 55+ users
+# - Don Norman: Clear affordances - show exactly where to tap
+# - Ruth Clark: Step numbers for sequencing
+# - Jony Ive: Minimal - only essential annotations
+
+annotations:
+  - input: "01_wallet_dashboard.png"
+    output: "01_wallet_dashboard_annotated.png"
+    step: 1
+    circles:
+      - [810, 2274, 80]  # Browser tab
+    labels:
+      - ["Tap Browser", 600, 2150]
+
+  - input: "02_browser_bookmarks.png"
+    output: "02_browser_bookmarks_annotated.png"
+    step: 2
+    circles:
+      - [540, 1345, 120]  # Freedom Dollar bookmark
+    labels:
+      - ["Tap Freedom Dollar", 300, 1500]
+
+  - input: "03_swap_page.png"
+    output: "03_swap_page_annotated.png"
+    step: 3
+    circles:
+      - [270, 559, 70]  # Connect Wallet button
+    labels:
+      - ["Tap Connect Wallet", 100, 650]
+
+  - input: "04_connect_dialog.png"
+    output: "04_connect_dialog_annotated.png"
+    step: 4
+    circles:
+      - [270, 700, 60]  # Done button area
+    labels:
+      - ["Tap Done", 150, 800]
+
+  - input: "05_swap_connected.png"
+    output: "05_swap_connected_annotated.png"
+    step: 5
+    circles:
+      - [310, 420, 100]  # Amount field
+    labels:
+      - ["Enter amount (e.g. 2)", 100, 550]
+
+  - input: "06_amount_entered.png"
+    output: "06_amount_entered_annotated.png"
+    step: 6
+    labels:
+      - ["Amount: 2 fUSD", 100, 550]
+      - ["Cost: ~0.20 ZANO", 100, 750]
+
+  - input: "07_ready_to_swap.png"
+    output: "07_ready_to_swap_annotated.png"
+    step: 7
+    circles:
+      - [270, 560, 70]  # Get fUSD button
+    labels:
+      - ["Tap Get fUSD", 100, 650]
+
+  - input: "08_confirm_swap.png"
+    output: "08_confirm_swap_annotated.png"
+    step: 8
+    circles:
+      - [175, 810, 70]  # Confirm button
+    labels:
+      - ["Tap Confirm", 50, 900]
+
+  - input: "09_swap_complete.png"
+    output: "09_swap_complete_annotated.png"
+    step: 9
+    labels:
+      - ["Swap Complete!", 200, 300]
+      - ["Balance Updated", 200, 450]
+
+  - input: "10_wallet_with_fusd.png"
+    output: "10_wallet_with_fusd_annotated.png"
+    step: 10
+    circles:
+      - [540, 695, 80]  # fUSD balance row
+    labels:
+      - ["Your 2 fUSD!", 350, 600]

@@ -86,14 +86,12 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
           })
       } catch (localErr) {
         // If local feedback table doesn't exist, that's ok - central still works
-        console.log('Local feedback insert skipped:', localErr)
       }
 
       setSubmitted(true)
       setTimeout(() => closeModal(), 2000)
 
     } catch (err) {
-      console.error('Feedback submission failed:', err)
       alert('Failed to submit feedback. Please try again.')
     } finally {
       setIsSubmitting(false)

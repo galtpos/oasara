@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import LazyYouTubeEmbed from './LazyYouTubeEmbed';
 
 interface USHealthcareCrisisProps {
   variant?: 'full' | 'compact';
@@ -58,13 +59,7 @@ const USHealthcareCrisis: React.FC<USHealthcareCrisisProps> = ({ variant = 'comp
                 className="bg-white rounded-xl overflow-hidden shadow-md hover:shadow-lg transition-shadow border border-red-100"
               >
                 <div className="aspect-video">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${video.id}`}
-                    title={video.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
-                  />
+                  <LazyYouTubeEmbed videoId={video.id} title={video.title} />
                 </div>
                 <div className="p-3">
                   <h3 className="font-semibold text-ocean-700 text-sm">{video.title}</h3>
@@ -110,13 +105,7 @@ const USHealthcareCrisis: React.FC<USHealthcareCrisisProps> = ({ variant = 'comp
               className="bg-white rounded-2xl overflow-hidden shadow-lg border border-red-200"
             >
               <div className="aspect-video">
-                <iframe
-                  src={`https://www.youtube.com/embed/${video.id}`}
-                  title={video.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full"
-                />
+                <LazyYouTubeEmbed videoId={video.id} title={video.title} />
               </div>
               <div className="p-4">
                 <h3 className="font-semibold text-ocean-700 text-lg mb-1">{video.title}</h3>

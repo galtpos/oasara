@@ -1,0 +1,131 @@
+1
+00:00:00,000 --> 00:00:05,000
+# Why Zano for Patients  When you travel for healthcare, you deserve privacy.
+
+2
+00:00:05,000 --> 00:00:10,000
+Traditional payment methods leave a trail.
+
+3
+00:00:10,000 --> 00:00:15,000
+Credit cards.
+
+4
+00:00:15,000 --> 00:00:20,000
+Bank transfers.
+
+5
+00:00:20,000 --> 00:00:25,000
+Wire services.
+
+6
+00:00:25,000 --> 00:00:30,000
+Every one of them knows where your money went and why.
+
+7
+00:00:30,000 --> 00:00:35,000
+Insurance companies can see your medical history through payments.
+
+8
+00:00:35,000 --> 00:00:40,000
+Banks can freeze accounts if they don't like your choices.
+
+9
+00:00:40,000 --> 00:00:45,000
+Governments can track every dollar you spend on healthcare.
+
+10
+00:00:45,000 --> 00:00:50,000
+Is that really the world you want to live in?  Zano is different.
+
+11
+00:00:50,000 --> 00:00:55,000
+It's a privacy-focused cryptocurrency.
+
+12
+00:00:55,000 --> 00:01:00,000
+When you pay with Zano, only you and your provider know.
+
+13
+00:01:00,000 --> 00:01:05,000
+No banks.
+
+14
+00:01:05,000 --> 00:01:10,000
+No insurance companies.
+
+15
+00:01:10,000 --> 00:01:15,000
+No government surveillance.
+
+16
+00:01:15,000 --> 00:01:20,000
+Just private payment for private healthcare.
+
+17
+00:01:20,000 --> 00:01:25,000
+Download the Zano wallet.
+
+18
+00:01:25,000 --> 00:01:30,000
+It takes five minutes.
+
+19
+00:01:30,000 --> 00:01:35,000
+Get some Zano from an exchange or a friend.
+
+20
+00:01:35,000 --> 00:01:40,000
+Pay your provider directly.
+
+21
+00:01:40,000 --> 00:01:45,000
+Instantly.
+
+22
+00:01:45,000 --> 00:01:50,000
+Privately.
+
+23
+00:01:50,000 --> 00:01:55,000
+It's that simple.
+
+24
+00:01:55,000 --> 00:02:00,000
+Oasara connects you with verified providers who accept Zano.
+
+25
+00:02:00,000 --> 00:02:05,000
+Quality healthcare.
+
+26
+00:02:05,000 --> 00:02:10,000
+Privacy-respecting payment.
+
+27
+00:02:10,000 --> 00:02:15,000
+Global access.
+
+28
+00:02:15,000 --> 00:02:20,000
+Your body.
+
+29
+00:02:20,000 --> 00:02:25,000
+Your health.
+
+30
+00:02:25,000 --> 00:02:30,000
+Your money.
+
+31
+00:02:30,000 --> 00:02:35,000
+Your choice.
+
+32
+00:02:35,000 --> 00:02:40,000
+In the following tutorials, we'll show you exactly how to set up your Zano wallet and make your first private payment.
+
+33
+00:02:40,000 --> 00:02:45,000
+Welcome to healthcare freedom.

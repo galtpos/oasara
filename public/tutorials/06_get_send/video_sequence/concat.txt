@@ -1,0 +1,17 @@
+file '01_wallet_dashboard.png'
+duration 20
+file '02_receive_qr.png'
+duration 15
+file '03_browser_bookmarks.png'
+duration 15
+file '04_swap_page.png'
+duration 15
+file '05_connecting_wallet.png'
+duration 10
+file '06_swap_interface.png'
+duration 20
+file '07_enter_amount.png'
+duration 15
+file '08_swap_success.png'
+duration 40
+file '08_swap_success.png'

@@ -9,10 +9,6 @@ const ConfirmEmail: React.FC = () => {
 
   useEffect(() => {
     const processAuth = async () => {
-      console.log('=== Processing auth ===');
-      console.log('URL:', window.location.href);
-      console.log('Hash:', window.location.hash);
-
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
 
@@ -20,12 +16,6 @@ const ConfirmEmail: React.FC = () => {
       const refreshToken = params.get('refresh_token');
       const errorParam = params.get('error');
       const errorDescription = params.get('error_description');
-
-      console.log('Tokens:', {
-        access: accessToken?.substring(0, 20) + '...',
-        refresh: refreshToken?.substring(0, 20) + '...',
-        error: errorParam
-      });
 
       // Check for errors first
       if (errorParam) {
@@ -50,27 +40,18 @@ const ConfirmEmail: React.FC = () => {
 
       // Set the session manually
       try {
-        console.log('Calling setSession...');
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken || ''
         });
 
-        console.log('setSession result:', {
-          hasData: !!data,
-          hasSession: !!data?.session,
-          error: sessionError?.message
-        });
-
         if (sessionError) {
-          console.error('Session error:', sessionError);
           setError(sessionError.message);
           setStatus('error');
           return;
         }
 
         if (data?.session) {
-          console.log('Session established! User:', data.session.user?.email);
           setStatus('success');
           // Clear hash and redirect
           window.history.replaceState(null, '', window.location.pathname);
@@ -82,7 +63,6 @@ const ConfirmEmail: React.FC = () => {
           setStatus('error');
         }
       } catch (err: any) {
-        console.error('setSession threw:', err);
         setError(err.message || 'Authentication failed');
         setStatus('error');
       }

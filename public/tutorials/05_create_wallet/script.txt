@@ -1,49 +1,43 @@
-VIDEO 5: Create Your Wallet and Secure Your Recovery Words
-Duration: ~5 minutes
-Voice: Clone-Aaron (Serious, emphasizing security, thorough)
+# Create Your Zano Wallet
 
----
+Open the Zano wallet. The first time you open it, you'll see this welcome screen.
+This is where you'll create YOUR wallet - a wallet that belongs only to you.
 
-This is the most important video in this series. We're going to create your wallet and secure it properly.
+Press your finger on the button that says Create New Wallet.
+This will generate a brand new wallet just for you.
 
-I need you to understand something before we start: Your recovery phrase is your wallet. Whoever has those 25 words controls your money. If you lose them, no one can help you. If someone else gets them, they can take everything.
+Give your wallet a name. This is just for you to recognize it.
+Type something simple like My Zano Wallet or your first name.
 
-This isn't like a bank account. There's no customer service. There's no "forgot password" button. This is real sovereignty, which means real responsibility.
+Now create a password. This password protects YOUR wallet on YOUR computer.
+Choose something you can remember but others cannot guess.
+Write it down and keep it somewhere safe - NOT on your computer.
 
-Ready? Let's do this.
+Type your password again to confirm it.
+Take your time - accuracy matters more than speed.
 
-Open your Zano wallet app. Click "Create New Wallet."
+STOP. This is the most important screen you will ever see.
+These words are your RECOVERY SEED. They ARE your wallet.
+Anyone who has these words can access your money.
+Write them down on PAPER. Not on your computer. PAPER.
+Store that paper somewhere safe - a lockbox, a safe, somewhere secure.
 
-Enter a name. Something you'll recognize. Medical Fund, Travel Savings, whatever makes sense to you.
+Write down every word in order. One through twenty-four.
+Double-check each word. A single wrong letter could lock you out forever.
+These words are more valuable than gold. Treat them that way.
 
-Now create a strong password. Twelve characters minimum. Mix uppercase, lowercase, numbers, and symbols. This password only protects the wallet on this specific device. It's not your backup.
+The wallet will now ask you to verify some words.
+This confirms you wrote them down correctly.
+Look at your paper and type the words it asks for.
 
-Click create, and the app will generate your 25-word recovery phrase.
+Congratulations. You have created YOUR wallet.
+This wallet belongs to you and only you.
+No bank can freeze it. No government can seize it.
+You are now in control of your own financial destiny.
 
-Stop. Do not screenshot this. Do not copy it to your clipboard. Do not save it in a text file or notes app.
+This is your wallet dashboard. From here you can receive payments,
+send payments, and check your balance.
+In the next tutorial, we'll show you how to receive your first Zano.
 
-Get a pen. Get paper. Physical paper.
-
-Write down every single word, in order, numbered 1 through 25. Take your time. Check your spelling. Read it back to yourself.
-
-Here's a tip: If you're unsure about a word, you can take a quick photo of the screen to verify your handwriting, then delete that photo immediately after.
-
-Done? Now do it again on a second piece of paper. You want two physical copies stored in different locations.
-
-Where should you store them? Think about where you'd store a birth certificate or passport. A home safe. A bank safety deposit box. A fireproof lockbox at a family member's house. Not in your email. Not in Dropbox. Not in any cloud service. Paper, locked away, in two separate locations.
-
-Now the wallet app is going to test you. It'll ask you to enter specific words from your phrase. This confirms you wrote them down correctly. Enter the words it asks for.
-
-Verified? Your wallet is created.
-
-You now have a fully functional, private financial account that no bank controls. No government can freeze. No corporation can close.
-
-But remember: with sovereignty comes responsibility. Those 25 words are everything. Protect them like your financial life depends on it. Because it does.
-
-One more thing. I will never ask you for your recovery words. No one from Daylight Freedom, Oasara, or Zano will ever ask for them. Anyone who asks is a scammer. Period.
-
-Write that down too if you need to.
-
-Before you continue, verify: Do you have your 25 words written on paper in two separate locations? Can you open your wallet and see a zero balance? If yes, you just earned your Key Holder credential. That's real progress.
-
-Next, we'll get some Freedom Dollars into your wallet.
+You have taken a powerful step today. You created a wallet that YOU control.
+Remember: keep your recovery words SAFE. They are your financial freedom.

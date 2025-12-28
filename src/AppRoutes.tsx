@@ -1,16 +1,13 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Auth pages
-import LandingGate from './pages/LandingGate';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import ConfirmEmail from './pages/ConfirmEmail';
-import ProtectedRoute from './components/Auth/ProtectedRoute';
 
-// Protected pages
+// Main pages
 import PublicSite from './pages/PublicSite';
-import EarlyAccess from './pages/EarlyAccess';
 import MedicalTourismHub from './pages/MedicalTourismHub';
 import WhyZano from './pages/WhyZano';
 import ActionCenter from './pages/ActionCenter';
@@ -27,6 +24,21 @@ import FacilityEditor from './admin/pages/FacilityEditor';
 import DoctorsList from './admin/pages/DoctorsList';
 import FeedbackManagement from './admin/pages/FeedbackManagement';
 
+// US Hospital Transparency Pages - LAZY LOADED to prevent blocking main bundle
+const USHospitals = lazy(() => import('./pages/USHospitals'));
+const USHospitalDetail = lazy(() => import('./pages/USHospitalDetail'));
+const USPrices = lazy(() => import('./pages/USPrices'));
+
+// Loading fallback for lazy-loaded pages
+const PageLoader = () => (
+  <div className="min-h-screen bg-sage-50 flex items-center justify-center">
+    <div className="text-center">
+      <div className="w-12 h-12 border-4 border-gold-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+      <p className="text-ocean-700 font-display">Loading...</p>
+    </div>
+  </div>
+);
+
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -40,6 +52,11 @@ const AppRoutes: React.FC = () => {
       <Route path="/feedback" element={<Feedback />} />
       <Route path="/medical-trusts" element={<MedicalTrusts />} />
       <Route path="/bounty" element={<BountyBoard />} />
+
+      {/* US Hospital Transparency Routes - Lazy loaded with Suspense */}
+      <Route path="/us-hospitals" element={<Suspense fallback={<PageLoader />}><USHospitals /></Suspense>} />
+      <Route path="/us-hospitals/:id" element={<Suspense fallback={<PageLoader />}><USHospitalDetail /></Suspense>} />
+      <Route path="/us-prices" element={<Suspense fallback={<PageLoader />}><USPrices /></Suspense>} />
 
       {/* Auth routes */}
       <Route path="/login" element={<Login />} />
