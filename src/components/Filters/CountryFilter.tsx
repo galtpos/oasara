@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface CountryFilterProps {
   countries: string[];
@@ -30,13 +29,12 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
         </span>
       </button>
 
-      <AnimatePresence>
         {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-full mt-2 left-0 z-50 w-72 bg-white rounded-lg p-5 shadow-xl border-2 border-sage-200"
+          <div
+            className="absolute top-full mt-2 left-0 z-50 w-72 bg-white rounded-lg p-5 shadow-xl border-2 border-sage-200 transition-all duration-200 ease-in-out"
+            style={{
+              animation: 'fadeSlideDown 0.2s ease-in-out'
+            }}
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
@@ -72,9 +70,8 @@ const CountryFilter: React.FC<CountryFilterProps> = ({
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       {/* Backdrop - lower z-index to not block facility cards */}
       {isOpen && (

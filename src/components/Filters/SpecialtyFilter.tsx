@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+
 
 interface SpecialtyFilterProps {
   specialties: string[];
@@ -30,9 +30,9 @@ const SpecialtyFilter: React.FC<SpecialtyFilterProps> = ({
         </span>
       </button>
 
-      <AnimatePresence>
+      
         {isOpen && (
-          <motion.div
+          <div className="transition-all duration-200 ease-in-out" style={{animation: 'fadeSlideDown 0.2s ease-in-out'}}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
@@ -72,9 +72,9 @@ const SpecialtyFilter: React.FC<SpecialtyFilterProps> = ({
                 );
               })}
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      
 
       {/* Backdrop - lower z-index to not block facility cards */}
       {isOpen && (

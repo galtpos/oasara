@@ -1,288 +1,41 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ============================================
-   OASARA Brand System - Ocean Teal & Gold
-   ============================================
-   Primary: Ocean Teal (#2A6B72) - trust, calm, healthcare
-   Accent: Gold (#D4B86A) - premium, action, emphasis
-   Typography: Cinzel (display), Inter (body)
-   ============================================ */
-
-@layer base {
-  body {
-    background: #FFFFFF;
-    @apply text-sage-700 antialiased;
-    font-family: 'Inter', sans-serif;
+/* Slide down animation for facility card expansion */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
   }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Cinzel', serif;
-    @apply text-sage-800 font-bold tracking-wide;
-  }
-
-  /* Screen reader only - hide visually but keep accessible */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  /* Enhanced focus indicators for accessibility (WCAG 2.4.7) */
-  :focus-visible {
-    outline: 3px solid #D4B86A;
-    outline-offset: 2px;
-    border-radius: 2px;
-  }
-
-  /* Remove default outline for mouse users */
-  :focus:not(:focus-visible) {
-    outline: none;
-  }
-
-  /* Skip link - hidden until focused */
-  .skip-link {
-    position: absolute;
-    top: -100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #2A6B72;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 0 0 8px 8px;
-    font-weight: 600;
-    text-decoration: none;
-    z-index: 9999;
-    transition: top 0.2s ease;
-  }
-
-  .skip-link:focus {
-    top: 0;
-    outline: 3px solid #D4B86A;
-    outline-offset: 2px;
+  to {
+    opacity: 1;
+    max-height: 2000px;
   }
 }
 
-@layer components {
-  /* ============================================
-     LOGO - Gold Gradient
-     ============================================ */
-  .logo-gradient {
-    font-family: 'Cinzel', serif;
-    font-weight: 800;
-    letter-spacing: 0.5em;
-    background: linear-gradient(180deg, #D4B86A 0%, #A67C00 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+/* Fade and slide down for dropdowns */
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
-
-  /* ============================================
-     STATS BAR - Ocean Teal with Glass Pills
-     ============================================ */
-  .stats-bar {
-    background: #2A6B72;
-    @apply flex gap-12 py-5 px-10;
-  }
-
-  .stat-pill {
-    @apply flex items-center gap-3 py-3 px-6 rounded;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.25);
-  }
-
-  .stat-number {
-    font-family: 'Cinzel', serif;
-    font-size: 2.5rem;
-    font-weight: 900;
-    color: #FFD966;
-    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-    line-height: 1;
-  }
-
-  .stat-label {
-    @apply text-white font-bold uppercase tracking-widest text-sm;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  }
-
-  /* ============================================
-     BUTTONS - Gold with Hard Shadow
-     ============================================ */
-  .btn-gold {
-    @apply inline-block py-3.5 px-8 rounded font-bold uppercase tracking-widest text-sm;
-    background: linear-gradient(180deg, #D4B86A 0%, #B8923A 100%);
-    color: #1A1A1A;
-    box-shadow: 0 4px 0 #8B6914, 0 6px 16px rgba(139, 105, 20, 0.3);
-    transition: all 0.15s ease;
-  }
-
-  .btn-gold:hover {
-    box-shadow: 0 2px 0 #8B6914, 0 4px 12px rgba(139, 105, 20, 0.4);
-    transform: translateY(2px);
-  }
-
-  .btn-gold:active {
-    box-shadow: 0 0 0 #8B6914, 0 2px 8px rgba(139, 105, 20, 0.4);
-    transform: translateY(4px);
-  }
-
-  /* Legacy gradient-cta compatibility */
-  .gradient-cta {
-    @apply btn-gold;
-  }
-
-  /* ============================================
-     CARDS - Clean with Ocean Border Hover
-     ============================================ */
-  .card {
-    @apply bg-white rounded p-4;
-    border: 2px solid #D1DDD6;
-    transition: all 0.2s ease;
-  }
-
-  .card:hover {
-    border-color: #5B9AA0;
-    box-shadow: 0 8px 24px rgba(42, 107, 114, 0.12);
-    transform: translateY(-2px);
-  }
-
-  /* Glass morphism - legacy compatibility */
-  .glass-morphism {
-    @apply bg-white/95 backdrop-blur-sm rounded-lg;
-    border: 1px solid rgba(42, 107, 114, 0.15);
-    box-shadow: 0 4px 16px rgba(42, 107, 114, 0.08);
-  }
-
-  .glass-morphism:hover {
-    @apply bg-white;
-    border-color: rgba(42, 107, 114, 0.3);
-    box-shadow: 0 8px 24px rgba(42, 107, 114, 0.12);
-  }
-
-  /* ============================================
-     NAV LINKS
-     ============================================ */
-  .nav-link {
-    @apply text-sage-600 font-semibold uppercase tracking-wider text-sm;
-    transition: color 0.2s ease;
-  }
-
-  .nav-link:hover {
-    color: #D4B86A;
-  }
-
-  /* ============================================
-     FACILITY ICON BADGE
-     ============================================ */
-  .icon-badge {
-    @apply w-12 h-12 rounded flex items-center justify-center text-white;
-    background: linear-gradient(135deg, #5B9AA0, #2A6B72);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@layer utilities {
-  /* Shimmer loading effect */
-  .shimmer {
-    background: linear-gradient(
-      90deg,
-      rgba(42, 107, 114, 0.1) 0%,
-      rgba(42, 107, 114, 0.2) 50%,
-      rgba(42, 107, 114, 0.1) 100%
-    );
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-  }
-
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  /* Price emphasis */
-  .price-highlight {
-    color: #D4B86A;
-    font-weight: 700;
-  }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ============================================
-   MAPBOX OVERRIDES
-   ============================================ */
-.mapboxgl-popup-content {
-  @apply glass-morphism text-sage-700;
-  padding: 0;
-  border-radius: 8px;
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
 }
-
-.mapboxgl-popup-close-button {
-  @apply text-sage-400;
-  font-size: 24px;
-  padding: 8px;
-}
-
-.mapboxgl-popup-close-button:hover {
-  color: #D4B86A;
-}
-
-/* Map container */
-.map-container {
-  border: 2px solid #5B9AA0;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 16px rgba(42, 107, 114, 0.15);
-}
-
-/* ============================================
-   SCROLLBAR
-   ============================================ */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #E8F0EC;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #5B9AA0;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #2A6B72;
-}
-
-/* ============================================
-   LEGACY COLOR OVERRIDES (for compatibility)
-   ============================================ */
-.text-ignition-amber {
-  color: #D97925 !important;
-}
-
-.text-champagne-gold {
-  color: #C9A54F !important;
-}
-
-.text-deep-teal {
-  color: #2D5A47 !important;
-}
-
-.text-warm-clay {
-  color: #89A99A !important;
-}
-
-/* Override cream background to white */
-.bg-cream {
-  background: #FFFFFF !important;
-}
-/* Cache bust: 1765036883 */
