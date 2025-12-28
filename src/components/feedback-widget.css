@@ -13,11 +13,13 @@
   align-items: center;
   z-index: 10000;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
 }
 
 .feedback-banner p {
   margin: 0;
   font-size: 14px;
+  pointer-events: auto;
 }
 
 .banner-dismiss {
@@ -29,6 +31,7 @@
   cursor: pointer;
   font-weight: 500;
   transition: background 0.2s;
+  pointer-events: auto;
 }
 
 .banner-dismiss:hover {
