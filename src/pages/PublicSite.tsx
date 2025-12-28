@@ -548,10 +548,12 @@ const PublicSite: React.FC = () => {
         </Suspense>
       )}
 
-      {/* Zano Tutorials Section - LAZY LOADED */}
-      <Suspense fallback={<div className="py-12 bg-ocean-50 text-center"><p className="text-ocean-600">Loading tutorials...</p></div>}>
-        <ZanoTutorials />
-      </Suspense>
+      {/* Zano Tutorials Section - DESKTOP ONLY (saves 24MB video payload on mobile) */}
+      {!isMobile && (
+        <Suspense fallback={<div className="py-12 bg-ocean-50 text-center"><p className="text-ocean-600">Loading tutorials...</p></div>}>
+          <ZanoTutorials />
+        </Suspense>
+      )}
 
       {/* Footer */}
       <footer className="mt-16 py-12 border-t border-sage-200 bg-sage-50">
