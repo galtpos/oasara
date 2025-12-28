@@ -1,17 +1,21 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, Suspense, lazy } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion'; // Still needed for How It Works section
 import SiteHeader from '../components/Layout/SiteHeader';
-import GlobalFacilityMap from '../components/Map/GlobalFacilityMap';
 import FacilityCard from '../components/Cards/FacilityCard';
 import ProcedureSearch from '../components/Search/ProcedureSearch';
 import CountryFilter from '../components/Filters/CountryFilter';
 import SpecialtyFilter from '../components/Filters/SpecialtyFilter';
 import ZanoFilter from '../components/Filters/ZanoFilter';
 import { getFacilities, getCountries, getSpecialties, Facility, supabase } from '../lib/supabase';
-import ZanoTutorials from '../components/Zano/ZanoTutorials';
-import MedicalTourismVideos from '../components/Videos/MedicalTourismVideos';
-import USHealthcareCrisis from '../components/Videos/USHealthcareCrisis';
+import { getUSStats } from '../lib/usHospitalApi';
+
+// LAZY LOAD ALL HEAVY COMPONENTS - fixes Chrome freeze on low-RAM PCs
+// Mapbox GL JS is ~700KB, video components have Framer Motion
+const GlobalFacilityMap = lazy(() => import('../components/Map/GlobalFacilityMap'));
+const ZanoTutorials = lazy(() => import('../components/Zano/ZanoTutorials'));
+const MedicalTourismVideos = lazy(() => import('../components/Videos/MedicalTourismVideos'));
+const USHealthcareCrisis = lazy(() => import('../components/Videos/USHealthcareCrisis'));
 
 interface PledgeCounts {
   medical_trust: number;
@@ -34,6 +38,19 @@ const PublicSite: React.FC = () => {
     cancel_insurance: 0,
     try_medical_tourism: 0,
   });
+  const [usHospitalCount, setUsHospitalCount] = useState<number>(6000);
+
+  // Mobile detection for performance optimization
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Fetch pledge counts
   useEffect(() => {
@@ -64,6 +81,21 @@ const PublicSite: React.FC = () => {
     };
 
     fetchPledgeCounts();
+  }, []);
+
+  // Fetch US hospital stats (for price comparison feature)
+  useEffect(() => {
+    const fetchUSStats = async () => {
+      try {
+        const stats = await getUSStats();
+        if (stats?.stats?.hospitals_with_pricing) {
+          setUsHospitalCount(stats.stats.hospitals_with_pricing);
+        }
+      } catch {
+        // Keep default value on error
+      }
+    };
+    fetchUSStats();
   }, []);
 
   // Fetch facilities with error handling
@@ -369,6 +401,10 @@ const PublicSite: React.FC = () => {
           <span className="stat-number">{pledgeCounts.cancel_insurance}</span>
           <span className="stat-label">Cancelled Insurance</span>
         </div>
+        <div className="stat-pill bg-ocean-700/50">
+          <span className="stat-number">{usHospitalCount.toLocaleString()}+</span>
+          <span className="stat-label">US Hospitals Compared</span>
+        </div>
         <div className="ml-auto flex items-center gap-2 text-white/80 text-sm">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -433,9 +469,10 @@ const PublicSite: React.FC = () => {
       {/* Main Content */}
       <main id="main-content" className="max-w-7xl mx-auto px-6 py-8" tabIndex={-1}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{ height: 'calc(100vh - 480px)', minHeight: '500px' }}>
-          {/* Map */}
-          <div className="h-full">
-            {facilitiesLoading ? (
+          {/* Map - DESKTOP ONLY for performance (saves 700KB on mobile) */}
+          {!isMobile && (
+            <div className="h-full">
+              {facilitiesLoading ? (
               <div className="h-full glass-morphism rounded flex items-center justify-center">
                 <div className="text-center">
                   <div className="shimmer w-20 h-20 rounded-full mx-auto mb-4"></div>
@@ -446,14 +483,21 @@ const PublicSite: React.FC = () => {
               </div>
             ) : (
               <div className="map-container h-full">
-                <GlobalFacilityMap
-                  facilities={filteredFacilities}
-                  onFacilitySelect={setSelectedFacility}
-                  selectedFacility={selectedFacility}
-                />
+                <Suspense fallback={
+                  <div className="h-full flex items-center justify-center bg-sage-50 rounded-lg">
+                    <p className="text-ocean-600">Loading map...</p>
+                  </div>
+                }>
+                  <GlobalFacilityMap
+                    facilities={filteredFacilities}
+                    onFacilitySelect={setSelectedFacility}
+                    selectedFacility={selectedFacility}
+                  />
+                </Suspense>
               </div>
             )}
-          </div>
+            </div>
+          )}
 
           {/* Facility Cards */}
           <div className="h-full overflow-y-auto space-y-4 pr-2">
@@ -485,14 +529,24 @@ const PublicSite: React.FC = () => {
         </div>
       </main>
 
-      {/* US Healthcare Crisis */}
-      <USHealthcareCrisis />
+      {/* US Healthcare Crisis - LAZY LOADED - DESKTOP ONLY for performance */}
+      {!isMobile && (
+        <Suspense fallback={<div className="py-12 bg-red-50/50 text-center"><p className="text-ocean-600">Loading videos...</p></div>}>
+          <USHealthcareCrisis />
+        </Suspense>
+      )}
 
-      {/* Medical Tourism Videos */}
-      <MedicalTourismVideos />
+      {/* Medical Tourism Videos - LAZY LOADED - DESKTOP ONLY for performance */}
+      {!isMobile && (
+        <Suspense fallback={<div className="py-12 bg-sage-50 text-center"><p className="text-ocean-600">Loading videos...</p></div>}>
+          <MedicalTourismVideos />
+        </Suspense>
+      )}
 
-      {/* Zano Tutorials Section */}
-      <ZanoTutorials />
+      {/* Zano Tutorials Section - LAZY LOADED */}
+      <Suspense fallback={<div className="py-12 bg-ocean-50 text-center"><p className="text-ocean-600">Loading tutorials...</p></div>}>
+        <ZanoTutorials />
+      </Suspense>
 
       {/* Footer */}
       <footer className="mt-16 py-12 border-t border-sage-200 bg-sage-50">
