@@ -87,6 +87,13 @@ test.describe('Oasara Smoke Tests - Mobile (iPhone)', () => {
     await page.setViewportSize({ width: 390, height: 844 }); // iPhone 13 size
     await page.goto(BASE_URL);
 
+    // Dismiss feedback banner if present (it blocks clicks)
+    const dismissButton = page.locator('button.banner-dismiss, button:has-text("Got it")');
+    if (await dismissButton.count() > 0) {
+      await dismissButton.first().click({ force: true });
+      await page.waitForTimeout(500); // Wait for banner to disappear
+    }
+
     // Look for hamburger menu
     const menuButton = page.locator('button[aria-label*="menu" i], button[aria-label*="navigation" i], button:has-text("☰")').first();
 
