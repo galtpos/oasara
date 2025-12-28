@@ -40,16 +40,21 @@ const PublicSite: React.FC = () => {
   });
   const [usHospitalCount, setUsHospitalCount] = useState<number>(6000);
 
-  // Mobile detection for performance optimization
+  // Mobile detection for performance optimization - uses matchMedia for Lighthouse compatibility
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const checkMobile = (e?: MediaQueryListEvent | MediaQueryList) => {
+      setIsMobile(e ? e.matches : mediaQuery.matches);
     };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+
+    // Initial check
+    checkMobile(mediaQuery);
+
+    // Listen for changes
+    mediaQuery.addEventListener('change', checkMobile);
+    return () => mediaQuery.removeEventListener('change', checkMobile);
   }, []);
 
   // Fetch pledge counts
