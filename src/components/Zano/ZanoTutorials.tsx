@@ -25,17 +25,16 @@ const walletTutorials: Tutorial[] = [
     id: '03_create_wallet',
     title: 'Create Your Wallet & Secure Recovery Words',
     description: 'Download, install, and set up your Zano wallet with secure recovery words.',
-    duration: '5:16',
+    duration: '5:21',
     videoSrc: '/videos/tutorials/05_create_wallet.mp4',
     level: 1
   },
   {
     id: '04_get_send',
     title: 'Get & Send Your First Freedom Dollars',
-    description: 'Receive funds, make your first transaction, and become financially sovereign.',
-    duration: '4:00',
-    audioSrc: '/tutorials/06_get_send/audio/narration.mp3',
-    screenshotSrc: '/tutorials/06_get_send/screenshots/01_getting_started.png',
+    description: 'Swap ZANO for fUSD (Freedom Dollars) - a private stablecoin worth $1. No banks, no middlemen.',
+    duration: '1:12',
+    videoSrc: '/videos/tutorials/06_get_fusd.mp4',
     level: 2
   },
   {
