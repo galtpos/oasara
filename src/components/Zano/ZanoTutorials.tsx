@@ -33,7 +33,7 @@ const walletTutorials: Tutorial[] = [
     id: '04_get_send',
     title: 'Get & Send Your First Freedom Dollars',
     description: 'Swap ZANO for fUSD (Freedom Dollars) - a private stablecoin worth $1. No banks, no middlemen.',
-    duration: '1:12',
+    duration: '1:10',
     videoSrc: '/videos/tutorials/06_get_fusd.mp4',
     level: 2
   },

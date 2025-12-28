@@ -1,0 +1,19 @@
+Open your Zano wallet. See your balance at the top. Now tap Browser at the bottom of your screen.
+
+You'll see your saved bookmarks. Tap Freedom Dollar to open the swap page.
+
+This is the Freedom Dollar swap. Here you exchange ZANO for fUSD - a private stablecoin worth exactly one US dollar. Tap Connect Wallet.
+
+Your wallet asks permission. This is safe - you always control your funds. Tap Done to continue.
+
+Now enter how much fUSD you want. The page shows your ZANO balance and current exchange rate. Let's enter two.
+
+Two fUSD costs about point two ZANO. No hidden fees. No middlemen. No bank approval needed.
+
+When you're ready, tap Get fUSD.
+
+Review the details. You're sending ZANO, receiving fUSD. Tap Confirm.
+
+The swap is processing. Your wallet updates automatically.
+
+Go back to your wallet. You now have two Freedom Dollars. Private. Stable. Completely under your control. No bank can freeze them. No government can seize them. This is financial freedom.
