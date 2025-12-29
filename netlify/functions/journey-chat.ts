@@ -1,9 +1,15 @@
 import { Handler, HandlerEvent } from '@netlify/functions';
 import Anthropic from '@anthropic-ai/sdk';
+import { createClient } from '@supabase/supabase-js';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || ''
 });
+
+const supabase = createClient(
+  process.env.SUPABASE_URL || '',
+  process.env.SUPABASE_SERVICE_KEY || '' // Service key for server-side queries
+);
 
 interface ChatRequest {
   messages: Array<{ role: string; content: string }>;
@@ -14,6 +20,18 @@ interface ChatRequest {
     timeline: string;
     shortlist: Array<{ name: string; location: string }>;
   };
+}
+
+interface Facility {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  jci_accredited: boolean;
+  google_rating: number;
+  review_count: number;
+  popular_procedures: Array<{ name: string; price_range: string; wait_time: string }>;
+  specialties: string[];
 }
 
 const handler: Handler = async (event: HandlerEvent) => {
@@ -59,6 +77,12 @@ const handler: Handler = async (event: HandlerEvent) => {
 - Be honest if something doesn't have a clear answer
 - Guide them toward making the best decision for THEM, not toward any particular facility
 
+**CRITICAL - Recommending Facilities:**
+- When the user asks for recommendations, facility comparisons, or "which facilities", you MUST use the recommend_facilities tool
+- Do NOT just list facilities in text - use the tool so they see interactive cards
+- The tool will search the database and return real facilities with prices and ratings
+- After calling the tool, say something like: "I found some great options for you. Check out the facilities below - you can click to see details or add them to your shortlist."
+
 **Conversation Style:**
 - Short, digestible paragraphs (2-4 max)
 - Use "you" and "your" - this is personal
@@ -71,7 +95,29 @@ Remember: You're not just answering questions - you're helping someone take cont
 
 Answer their question:`;
 
-    // Call Claude API
+    // Define function tool for facility recommendations
+    const tools: Anthropic.Tool[] = [
+      {
+        name: 'recommend_facilities',
+        description: 'Search the database and recommend specific facilities that match the user\'s procedure and budget. Use this when they ask for recommendations, want to see options, or ask "which facilities" or "compare facilities".',
+        input_schema: {
+          type: 'object',
+          properties: {
+            procedure: {
+              type: 'string',
+              description: 'The medical procedure to search for (e.g., "breast augmentation", "hip replacement", "dental implants")'
+            },
+            limit: {
+              type: 'number',
+              description: 'Number of facilities to return (default: 5, max: 10)'
+            }
+          },
+          required: ['procedure']
+        }
+      }
+    ];
+
+    // Call Claude API with function calling
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
       max_tokens: 1024,
@@ -82,20 +128,63 @@ Answer their question:`;
           cache_control: { type: 'ephemeral' }
         }
       ],
+      tools,
       messages: [
         ...messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
         { role: 'user', content: userMessage }
       ]
     });
 
-    const assistantMessage = response.content[0].type === 'text'
-      ? response.content[0].text
-      : 'I apologize, but I had trouble generating a response. Please try again.';
+    let assistantMessage = '';
+    let facilities: Facility[] = [];
+
+    // Process response content
+    for (const content of response.content) {
+      if (content.type === 'text') {
+        assistantMessage += content.text;
+      } else if (content.type === 'tool_use' && content.name === 'recommend_facilities') {
+        const { procedure, limit = 5 } = content.input as { procedure: string; limit?: number };
+
+        // Query Supabase for matching facilities
+        const { data, error } = await supabase
+          .from('facilities')
+          .select('id, name, city, country, jci_accredited, google_rating, review_count, popular_procedures, specialties')
+          .order('google_rating', { ascending: false })
+          .limit(Math.min(limit, 10));
+
+        if (!error && data) {
+          facilities = data.filter(facility => {
+            // Filter by procedure match in specialties or popular_procedures
+            const procedureLower = procedure.toLowerCase();
+            const matchesSpecialty = facility.specialties?.some((s: string) =>
+              s.toLowerCase().includes(procedureLower) || procedureLower.includes(s.toLowerCase())
+            );
+            const matchesProcedure = facility.popular_procedures?.some((p: any) =>
+              p.name.toLowerCase().includes(procedureLower) || procedureLower.includes(p.name.toLowerCase())
+            );
+            return matchesSpecialty || matchesProcedure;
+          }).slice(0, limit);
+
+          // If no matches, return top-rated facilities
+          if (facilities.length === 0) {
+            facilities = data.slice(0, limit);
+          }
+        }
+      }
+    }
+
+    // If no text message after tool use, provide a default
+    if (facilities.length > 0 && !assistantMessage) {
+      assistantMessage = "I found some great options for you. Check out the facilities below - you can click to view details or add them to your shortlist.";
+    }
 
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ message: assistantMessage })
+      body: JSON.stringify({
+        message: assistantMessage,
+        facilities: facilities.length > 0 ? facilities : undefined
+      })
     };
 
   } catch (error) {

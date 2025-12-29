@@ -5,6 +5,16 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  facilities?: Array<{
+    id: string;
+    name: string;
+    city: string;
+    country: string;
+    jci_accredited: boolean;
+    google_rating: number;
+    review_count: number;
+    popular_procedures?: Array<{ name: string; price_range: string; wait_time: string }>;
+  }>;
 }
 
 interface JourneyChatbotProps {
@@ -142,7 +152,8 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
       const assistantMessage: Message = {
         role: 'assistant',
         content: data.message,
-        timestamp: new Date()
+        timestamp: new Date(),
+        facilities: data.facilities // Include facility recommendations
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -206,7 +217,8 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
       const assistantMessage: Message = {
         role: 'assistant',
         content: data.message,
-        timestamp: new Date()
+        timestamp: new Date(),
+        facilities: data.facilities // Include facility recommendations
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -271,6 +283,65 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                     }`}
                   >
                     <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+
+                    {/* Facility Recommendations */}
+                    {message.facilities && message.facilities.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {message.facilities.map((facility) => (
+                          <div
+                            key={facility.id}
+                            className="bg-white border border-ocean-200 rounded-lg p-3 hover:border-ocean-400 transition-colors"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold text-ocean-800 text-sm truncate">
+                                  {facility.name}
+                                </div>
+                                <div className="text-xs text-ocean-600 mt-0.5">
+                                  {facility.city}, {facility.country}
+                                  {facility.jci_accredited && (
+                                    <span className="ml-2 inline-flex items-center gap-0.5 text-green-700">
+                                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                      </svg>
+                                      JCI
+                                    </span>
+                                  )}
+                                </div>
+                                {facility.google_rating > 0 && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <span className="text-xs font-medium text-ocean-700">
+                                      {facility.google_rating.toFixed(1)}
+                                    </span>
+                                    <svg className="w-3 h-3 text-gold-500" fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                    <span className="text-xs text-ocean-500">
+                                      ({facility.review_count})
+                                    </span>
+                                  </div>
+                                )}
+                                {facility.popular_procedures && facility.popular_procedures.length > 0 && (
+                                  <div className="text-xs text-ocean-600 mt-1">
+                                    <span className="font-medium">{facility.popular_procedures[0].name}:</span>{' '}
+                                    {facility.popular_procedures[0].price_range}
+                                  </div>
+                                )}
+                              </div>
+                              <a
+                                href={`/facility/${facility.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-shrink-0 px-2 py-1 bg-ocean-600 text-white text-xs rounded hover:bg-ocean-700 transition-colors"
+                              >
+                                View
+                              </a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     <div className={`text-xs mt-1 opacity-70 ${message.role === 'user' ? 'text-right' : ''}`}>
                       {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </div>
