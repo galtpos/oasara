@@ -66,7 +66,7 @@ const handler: Handler = async (event: HandlerEvent) => {
 - They're considering: ${context.procedure}
 - Their budget: ${context.budget}
 - Timeline: ${context.timeline}
-- ${context.shortlist.length > 0 ? `They're already looking at: ${context.shortlist.map(f => `${f.name} in ${f.location}`).join(', ')}` : "They haven't found any facilities yet - they need your help"}
+- ${context.shortlist.length > 0 ? `THEIR SHORTLIST (${context.shortlist.length} facilities saved): ${context.shortlist.map(f => `${f.name} in ${f.location}`).join(', ')}. When they ask to "compare my shortlist" or "help me decide", YOU HAVE ACCESS to these facilities - help them compare pros/cons, safety records, what to ask each one, etc.` : "They haven't found any facilities yet - they need your help finding some"}
 
 **Your Approach:**
 - Talk like a knowledgeable friend, not a sales assistant

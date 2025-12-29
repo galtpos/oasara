@@ -39,13 +39,31 @@ interface JourneyChatbotProps {
 }
 
 const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFacilities, isOpen, setIsOpen }) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
+  // Load persisted messages from localStorage
+  const loadMessages = (): Message[] => {
+    try {
+      const stored = localStorage.getItem(`oasara-chat-${journey.id}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        // Convert timestamp strings back to Date objects
+        return parsed.map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load chat history:', error);
+    }
+
+    // Default greeting if no history
+    return [{
       role: 'assistant',
       content: `Hey there! I'm here to help you find the perfect facility for your ${journey.procedure_type}. I know this is a big decision, and you probably have a lot on your mind. What would you like to know first?`,
       timestamp: new Date()
-    }
-  ]);
+    }];
+  };
+
+  const [messages, setMessages] = useState<Message[]>(loadMessages());
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -55,6 +73,34 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
 
   // Track shortlisted facility IDs
   const shortlistedIds = shortlistedFacilities.map(sf => sf.facilities.id);
+
+  // Persist messages to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(`oasara-chat-${journey.id}`, JSON.stringify(messages));
+    } catch (error) {
+      console.error('Failed to save chat history:', error);
+    }
+  }, [messages, journey.id]);
+
+  // Simple markdown-to-HTML renderer (handles bold, bullet lists, line breaks)
+  const renderMarkdown = (text: string) => {
+    let html = text;
+
+    // Bold: **text** -> <strong>text</strong>
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    // Bullet lists: lines starting with - or *
+    html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
+
+    // Wrap consecutive <li> in <ul>
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul class="list-disc list-inside my-2 space-y-1">$&</ul>');
+
+    // Line breaks
+    html = html.replace(/\n/g, '<br/>');
+
+    return html;
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -330,7 +376,10 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                         : 'bg-sage-100 text-ocean-800 rounded-bl-none'
                     }`}
                   >
-                    <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+                    <div
+                      className="text-sm prose prose-sm max-w-none prose-strong:font-semibold"
+                      dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                    />
 
                     {/* Facility Recommendations */}
                     {message.facilities && message.facilities.length > 0 && (
