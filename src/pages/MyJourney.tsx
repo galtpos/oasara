@@ -106,7 +106,7 @@ const MyJourney: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50/30 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-ocean-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-ocean-700 font-display">Loading your journey...</p>
+          <p className="text-ocean-700 font-display">Getting everything ready for you...</p>
         </div>
       </div>
     );
@@ -131,7 +131,7 @@ const MyJourney: React.FC = () => {
                 )}
               </h1>
               <p className="text-sm text-ocean-600">
-                {isGuest ? 'Browsing as guest - save your progress anytime' : 'Your personal medical tourism planner'}
+                {isGuest ? 'You\'re in control—explore freely and save whenever you\'re ready' : 'Your personal healthcare companion'}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -206,10 +206,10 @@ const MyJourney: React.FC = () => {
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-ocean-800 mb-1">
-                  Love what you're seeing?
+                  You're making great progress!
                 </h3>
                 <p className="text-sm text-ocean-600 mb-4">
-                  Save your journey and access it from any device.
+                  Create a free account to save your research and pick up right where you left off—from any device.
                 </p>
                 {getGuestEngagementMetrics() && (
                   <div className="bg-sage-50 rounded-lg p-3 mb-4">

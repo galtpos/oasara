@@ -7,6 +7,7 @@ import FacilityShortlist from './FacilityShortlist';
 import PersonalNotes from './PersonalNotes';
 import { Link } from 'react-router-dom';
 import JourneyChatbot from './JourneyChatbot';
+import { exportJourneyToPDF } from '../../utils/exportJourneyPDF';
 
 interface Journey {
   id: string;
@@ -95,6 +96,18 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
 
   const shortlistCount = shortlistedFacilities?.length || 0;
   const notesCount = notes?.length || 0;
+
+  const handleExportPDF = async () => {
+    try {
+      await exportJourneyToPDF({
+        journey,
+        shortlistedFacilities: shortlistedFacilities || [],
+      });
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      alert('Failed to export PDF. Please try again.');
+    }
+  };
 
   const handleSaveProcedure = async () => {
     if (!editedProcedure.trim()) {
@@ -221,19 +234,32 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
-                {shortlistCount} facilities saved
+                {shortlistCount} {shortlistCount === 1 ? 'option' : 'options'} you're considering
               </span>
             </div>
           </div>
-          <button
-            onClick={() => setIsChatbotOpen(true)}
-            className="px-4 py-2 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            Let's Talk
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExportPDF}
+              disabled={shortlistCount === 0}
+              className="px-4 py-2 bg-white border-2 border-ocean-600 text-ocean-600 rounded-lg hover:bg-ocean-50 transition-all text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={shortlistCount === 0 ? 'Add facilities to export' : 'Export journey to PDF'}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Export PDF
+            </button>
+            <button
+              onClick={() => setIsChatbotOpen(true)}
+              className="px-4 py-2 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+              Have Questions?
+            </button>
+          </div>
         </div>
       </motion.div>
 
@@ -293,6 +319,7 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
             <>
               <ComparisonTable
                 journeyId={journey.id}
+                procedureType={journey.procedure_type}
                 shortlistedFacilities={shortlistedFacilities || []}
                 isLoading={facilitiesLoading}
                 onOpenChatbot={() => setIsChatbotOpen(true)}
@@ -303,10 +330,10 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
                 <div className="mt-8 border-t-2 border-sage-200 pt-8">
                   <div className="mb-6">
                     <h3 className="text-2xl font-display text-ocean-800 mb-2">
-                      Recommended for {journey.procedure_type}
+                      You're doing great research
                     </h3>
                     <p className="text-sm text-ocean-600">
-                      Based on your budget of ${journey.budget_min?.toLocaleString()} - ${journey.budget_max?.toLocaleString()} and preferences
+                      Here are some excellent facilities for {journey.procedure_type} within your ${journey.budget_min?.toLocaleString()} - ${journey.budget_max?.toLocaleString()} budget
                     </p>
                   </div>
 

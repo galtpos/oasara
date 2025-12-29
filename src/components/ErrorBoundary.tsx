@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import * as Sentry from '@sentry/react';
 
 interface Props {
   children: ReactNode;
@@ -8,6 +9,7 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  eventId: string | null;
 }
 
 /**
@@ -19,6 +21,7 @@ class ErrorBoundary extends Component<Props, State> {
     hasError: false,
     error: null,
     errorInfo: null,
+    eventId: null,
   };
 
   public static getDerivedStateFromError(error: Error): Partial<State> {
@@ -29,8 +32,16 @@ class ErrorBoundary extends Component<Props, State> {
     console.error('ErrorBoundary caught an error:', error, errorInfo);
     this.setState({ errorInfo });
 
-    // TODO: Send to error tracking service (Sentry, etc.)
-    // Example: Sentry.captureException(error, { extra: errorInfo });
+    // Send to Sentry
+    const eventId = Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack,
+        },
+      },
+    });
+
+    this.setState({ eventId });
   }
 
   private handleReload = () => {
@@ -39,6 +50,24 @@ class ErrorBoundary extends Component<Props, State> {
 
   private handleGoHome = () => {
     window.location.href = '/';
+  };
+
+  private handleReportFeedback = () => {
+    if (this.state.eventId) {
+      Sentry.showReportDialog({
+        eventId: this.state.eventId,
+        title: 'It looks like we\'re having issues.',
+        subtitle: 'Our team has been notified. If you\'d like to help, tell us what happened below.',
+        labelName: 'Name',
+        labelEmail: 'Email',
+        labelComments: 'What happened?',
+        labelClose: 'Close',
+        labelSubmit: 'Submit',
+        errorGeneric: 'An error occurred while submitting your report. Please try again.',
+        errorFormEntry: 'Some fields were invalid. Please correct the errors and try again.',
+        successMessage: 'Your feedback has been sent. Thank you!',
+      });
+    }
   };
 
   public render() {
@@ -77,19 +106,31 @@ class ErrorBoundary extends Component<Props, State> {
             )}
 
             {/* Actions */}
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={this.handleReload}
-                className="px-6 py-3 bg-ocean-600 text-white rounded-lg font-medium hover:bg-ocean-700 transition-colors"
-              >
-                Try Again
-              </button>
-              <button
-                onClick={this.handleGoHome}
-                className="px-6 py-3 bg-sage-200 text-ocean-700 rounded-lg font-medium hover:bg-sage-300 transition-colors"
-              >
-                Go Home
-              </button>
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={this.handleReload}
+                  className="px-6 py-3 bg-ocean-600 text-white rounded-lg font-medium hover:bg-ocean-700 transition-colors"
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={this.handleGoHome}
+                  className="px-6 py-3 bg-sage-200 text-ocean-700 rounded-lg font-medium hover:bg-sage-300 transition-colors"
+                >
+                  Go Home
+                </button>
+              </div>
+
+              {/* Sentry User Feedback */}
+              {this.state.eventId && (
+                <button
+                  onClick={this.handleReportFeedback}
+                  className="px-6 py-3 bg-gold-600 text-white rounded-lg font-medium hover:bg-gold-700 transition-colors"
+                >
+                  Tell us what happened
+                </button>
+              )}
             </div>
 
             {/* Report link */}

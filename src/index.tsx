@@ -6,6 +6,10 @@ import './index.css';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import reportWebVitals from './reportWebVitals';
+import { initSentry } from './utils/sentry';
+
+// Initialize Sentry BEFORE anything else
+initSentry();
 
 const queryClient = new QueryClient({
   defaultOptions: {

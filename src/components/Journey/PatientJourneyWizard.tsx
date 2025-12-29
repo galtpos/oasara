@@ -169,10 +169,10 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
             className="bg-white rounded-2xl shadow-lg p-8"
           >
             <h2 className="text-3xl font-display text-ocean-800 mb-3">
-              What procedure are you researching?
+              What brings you here today?
             </h2>
             <p className="text-ocean-600 mb-6">
-              This helps us show you relevant facilities and pricing.
+              You're taking an important step toward better health. Let's find care that's right for you—quality treatment you can trust and afford.
             </p>
 
             <div className="space-y-4">
@@ -204,7 +204,7 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
               </div>
               {searchResults.length === 0 && wizardData.procedure_type.length >= 2 && (
                 <div className="text-center py-4 text-ocean-600">
-                  <p>No procedures found. Try a different search term or type your own.</p>
+                  <p>Don't see what you're looking for? That's okay—just type in your procedure and we'll help you find options.</p>
                 </div>
               )}
             </div>
@@ -235,10 +235,10 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
             className="bg-white rounded-2xl shadow-lg p-8"
           >
             <h2 className="text-3xl font-display text-ocean-800 mb-3">
-              What's your budget?
+              Let's talk about budget
             </h2>
             <p className="text-ocean-600 mb-6">
-              We'll show you facilities that match your price range.
+              Healthcare costs can be overwhelming. Together, we'll find excellent facilities within your budget—no compromises on quality.
             </p>
 
             <div className="space-y-6">
@@ -347,10 +347,10 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
             className="bg-white rounded-2xl shadow-lg p-8"
           >
             <h2 className="text-3xl font-display text-ocean-800 mb-3">
-              When do you need treatment?
+              What's your timeline?
             </h2>
             <p className="text-ocean-600 mb-6">
-              This helps us prioritize facilities with shorter wait times if needed.
+              Whether you need care urgently or you're planning ahead, we'll match you with facilities that can accommodate your needs.
             </p>
 
             <div className="space-y-3">
@@ -370,7 +370,7 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
                   </div>
                   <div>
                     <div className="text-lg font-semibold text-ocean-800">Urgent (within 2 weeks)</div>
-                    <div className="text-sm text-ocean-600">I need treatment as soon as possible</div>
+                    <div className="text-sm text-ocean-600">I need care quickly—we're here to help you find it</div>
                   </div>
                 </div>
               </button>
@@ -391,7 +391,7 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
                   </div>
                   <div>
                     <div className="text-lg font-semibold text-ocean-800">Soon (1-3 months)</div>
-                    <div className="text-sm text-ocean-600">I'm planning for the next few months</div>
+                    <div className="text-sm text-ocean-600">I'm ready to move forward in the coming months</div>
                   </div>
                 </div>
               </button>
@@ -412,7 +412,7 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
                   </div>
                   <div>
                     <div className="text-lg font-semibold text-ocean-800">Flexible (3+ months)</div>
-                    <div className="text-sm text-ocean-600">I'm researching options with no rush</div>
+                    <div className="text-sm text-ocean-600">I'm taking my time to find the perfect fit</div>
                   </div>
                 </div>
               </button>
@@ -434,7 +434,7 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
                     : 'bg-sage-200 text-sage-400 cursor-not-allowed'
                 }`}
               >
-                {isSubmitting ? 'Creating Journey...' : 'Start My Journey'}
+                {isSubmitting ? 'Getting Everything Ready...' : 'Let\'s Find Your Care'}
               </button>
             </div>
           </motion.div>

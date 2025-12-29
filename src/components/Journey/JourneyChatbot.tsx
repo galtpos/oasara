@@ -58,7 +58,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
     // Default greeting if no history
     return [{
       role: 'assistant',
-      content: `Hey there! I'm here to help you find the perfect facility for your ${journey.procedure_type}. I know this is a big decision, and you probably have a lot on your mind. What would you like to know first?`,
+      content: `Hey there! I'm here to help you navigate your ${journey.procedure_type} journey. I know making healthcare decisions can feel overwhelming, and you might have a lot of questions or concerns. That's completely normal—and you're not alone in this. What would you like to talk about first?`,
       timestamp: new Date()
     }];
   };
@@ -186,7 +186,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
         // Add success message to chat (don't reload - keeps chat history)
         const successMessage: Message = {
           role: 'assistant',
-          content: `✅ Added to your shortlist! You can now compare this facility with others on your journey dashboard.`,
+          content: `Great choice! I've added this to your shortlist. You're building a solid set of options—you can compare them side-by-side on your dashboard whenever you're ready.`,
           timestamp: new Date()
         };
         setMessages(prev => [...prev, successMessage]);
@@ -255,7 +255,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
       console.error('Chat error:', error);
       const errorMessage: Message = {
         role: 'assistant',
-        content: "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
+        content: "I'm really sorry—I'm having a technical hiccup right now. Can you give me a moment and try asking again? I'm here and want to help.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -265,10 +265,10 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
   };
 
   const quickActions = [
-    { label: "Safe facilities", query: "Which facilities have the best safety records and accreditation for my procedure?" },
-    { label: "What's included?", query: "What's typically included in the procedure price and what are the hidden costs I should watch for?" },
-    { label: "Recovery time", query: "How long is recovery for this procedure and when can I travel home?" },
-    { label: "Compare options", query: shortlistedFacilities.length > 0 ? "Can you compare the facilities on my shortlist and help me decide?" : "I haven't added any facilities yet. Can you recommend some?" }
+    { label: "How safe are these facilities?", query: "I want to make sure I'm safe. Which facilities have the best safety records and accreditation for my procedure?" },
+    { label: "What's the real cost?", query: "I'm worried about hidden costs. What's typically included in the procedure price and what surprises should I watch for?" },
+    { label: "What's recovery like?", query: "I'm nervous about recovery. How long does it take for this procedure and when can I travel home?" },
+    { label: "Help me decide", query: shortlistedFacilities.length > 0 ? "I'm looking at a few options but not sure how to choose. Can you help me compare the facilities on my shortlist?" : "I'm feeling a bit overwhelmed. Can you recommend some facilities to get me started?" }
   ];
 
   const handleQuickAction = async (query: string) => {
@@ -320,7 +320,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
       console.error('Chat error:', error);
       const errorMessage: Message = {
         role: 'assistant',
-        content: "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
+        content: "I'm really sorry—I'm having a technical hiccup right now. Can you give me a moment and try asking again? I'm here and want to help.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -348,8 +348,8 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold">Your Personal Guide</div>
-                  <div className="text-xs opacity-90">I'm here to help</div>
+                  <div className="font-semibold">Your Journey Companion</div>
+                  <div className="text-xs opacity-90">Here for you, every step</div>
                 </div>
               </div>
               <button
@@ -503,7 +503,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSend()}
-                  placeholder={isListening ? "Listening..." : "Type or speak your question..."}
+                  placeholder={isListening ? "Listening..." : "Ask me anything—no question is too small..."}
                   className="flex-1 px-4 py-3 border-2 border-sage-200 rounded-xl focus:border-ocean-500 focus:outline-none text-sm"
                   disabled={isLoading || isListening}
                 />

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
+import ContactFacilityModal from './ContactFacilityModal';
 
 interface Facility {
   id: string;
@@ -29,6 +30,7 @@ interface ShortlistedFacility {
 
 interface ComparisonTableProps {
   journeyId: string;
+  procedureType: string;
   shortlistedFacilities: ShortlistedFacility[];
   isLoading: boolean;
   onOpenChatbot?: () => void;
@@ -36,6 +38,7 @@ interface ComparisonTableProps {
 
 const ComparisonTable: React.FC<ComparisonTableProps> = ({
   journeyId,
+  procedureType,
   shortlistedFacilities,
   isLoading,
   onOpenChatbot
@@ -45,6 +48,8 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
   const [editingRatingId, setEditingRatingId] = useState<string | null>(null);
   const [ratingValue, setRatingValue] = useState(0);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
+  const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
 
   const handleSaveNote = async (journeyFacilityId: string) => {
     setSavingNoteId(journeyFacilityId);
@@ -85,6 +90,11 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     }
   };
 
+  const handleContactFacility = (facility: Facility) => {
+    setSelectedFacility(facility);
+    setContactModalOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -103,10 +113,10 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           </svg>
         </div>
         <h3 className="text-xl font-display text-ocean-800 mb-2">
-          Let's Find Your Perfect Match
+          You're not alone in this
         </h3>
         <p className="text-ocean-600 mb-6">
-          I'll help you discover facilities that meet your needs and budget
+          Let's explore your options together. I'll help you find facilities that match your needs, budget, and most importantly—give you confidence in your choice.
         </p>
         <button
           onClick={onOpenChatbot}
@@ -115,7 +125,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
-          Start Exploring
+          I'm Ready to Explore
         </button>
       </div>
     );
@@ -125,16 +135,16 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
     const facility = shortlistedFacilities[0].facilities;
     return (
       <div className="text-center py-8">
-        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 flex items-center justify-center">
-          <svg className="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-ocean-100 flex items-center justify-center">
+          <svg className="w-8 h-8 text-ocean-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <h3 className="text-xl font-display text-ocean-800 mb-2">
-          Great start! Let's compare a few more
+          You're off to a great start!
         </h3>
         <p className="text-ocean-600 mb-4">
-          You've saved <strong>{facility.name}</strong>. Adding more options will help you make the best decision.
+          <strong>{facility.name}</strong> is on your list. Comparing a few more options will give you confidence you're making the right choice for your health.
         </p>
         <button
           onClick={onOpenChatbot}
@@ -143,7 +153,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
-          Show Me More Options
+          Let's Find More Options
         </button>
       </div>
     );
@@ -333,7 +343,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                         ))}
                       </div>
                     ) : (
-                      <span className="text-sage-500 text-sm hover:text-ocean-600">Click to rate</span>
+                      <span className="text-sage-500 text-sm hover:text-ocean-600">How do you feel about this one?</span>
                     )}
                   </div>
                 )}
@@ -358,7 +368,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                     <textarea
                       value={noteContent}
                       onChange={(e) => setNoteContent(e.target.value)}
-                      placeholder="Add your notes about this facility..."
+                      placeholder="Your thoughts, questions, or concerns about this facility..."
                       rows={3}
                       className="w-full px-3 py-2 border-2 border-ocean-300 rounded-lg focus:border-ocean-600 focus:outline-none text-sm resize-none"
                       autoFocus
@@ -395,7 +405,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
                         {item.notes}
                       </div>
                     ) : (
-                      <span className="text-sage-500 text-sm italic">Click to add notes</span>
+                      <span className="text-sage-500 text-sm italic">Jot down your thoughts here</span>
                     )}
                   </div>
                 )}
@@ -410,20 +420,45 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
             </td>
             {shortlistedFacilities.map((item) => (
               <td key={item.id} className="py-4 px-4">
-                <Link
-                  to={`/facilities/${item.facilities.id}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors text-sm font-medium"
-                >
-                  View Details
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </Link>
+                <div className="flex flex-col gap-2">
+                  <Link
+                    to={`/facilities/${item.facilities.id}`}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors text-sm font-medium"
+                  >
+                    View Details
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                  </Link>
+                  <button
+                    onClick={() => handleContactFacility(item.facilities)}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-sage-600 to-sage-700 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                    Request Quote
+                  </button>
+                </div>
               </td>
             ))}
           </tr>
         </tbody>
       </motion.table>
+
+      {/* Contact Facility Modal */}
+      {selectedFacility && (
+        <ContactFacilityModal
+          isOpen={contactModalOpen}
+          onClose={() => {
+            setContactModalOpen(false);
+            setSelectedFacility(null);
+          }}
+          facility={selectedFacility}
+          journeyId={journeyId}
+          procedureType={procedureType}
+        />
+      )}
     </div>
   );
 };
