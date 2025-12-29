@@ -7,6 +7,7 @@ import ProcedureSearch from '../components/Search/ProcedureSearch';
 import CountryFilter from '../components/Filters/CountryFilter';
 import SpecialtyFilter from '../components/Filters/SpecialtyFilter';
 import ZanoFilter from '../components/Filters/ZanoFilter';
+import AnimatedCounter from '../components/PriceComparison/AnimatedCounter';
 import { getFacilities, getCountries, getSpecialties, Facility, supabase } from '../lib/supabase';
 import { getUSStats } from '../lib/usHospitalApi';
 
@@ -381,40 +382,42 @@ const PublicSite: React.FC = () => {
       </AnimatePresence>
 
       {/* Stats Bar - Ocean Teal */}
-      <div className="stats-bar">
-        <div className="stat-pill">
-          <span className="stat-number">{filteredFacilities.length}</span>
-          <span className="stat-label">Facilities</span>
-        </div>
-        <div className="stat-pill">
-          <span className="stat-number">{countries.length}</span>
-          <span className="stat-label">Countries</span>
-        </div>
-        <div className="stat-pill">
-          <span className="stat-number">{totalPledges}</span>
-          <span className="stat-label">Total Pledges</span>
-        </div>
-        <div className="stat-pill">
-          <span className="stat-number">{pledgeCounts.medical_trust}</span>
-          <span className="stat-label">Medical Trusts</span>
-        </div>
-        <div className="stat-pill">
-          <span className="stat-number">{pledgeCounts.try_medical_tourism}</span>
-          <span className="stat-label">Medical Tourists</span>
-        </div>
-        <div className="stat-pill">
-          <span className="stat-number">{pledgeCounts.cancel_insurance}</span>
-          <span className="stat-label">Cancelled Insurance</span>
-        </div>
-        <div className="stat-pill bg-ocean-700/50">
-          <span className="stat-number">{usHospitalCount.toLocaleString()}+</span>
-          <span className="stat-label">US Hospitals Compared</span>
-        </div>
-        <div className="ml-auto flex items-center gap-2 text-white/80 text-sm">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-          <span className="font-medium">JCI Accredited Healthcare</span>
+      <div className="bg-ocean-600 border-t-4 border-gold-500 py-4 px-6">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-6 justify-center md:justify-start">
+          <div className="flex flex-col items-center px-4">
+            <AnimatedCounter end={filteredFacilities.length} className="text-3xl font-display font-bold text-white" />
+            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Facilities</span>
+          </div>
+          <div className="flex flex-col items-center px-4">
+            <AnimatedCounter end={countries.length} className="text-3xl font-display font-bold text-white" />
+            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Countries</span>
+          </div>
+          <div className="flex flex-col items-center px-4">
+            <AnimatedCounter end={totalPledges} className="text-3xl font-display font-bold text-white" />
+            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Total Pledges</span>
+          </div>
+          <div className="flex flex-col items-center px-4">
+            <AnimatedCounter end={pledgeCounts.medical_trust} className="text-3xl font-display font-bold text-white" />
+            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Medical Trusts</span>
+          </div>
+          <div className="flex flex-col items-center px-4">
+            <AnimatedCounter end={pledgeCounts.try_medical_tourism} className="text-3xl font-display font-bold text-white" />
+            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Medical Tourists</span>
+          </div>
+          <div className="flex flex-col items-center px-4">
+            <AnimatedCounter end={pledgeCounts.cancel_insurance} className="text-3xl font-display font-bold text-white" />
+            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Cancelled Insurance</span>
+          </div>
+          <div className="flex flex-col items-center px-4 bg-ocean-700/50 rounded-lg py-2">
+            <AnimatedCounter end={usHospitalCount} suffix="+" className="text-3xl font-display font-bold text-gold-300" />
+            <span className="text-xs text-gold-200 uppercase tracking-wide mt-1">US Hospitals Compared</span>
+          </div>
+          <div className="ml-auto flex items-center gap-2 text-white/80 text-sm">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <span className="font-medium">JCI Accredited Healthcare</span>
+          </div>
         </div>
       </div>
 
