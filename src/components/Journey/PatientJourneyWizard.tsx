@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { searchProcedures, getCommonProcedures } from '../../data/procedures';
 
 interface WizardData {
   procedure_type: string;
@@ -39,19 +40,16 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
     }
   });
 
-  // Common procedures for autocomplete
-  const commonProcedures = [
-    'Hip Replacement',
-    'Knee Replacement',
-    'Dental Implants',
-    'Cataract Surgery',
-    'Cosmetic Surgery',
-    'Cardiac Surgery',
-    'Bariatric Surgery',
-    'IVF Treatment',
-    'Spine Surgery',
-    'Cancer Treatment'
-  ];
+  // Get common procedures and search results
+  const commonProcedures = useMemo(() => getCommonProcedures(), []);
+
+  // Search results based on input
+  const searchResults = useMemo(() => {
+    if (!wizardData.procedure_type || wizardData.procedure_type.length < 2) {
+      return commonProcedures;
+    }
+    return searchProcedures(wizardData.procedure_type).slice(0, 12);
+  }, [wizardData.procedure_type, commonProcedures]);
 
   const handleProcedureChange = (value: string) => {
     setWizardData({ ...wizardData, procedure_type: value });
@@ -187,22 +185,28 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
                 autoFocus
               />
 
-              {/* Common procedures */}
+              {/* Procedure suggestions (live search or common procedures) */}
               <div className="grid grid-cols-2 gap-3">
-                {commonProcedures.map((proc) => (
+                {searchResults.map((proc) => (
                   <button
-                    key={proc}
-                    onClick={() => handleProcedureChange(proc)}
+                    key={proc.name}
+                    onClick={() => handleProcedureChange(proc.name)}
                     className={`px-4 py-3 rounded-xl border-2 transition-all text-left ${
-                      wizardData.procedure_type === proc
+                      wizardData.procedure_type === proc.name
                         ? 'border-ocean-500 bg-ocean-50 text-ocean-700'
                         : 'border-sage-200 hover:border-ocean-300 text-ocean-600'
                     }`}
                   >
-                    {proc}
+                    <div className="font-semibold">{proc.name}</div>
+                    <div className="text-xs opacity-70 mt-0.5">{proc.category}</div>
                   </button>
                 ))}
               </div>
+              {searchResults.length === 0 && wizardData.procedure_type.length >= 2 && (
+                <div className="text-center py-4 text-ocean-600">
+                  <p>No procedures found. Try a different search term or type your own.</p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end mt-8">
