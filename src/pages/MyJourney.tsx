@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../lib/supabase';
 import PatientJourneyWizard from '../components/Journey/PatientJourneyWizard';
@@ -86,14 +86,25 @@ const MyJourney: React.FC = () => {
               <h1 className="text-2xl font-display text-ocean-700">My Journey</h1>
               <p className="text-sm text-ocean-600">Your personal medical tourism planner</p>
             </div>
-            {journey && (
-              <button
-                onClick={handleStartNewJourney}
-                className="px-4 py-2 text-sm font-medium text-ocean-600 hover:bg-sage-50 rounded-lg transition-colors"
+            <div className="flex items-center gap-3">
+              <Link
+                to="/help"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ocean-600 hover:bg-sage-50 rounded-lg transition-colors border-2 border-sage-200 hover:border-ocean-300"
               >
-                Start New Journey
-              </button>
-            )}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Need Help?
+              </Link>
+              {journey && (
+                <button
+                  onClick={handleStartNewJourney}
+                  className="px-4 py-2 text-sm font-medium text-ocean-600 hover:bg-sage-50 rounded-lg transition-colors"
+                >
+                  Start New Journey
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </header>
