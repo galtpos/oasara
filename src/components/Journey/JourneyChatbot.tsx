@@ -137,8 +137,16 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
           throw error;
         }
       } else {
-        // Refresh the page to update shortlist
-        window.location.reload();
+        // Add success message to chat (don't reload - keeps chat history)
+        const successMessage: Message = {
+          role: 'assistant',
+          content: `✅ Added to your shortlist! You can now compare this facility with others on your journey dashboard.`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, successMessage]);
+
+        // Force re-render to update "Saved" status
+        // Parent will fetch updated shortlist on next page load
       }
     } catch (error) {
       console.error('Error adding to shortlist:', error);
