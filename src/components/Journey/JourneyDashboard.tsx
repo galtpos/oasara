@@ -25,6 +25,7 @@ interface JourneyDashboardProps {
 
 const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
   const [activeTab, setActiveTab] = useState<'compare' | 'shortlist' | 'notes'>('compare');
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
 
   // Fetch shortlisted facilities
   const { data: shortlistedFacilities, isLoading: facilitiesLoading, refetch: refetchShortlist } = useQuery({
@@ -132,13 +133,7 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
             </div>
           </div>
           <button
-            onClick={() => {
-              // Trigger chatbot to open
-              const chatButton = document.querySelector('[data-chatbot-toggle]') as HTMLButtonElement;
-              if (chatButton && !chatButton.getAttribute('data-is-open')) {
-                chatButton.click();
-              }
-            }}
+            onClick={() => setIsChatbotOpen(true)}
             className="px-4 py-2 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -207,6 +202,7 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
                 journeyId={journey.id}
                 shortlistedFacilities={shortlistedFacilities || []}
                 isLoading={facilitiesLoading}
+                onOpenChatbot={() => setIsChatbotOpen(true)}
               />
 
               {/* Recommendations Section - Show when shortlist is small */}
@@ -296,12 +292,7 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
 
                   <div className="mt-6 text-center">
                     <button
-                      onClick={() => {
-                        const chatButton = document.querySelector('[data-chatbot-toggle]') as HTMLButtonElement;
-                        if (chatButton && !chatButton.getAttribute('data-is-open')) {
-                          chatButton.click();
-                        }
-                      }}
+                      onClick={() => setIsChatbotOpen(true)}
                       className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-xl transition-all font-medium"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -321,6 +312,7 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
               shortlistedFacilities={shortlistedFacilities || []}
               recommendedFacilities={recommendedFacilities || []}
               onUpdate={refetchShortlist}
+              onOpenChatbot={() => setIsChatbotOpen(true)}
             />
           )}
 
@@ -338,6 +330,8 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
       <JourneyChatbot
         journey={journey}
         shortlistedFacilities={shortlistedFacilities || []}
+        isOpen={isChatbotOpen}
+        setIsOpen={setIsChatbotOpen}
       />
     </div>
   );

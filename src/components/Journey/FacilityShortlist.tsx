@@ -28,13 +28,15 @@ interface FacilityShortlistProps {
   shortlistedFacilities: ShortlistedFacility[];
   recommendedFacilities: Facility[];
   onUpdate: () => void;
+  onOpenChatbot?: () => void;
 }
 
 const FacilityShortlist: React.FC<FacilityShortlistProps> = ({
   journeyId,
   shortlistedFacilities,
   recommendedFacilities,
-  onUpdate
+  onUpdate,
+  onOpenChatbot
 }) => {
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [addingId, setAddingId] = useState<string | null>(null);
@@ -267,12 +269,7 @@ const FacilityShortlist: React.FC<FacilityShortlistProps> = ({
 
           <div className="mt-6 text-center">
             <button
-              onClick={() => {
-                const chatButton = document.querySelector('[data-chatbot-toggle]') as HTMLButtonElement;
-                if (chatButton && !chatButton.getAttribute('data-is-open')) {
-                  chatButton.click();
-                }
-              }}
+              onClick={onOpenChatbot}
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all font-medium"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

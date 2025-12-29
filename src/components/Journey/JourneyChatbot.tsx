@@ -23,10 +23,11 @@ interface JourneyChatbotProps {
       country: string;
     };
   }>;
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
-const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFacilities }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFacilities, isOpen, setIsOpen }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',

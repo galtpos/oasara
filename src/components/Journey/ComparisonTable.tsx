@@ -30,12 +30,14 @@ interface ComparisonTableProps {
   journeyId: string;
   shortlistedFacilities: ShortlistedFacility[];
   isLoading: boolean;
+  onOpenChatbot?: () => void;
 }
 
 const ComparisonTable: React.FC<ComparisonTableProps> = ({
   journeyId,
   shortlistedFacilities,
-  isLoading
+  isLoading,
+  onOpenChatbot
 }) => {
   if (isLoading) {
     return (
@@ -61,12 +63,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           Add facilities to your shortlist to see a side-by-side comparison
         </p>
         <button
-          onClick={() => {
-            const chatButton = document.querySelector('[data-chatbot-toggle]') as HTMLButtonElement;
-            if (chatButton && !chatButton.getAttribute('data-is-open')) {
-              chatButton.click();
-            }
-          }}
+          onClick={onOpenChatbot}
           className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,12 +91,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           You have <strong>{facility.name}</strong> in your shortlist. Add at least one more to see a comparison.
         </p>
         <button
-          onClick={() => {
-            const chatButton = document.querySelector('[data-chatbot-toggle]') as HTMLButtonElement;
-            if (chatButton && !chatButton.getAttribute('data-is-open')) {
-              chatButton.click();
-            }
-          }}
+          onClick={onOpenChatbot}
           className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
