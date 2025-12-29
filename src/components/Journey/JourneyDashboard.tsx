@@ -131,7 +131,7 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
             </div>
           </div>
           <Link
-            to="/hub"
+            to="/"
             className="px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors text-sm font-medium"
           >
             Browse More Facilities

@@ -267,7 +267,7 @@ const FacilityShortlist: React.FC<FacilityShortlistProps> = ({
 
           <div className="mt-6 text-center">
             <Link
-              to="/hub"
+              to="/"
               className="inline-flex items-center gap-2 px-6 py-3 bg-sage-100 text-ocean-700 rounded-lg hover:bg-sage-200 transition-colors font-medium"
             >
               Browse All Facilities
