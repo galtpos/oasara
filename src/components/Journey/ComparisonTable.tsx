@@ -57,10 +57,10 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           </svg>
         </div>
         <h3 className="text-xl font-display text-ocean-800 mb-2">
-          No facilities to compare yet
+          Let's Find Your Perfect Match
         </h3>
         <p className="text-ocean-600 mb-6">
-          Add facilities to your shortlist to see a side-by-side comparison
+          I'll help you discover facilities that meet your needs and budget
         </p>
         <button
           onClick={onOpenChatbot}
@@ -69,7 +69,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
-          Ask AI for Facilities
+          Start Exploring
         </button>
       </div>
     );
@@ -85,10 +85,10 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           </svg>
         </div>
         <h3 className="text-xl font-display text-ocean-800 mb-2">
-          Add more facilities to compare
+          Great start! Let's compare a few more
         </h3>
         <p className="text-ocean-600 mb-4">
-          You have <strong>{facility.name}</strong> in your shortlist. Add at least one more to see a comparison.
+          You've saved <strong>{facility.name}</strong>. Adding more options will help you make the best decision.
         </p>
         <button
           onClick={onOpenChatbot}
@@ -97,7 +97,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
-          Ask AI to Add More
+          Show Me More Options
         </button>
       </div>
     );

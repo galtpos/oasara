@@ -31,13 +31,15 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hi! I'm your Oasara assistant. I can help you with questions about ${journey.procedure_type} facilities, pricing, safety, and your journey planning. What would you like to know?`,
+      content: `Hey there! I'm here to help you find the perfect facility for your ${journey.procedure_type}. I know this is a big decision, and you probably have a lot on your mind. What would you like to know first?`,
       timestamp: new Date()
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -46,6 +48,55 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-open chatbot on first visit
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('oasara-chatbot-visited');
+    if (!hasVisited) {
+      setTimeout(() => {
+        setIsOpen(true);
+        localStorage.setItem('oasara-chatbot-visited', 'true');
+      }, 1500); // Open after 1.5 seconds
+    }
+  }, []);
+
+  // Initialize voice recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onerror = () => {
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, []);
+
+  const startListening = () => {
+    if (recognitionRef.current) {
+      setIsListening(true);
+      recognitionRef.current.start();
+    }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -108,12 +159,69 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
     }
   };
 
-  const exampleQuestions = [
-    "Which facility on my shortlist is safest?",
-    "What's typically included in the price?",
-    "How long is recovery for this procedure?",
-    "Can I fly home after surgery?"
+  const quickActions = [
+    { label: "Help me find safe facilities", query: "Which facilities have the best safety records and accreditation for my procedure?" },
+    { label: "What's included in the price?", query: "What's typically included in the procedure price and what are the hidden costs I should watch for?" },
+    { label: "Recovery timeline", query: "How long is recovery for this procedure and when can I travel home?" },
+    { label: "Compare my shortlist", query: shortlistedFacilities.length > 0 ? "Can you compare the facilities on my shortlist and help me decide?" : "I haven't added any facilities yet. Can you recommend some?" }
   ];
+
+  const handleQuickAction = async (query: string) => {
+    const userMessage: Message = {
+      role: 'user',
+      content: query,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setIsLoading(true);
+
+    try {
+      const context = {
+        procedure: journey.procedure_type,
+        budget: journey.budget_min && journey.budget_max
+          ? `$${journey.budget_min.toLocaleString()} - $${journey.budget_max.toLocaleString()}`
+          : 'Not specified',
+        timeline: journey.timeline || 'Not specified',
+        shortlist: shortlistedFacilities.map(sf => ({
+          name: sf.facilities.name,
+          location: `${sf.facilities.city}, ${sf.facilities.country}`
+        }))
+      };
+
+      const response = await fetch('/.netlify/functions/journey-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          userMessage: query,
+          context
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to get response');
+
+      const data = await response.json();
+
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: data.message,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -134,8 +242,8 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                   </svg>
                 </div>
                 <div>
-                  <div className="font-semibold">Oasara Assistant</div>
-                  <div className="text-xs opacity-90">Ask me anything</div>
+                  <div className="font-semibold">Your Personal Guide</div>
+                  <div className="text-xs opacity-90">I'm here to help</div>
                 </div>
               </div>
               <button
@@ -185,18 +293,19 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Example Questions */}
+            {/* Quick Actions */}
             {messages.length === 1 && (
               <div className="px-4 py-2 border-t border-sage-200 bg-sage-50/50">
-                <div className="text-xs font-medium text-ocean-700 mb-2">Try asking:</div>
+                <div className="text-xs font-medium text-ocean-700 mb-2">Quick start:</div>
                 <div className="flex flex-wrap gap-2">
-                  {exampleQuestions.map((question, index) => (
+                  {quickActions.map((action, index) => (
                     <button
                       key={index}
-                      onClick={() => setInput(question)}
-                      className="text-xs px-3 py-1.5 bg-white border border-sage-300 text-ocean-700 rounded-full hover:bg-ocean-50 hover:border-ocean-400 transition-colors"
+                      onClick={() => handleQuickAction(action.query)}
+                      disabled={isLoading}
+                      className="text-xs px-3 py-1.5 bg-white border border-sage-300 text-ocean-700 rounded-full hover:bg-ocean-50 hover:border-ocean-400 transition-colors disabled:opacity-50"
                     >
-                      {question}
+                      {action.label}
                     </button>
                   ))}
                 </div>
@@ -210,11 +319,27 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                  placeholder="Ask me anything..."
+                  onKeyPress={(e) => e.key === 'Enter' && !isLoading && handleSend()}
+                  placeholder={isListening ? "Listening..." : "Type or speak your question..."}
                   className="flex-1 px-4 py-3 border-2 border-sage-200 rounded-xl focus:border-ocean-500 focus:outline-none text-sm"
-                  disabled={isLoading}
+                  disabled={isLoading || isListening}
                 />
+                {recognitionRef.current && (
+                  <button
+                    onClick={isListening ? stopListening : startListening}
+                    disabled={isLoading}
+                    className={`px-3 py-3 rounded-xl transition-colors disabled:opacity-50 ${
+                      isListening
+                        ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse'
+                        : 'bg-sage-100 text-ocean-700 hover:bg-sage-200'
+                    }`}
+                    title={isListening ? "Stop listening" : "Click to speak"}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                  </button>
+                )}
                 <button
                   onClick={handleSend}
                   disabled={!input.trim() || isLoading}
