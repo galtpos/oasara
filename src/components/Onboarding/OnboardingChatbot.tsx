@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { createGuestJourney } from '../../lib/guestJourney';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -132,11 +133,29 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        // Store in localStorage for guest users
-        localStorage.setItem('oasara-pending-journey', JSON.stringify(journeyData));
+        // Create guest journey in localStorage
+        const guestJourney = createGuestJourney({
+          procedure: journeyData.procedure,
+          budgetMin: journeyData.budgetMin,
+          budgetMax: journeyData.budgetMax,
+          timeline: journeyData.timeline
+        });
+
+        setJourneyCreated(true);
+
+        if (onJourneyCreated) {
+          onJourneyCreated(guestJourney.id);
+        }
+
+        // Auto-navigate to dashboard after 2 seconds
+        setTimeout(() => {
+          navigate('/my-journey');
+        }, 2000);
+
         return;
       }
 
+      // Authenticated user - save to Supabase
       const { data: journey, error } = await supabase
         .from('journeys')
         .insert({
