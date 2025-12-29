@@ -232,6 +232,8 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
       {/* Toggle Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
+        data-chatbot-toggle
+        data-is-open={isOpen}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="w-16 h-16 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-full shadow-2xl flex items-center justify-center hover:shadow-ocean-500/50 transition-all"

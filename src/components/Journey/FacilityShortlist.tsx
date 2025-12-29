@@ -266,15 +266,20 @@ const FacilityShortlist: React.FC<FacilityShortlistProps> = ({
           </div>
 
           <div className="mt-6 text-center">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-sage-100 text-ocean-700 rounded-lg hover:bg-sage-200 transition-colors font-medium"
+            <button
+              onClick={() => {
+                const chatButton = document.querySelector('[data-chatbot-toggle]') as HTMLButtonElement;
+                if (chatButton && !chatButton.getAttribute('data-is-open')) {
+                  chatButton.click();
+                }
+              }}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all font-medium"
             >
-              Browse All Facilities
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
-            </Link>
+              Ask AI for Recommendations
+            </button>
           </div>
         </div>
       )}

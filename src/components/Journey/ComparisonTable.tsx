@@ -60,15 +60,20 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
         <p className="text-ocean-600 mb-6">
           Add facilities to your shortlist to see a side-by-side comparison
         </p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors"
+        <button
+          onClick={() => {
+            const chatButton = document.querySelector('[data-chatbot-toggle]') as HTMLButtonElement;
+            if (chatButton && !chatButton.getAttribute('data-is-open')) {
+              chatButton.click();
+            }
+          }}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
-          Browse Facilities
-        </Link>
+          Ask AI for Facilities
+        </button>
       </div>
     );
   }
@@ -88,12 +93,20 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
         <p className="text-ocean-600 mb-4">
           You have <strong>{facility.name}</strong> in your shortlist. Add at least one more to see a comparison.
         </p>
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors"
+        <button
+          onClick={() => {
+            const chatButton = document.querySelector('[data-chatbot-toggle]') as HTMLButtonElement;
+            if (chatButton && !chatButton.getAttribute('data-is-open')) {
+              chatButton.click();
+            }
+          }}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all"
         >
-          Add More Facilities
-        </Link>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+          </svg>
+          Ask AI to Add More
+        </button>
       </div>
     );
   }
