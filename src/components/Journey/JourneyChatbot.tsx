@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../../lib/supabase';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -48,8 +49,12 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [shortlistLoading, setShortlistLoading] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+
+  // Track shortlisted facility IDs
+  const shortlistedIds = shortlistedFacilities.map(sf => sf.facilities.id);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -105,6 +110,41 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
     if (recognitionRef.current) {
       recognitionRef.current.stop();
       setIsListening(false);
+    }
+  };
+
+  const handleAddToShortlist = async (facilityId: string) => {
+    setShortlistLoading(facilityId);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        alert('Please sign up to save facilities to your shortlist');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('journey_facilities')
+        .insert({
+          journey_id: journey.id,
+          facility_id: facilityId
+        });
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          alert('This facility is already in your shortlist');
+        } else {
+          throw error;
+        }
+      } else {
+        // Refresh the page to update shortlist
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error adding to shortlist:', error);
+      alert('Failed to add facility to shortlist. Please try again.');
+    } finally {
+      setShortlistLoading(null);
     }
   };
 
@@ -328,14 +368,29 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                                   </div>
                                 )}
                               </div>
-                              <a
-                                href={`/facility/${facility.id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex-shrink-0 px-2 py-1 bg-ocean-600 text-white text-xs rounded hover:bg-ocean-700 transition-colors"
-                              >
-                                View
-                              </a>
+                              <div className="flex flex-col gap-1">
+                                <a
+                                  href={`/facility/${facility.id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex-shrink-0 px-2 py-1 bg-ocean-600 text-white text-xs rounded hover:bg-ocean-700 transition-colors text-center"
+                                >
+                                  View
+                                </a>
+                                {shortlistedIds.includes(facility.id) ? (
+                                  <div className="flex-shrink-0 px-2 py-1 bg-green-100 text-green-700 text-xs rounded border border-green-300 text-center">
+                                    ✓ Saved
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => handleAddToShortlist(facility.id)}
+                                    disabled={shortlistLoading === facility.id}
+                                    className="flex-shrink-0 px-2 py-1 bg-sage-100 text-ocean-700 text-xs rounded hover:bg-sage-200 transition-colors disabled:opacity-50 border border-sage-300"
+                                  >
+                                    {shortlistLoading === facility.id ? '...' : '+ List'}
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
