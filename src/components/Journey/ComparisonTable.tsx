@@ -61,7 +61,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           Add facilities to your shortlist to see a side-by-side comparison
         </p>
         <Link
-          to="/hub"
+          to="/"
           className="inline-flex items-center gap-2 px-6 py-3 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -89,7 +89,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           You have <strong>{facility.name}</strong> in your shortlist. Add at least one more to see a comparison.
         </p>
         <Link
-          to="/hub"
+          to="/"
           className="inline-flex items-center gap-2 px-6 py-3 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors"
         >
           Add More Facilities
