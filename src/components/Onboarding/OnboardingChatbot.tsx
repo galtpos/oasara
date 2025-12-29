@@ -38,7 +38,7 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
     scrollToBottom();
   }, [messages]);
 
-  // Initialize voice recognition
+  // Initialize voice recognition (Chrome/Edge only - not Safari)
   useEffect(() => {
     if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
@@ -312,12 +312,17 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
                   ? 'bg-red-600 text-white hover:bg-red-700 animate-pulse'
                   : 'bg-sage-100 text-ocean-700 hover:bg-sage-200'
               }`}
-              title={isListening ? "Stop listening" : "Click to speak"}
+              title={isListening ? "Stop listening" : "Click to speak (Chrome/Edge only)"}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
               </svg>
             </button>
+          )}
+          {!recognitionRef.current && typeof window !== 'undefined' && (
+            <div className="px-4 py-2 bg-yellow-50 border border-yellow-200 rounded-xl text-xs text-yellow-700">
+              Voice input not available in Safari
+            </div>
           )}
           <button
             onClick={handleSend}
