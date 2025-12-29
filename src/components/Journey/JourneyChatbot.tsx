@@ -160,10 +160,10 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
   };
 
   const quickActions = [
-    { label: "Help me find safe facilities", query: "Which facilities have the best safety records and accreditation for my procedure?" },
-    { label: "What's included in the price?", query: "What's typically included in the procedure price and what are the hidden costs I should watch for?" },
-    { label: "Recovery timeline", query: "How long is recovery for this procedure and when can I travel home?" },
-    { label: "Compare my shortlist", query: shortlistedFacilities.length > 0 ? "Can you compare the facilities on my shortlist and help me decide?" : "I haven't added any facilities yet. Can you recommend some?" }
+    { label: "Safe facilities", query: "Which facilities have the best safety records and accreditation for my procedure?" },
+    { label: "What's included?", query: "What's typically included in the procedure price and what are the hidden costs I should watch for?" },
+    { label: "Recovery time", query: "How long is recovery for this procedure and when can I travel home?" },
+    { label: "Compare options", query: shortlistedFacilities.length > 0 ? "Can you compare the facilities on my shortlist and help me decide?" : "I haven't added any facilities yet. Can you recommend some?" }
   ];
 
   const handleQuickAction = async (query: string) => {

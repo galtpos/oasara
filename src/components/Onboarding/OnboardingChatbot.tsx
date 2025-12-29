@@ -150,7 +150,7 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
         // Auto-navigate to dashboard after 2 seconds
         setTimeout(() => {
           navigate('/my-journey');
-        }, 2000);
+        }, 4000);
 
         return;
       }
@@ -180,7 +180,7 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
       // Auto-navigate to dashboard after 2 seconds
       setTimeout(() => {
         navigate('/my-journey');
-      }, 2000);
+      }, 4000);
 
     } catch (error) {
       console.error('Error creating journey:', error);
@@ -213,8 +213,8 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
             </svg>
           </div>
           <div>
-            <div className="text-xl font-semibold">Let's Find Your Perfect Care</div>
-            <div className="text-sm opacity-90">Just tell me what you're looking for</div>
+            <div className="text-xl font-semibold">Your Personal Guide</div>
+            <div className="text-sm opacity-90">Let's find your perfect care</div>
           </div>
         </div>
       </div>
@@ -264,8 +264,8 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-green-800 mb-2">Perfect! Your journey is ready</h3>
-            <p className="text-green-700">Taking you to your personalized dashboard...</p>
+            <h3 className="text-xl font-bold text-green-800 mb-2">Your journey is ready!</h3>
+            <p className="text-green-700">Loading your dashboard...</p>
           </motion.div>
         )}
 

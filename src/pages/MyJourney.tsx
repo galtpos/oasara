@@ -11,6 +11,7 @@ const MyJourney: React.FC = () => {
   const [activeJourneyId, setActiveJourneyId] = useState<string | null>(null);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
+  const [dismissedSavePrompt, setDismissedSavePrompt] = useState(false);
 
   // Check authentication
   const { data: user, isLoading: authLoading } = useQuery({
@@ -51,6 +52,12 @@ const MyJourney: React.FC = () => {
 
   // Determine which journey to use
   useEffect(() => {
+    // Check if user dismissed the prompt
+    const dismissed = localStorage.getItem('oasara-save-prompt-dismissed');
+    if (dismissed) {
+      setDismissedSavePrompt(true);
+    }
+
     if (user && authJourney) {
       // Authenticated user with journey
       setActiveJourneyId(authJourney.id);
@@ -60,8 +67,8 @@ const MyJourney: React.FC = () => {
       setActiveJourneyId(guestJourney.id);
       setIsGuest(true);
 
-      // Check if we should prompt to save
-      if (shouldPromptToSave() && !user) {
+      // Check if we should prompt to save (and haven't dismissed it)
+      if (shouldPromptToSave() && !user && !dismissed) {
         setTimeout(() => setShowSavePrompt(true), 3000); // Show after 3 seconds
       }
     }
@@ -84,6 +91,14 @@ const MyJourney: React.FC = () => {
   const handleSaveJourney = async () => {
     // Navigate to signup with return URL
     window.location.href = '/signup?save-journey=true';
+  };
+
+  const handleDismissSavePrompt = (permanent: boolean = false) => {
+    setShowSavePrompt(false);
+    if (permanent) {
+      localStorage.setItem('oasara-save-prompt-dismissed', 'true');
+      setDismissedSavePrompt(true);
+    }
   };
 
   if (authLoading) {
@@ -175,7 +190,7 @@ const MyJourney: React.FC = () => {
             className="fixed top-20 right-4 z-50 w-96 bg-white rounded-xl shadow-2xl border-2 border-ocean-200 p-6"
           >
             <button
-              onClick={() => setShowSavePrompt(false)}
+              onClick={() => handleDismissSavePrompt(false)}
               className="absolute top-2 right-2 p-1 text-ocean-400 hover:text-ocean-600 rounded-lg transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,7 +209,7 @@ const MyJourney: React.FC = () => {
                   Love what you're seeing?
                 </h3>
                 <p className="text-sm text-ocean-600 mb-4">
-                  Save your journey progress and access it from any device. Takes 30 seconds.
+                  Save your journey and access it from any device.
                 </p>
                 {getGuestEngagementMetrics() && (
                   <div className="bg-sage-50 rounded-lg p-3 mb-4">
@@ -204,18 +219,26 @@ const MyJourney: React.FC = () => {
                     </div>
                   </div>
                 )}
-                <div className="flex gap-2">
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleSaveJourney}
+                      className="flex-1 px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors font-medium text-sm"
+                    >
+                      Save My Journey
+                    </button>
+                    <button
+                      onClick={() => handleDismissSavePrompt(false)}
+                      className="px-4 py-2 text-ocean-600 hover:bg-sage-50 rounded-lg transition-colors text-sm"
+                    >
+                      Maybe Later
+                    </button>
+                  </div>
                   <button
-                    onClick={handleSaveJourney}
-                    className="flex-1 px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors font-medium text-sm"
+                    onClick={() => handleDismissSavePrompt(true)}
+                    className="w-full text-xs text-ocean-400 hover:text-ocean-600 transition-colors"
                   >
-                    Save My Journey
-                  </button>
-                  <button
-                    onClick={() => setShowSavePrompt(false)}
-                    className="px-4 py-2 text-ocean-600 hover:bg-sage-50 rounded-lg transition-colors text-sm"
-                  >
-                    Maybe Later
+                    Don't show this again
                   </button>
                 </div>
               </div>

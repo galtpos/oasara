@@ -10,6 +10,13 @@
   to = "/index.html"
   status = 200
 
+# Rate Limiting for Functions
+[functions."onboarding-chat"]
+  rate_limit = { window = "1m", limit = 10 }
+
+[functions."journey-chat"]
+  rate_limit = { window = "1m", limit = 20 }
+
 # Security Headers
 [[headers]]
   for = "/*"

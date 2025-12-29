@@ -118,6 +118,67 @@ Then use the create_journey tool.
       }
     }
 
+    // Validate journey data if present
+    if (createJourneyData) {
+      const { budgetMin, budgetMax, procedure } = createJourneyData as any;
+
+      // Validate budget ranges
+      if (typeof budgetMin !== 'number' || typeof budgetMax !== 'number') {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'Invalid budget values',
+            message: 'Budget must be numeric values'
+          })
+        };
+      }
+
+      if (budgetMin < 0 || budgetMax < 0) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'Invalid budget range',
+            message: 'Budget values must be positive'
+          })
+        };
+      }
+
+      if (budgetMin > budgetMax) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'Invalid budget range',
+            message: 'Minimum budget cannot exceed maximum budget'
+          })
+        };
+      }
+
+      if (budgetMax > 1000000) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'Invalid budget range',
+            message: 'Budget seems unrealistic. Please verify the amount.'
+          })
+        };
+      }
+
+      if (!procedure || typeof procedure !== 'string' || procedure.length < 3) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            error: 'Invalid procedure',
+            message: 'Please specify a valid procedure type'
+          })
+        };
+      }
+    }
+
     // If no text message, provide a default
     if (!assistantMessage) {
       assistantMessage = "Great! I'm setting up your personalized journey now...";
