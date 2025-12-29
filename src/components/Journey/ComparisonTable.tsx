@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../../lib/supabase';
 
 interface Facility {
   id: string;
@@ -39,6 +40,51 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
   isLoading,
   onOpenChatbot
 }) => {
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [noteContent, setNoteContent] = useState('');
+  const [savingNoteId, setSavingNoteId] = useState<string | null>(null);
+  const [editingRatingId, setEditingRatingId] = useState<string | null>(null);
+  const [ratingValue, setRatingValue] = useState(0);
+
+  const handleSaveNote = async (journeyFacilityId: string) => {
+    setSavingNoteId(journeyFacilityId);
+    try {
+      const { error } = await supabase
+        .from('journey_facilities')
+        .update({ notes: noteContent.trim() })
+        .eq('id', journeyFacilityId);
+
+      if (error) throw error;
+
+      setEditingNoteId(null);
+      setNoteContent('');
+      window.location.reload();
+    } catch (error) {
+      console.error('Error saving note:', error);
+      alert('Failed to save note');
+    } finally {
+      setSavingNoteId(null);
+    }
+  };
+
+  const handleSaveRating = async (journeyFacilityId: string) => {
+    try {
+      const { error } = await supabase
+        .from('journey_facilities')
+        .update({ rating: ratingValue })
+        .eq('id', journeyFacilityId);
+
+      if (error) throw error;
+
+      setEditingRatingId(null);
+      setRatingValue(0);
+      window.location.reload();
+    } catch (error) {
+      console.error('Error saving rating:', error);
+      alert('Failed to save rating');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -230,23 +276,66 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
             </td>
             {shortlistedFacilities.map((item) => (
               <td key={item.id} className="py-4 px-4">
-                {item.rating ? (
-                  <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <svg
-                        key={i}
-                        className={`w-5 h-5 ${
-                          i < item.rating! ? 'text-red-400' : 'text-sage-300'
-                        }`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                      >
-                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                      </svg>
-                    ))}
+                {editingRatingId === item.id ? (
+                  <div className="flex items-center gap-2">
+                    <div className="flex">
+                      {[...Array(5)].map((_, i) => (
+                        <svg
+                          key={i}
+                          onClick={() => setRatingValue(i + 1)}
+                          className={`w-6 h-6 cursor-pointer hover:scale-110 transition-transform ${
+                            i < ratingValue ? 'text-red-400' : 'text-sage-300'
+                          }`}
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                        </svg>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => handleSaveRating(item.id)}
+                      className="px-2 py-1 bg-ocean-600 text-white rounded text-xs"
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingRatingId(null);
+                        setRatingValue(0);
+                      }}
+                      className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 ) : (
-                  <span className="text-sage-500 text-sm">Not rated</span>
+                  <div
+                    onClick={() => {
+                      setEditingRatingId(item.id);
+                      setRatingValue(item.rating || 0);
+                    }}
+                    className="cursor-pointer hover:opacity-75 transition-opacity"
+                  >
+                    {item.rating ? (
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                          <svg
+                            key={i}
+                            className={`w-5 h-5 ${
+                              i < item.rating! ? 'text-red-400' : 'text-sage-300'
+                            }`}
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                          </svg>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sage-500 text-sm hover:text-ocean-600">Click to rate</span>
+                    )}
+                  </div>
                 )}
               </td>
             ))}
@@ -264,12 +353,51 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
             </td>
             {shortlistedFacilities.map((item) => (
               <td key={item.id} className="py-4 px-4">
-                {item.notes ? (
-                  <div className="text-sm text-ocean-800 max-w-xs">
-                    {item.notes}
+                {editingNoteId === item.id ? (
+                  <div className="space-y-2">
+                    <textarea
+                      value={noteContent}
+                      onChange={(e) => setNoteContent(e.target.value)}
+                      placeholder="Add your notes about this facility..."
+                      rows={3}
+                      className="w-full px-3 py-2 border-2 border-ocean-300 rounded-lg focus:border-ocean-600 focus:outline-none text-sm resize-none"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleSaveNote(item.id)}
+                        disabled={savingNoteId === item.id}
+                        className="px-3 py-1.5 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 text-xs font-medium disabled:opacity-50"
+                      >
+                        {savingNoteId === item.id ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setEditingNoteId(null);
+                          setNoteContent('');
+                        }}
+                        className="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 text-xs font-medium"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
                 ) : (
-                  <span className="text-sage-500 text-sm italic">No notes</span>
+                  <div
+                    onClick={() => {
+                      setEditingNoteId(item.id);
+                      setNoteContent(item.notes || '');
+                    }}
+                    className="cursor-pointer hover:bg-ocean-50 rounded p-2 transition-colors"
+                  >
+                    {item.notes ? (
+                      <div className="text-sm text-ocean-800 max-w-xs whitespace-pre-wrap">
+                        {item.notes}
+                      </div>
+                    ) : (
+                      <span className="text-sage-500 text-sm italic">Click to add notes</span>
+                    )}
+                  </div>
                 )}
               </td>
             ))}
