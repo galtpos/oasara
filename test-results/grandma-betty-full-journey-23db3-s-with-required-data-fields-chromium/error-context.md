@@ -1,0 +1,59 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - heading "Let's Talk About Your Care" [level=1] [ref=e6]
+      - paragraph [ref=e7]: No forms. No hassle. Just tell us what you're looking for, and we'll help you find the perfect option.
+    - generic [ref=e10]:
+      - generic [ref=e12]:
+        - img [ref=e14]
+        - generic [ref=e16]:
+          - generic [ref=e17]: Your Personal Guide
+          - generic [ref=e18]: Let's find your perfect care
+      - generic [ref=e21]:
+        - generic [ref=e22]: Hey! I'm here to help you explore your healthcare options. What brings you here today? Feel free to tell me in your own words - no forms to fill out, just a conversation.
+        - generic [ref=e23]: 11:25 AM
+      - generic [ref=e24]:
+        - generic [ref=e25]: "Quick start:"
+        - generic [ref=e26]:
+          - button "I'm exploring options" [ref=e27] [cursor=pointer]
+          - button "I know what I need" [ref=e28] [cursor=pointer]
+          - button "Price comparison" [ref=e29] [cursor=pointer]
+          - button "Safety first" [ref=e30] [cursor=pointer]
+      - generic [ref=e32]:
+        - textbox "Tell me what you're looking for..." [ref=e33]: flexible timeline
+        - button "Click to speak (Chrome/Edge only)" [ref=e34] [cursor=pointer]:
+          - img [ref=e35]
+        - button [ref=e37] [cursor=pointer]:
+          - img [ref=e38]
+    - generic [ref=e41]:
+      - generic [ref=e42]:
+        - img [ref=e43]
+        - generic [ref=e45]: JCI-Accredited Facilities
+      - generic [ref=e46]:
+        - img [ref=e47]
+        - generic [ref=e49]: Your Data is Private
+      - generic [ref=e50]:
+        - img [ref=e51]
+        - generic [ref=e53]: Save 40-80% vs US Prices
+  - generic [ref=e54]:
+    - button "Open Oasis Guide" [ref=e56] [cursor=pointer]:
+      - img [ref=e57]
+      - generic: Ask the Oasis Guide
+    - generic [ref=e59]: "!"
+  - generic:
+    - generic:
+      - paragraph [ref=e60]:
+        - strong [ref=e61]: Earn up to $50 fUSD!
+        - text: Report bugs, suggest features, or improve UX.
+        - link "View Bounty Board" [ref=e62] [cursor=pointer]:
+          - /url: /bounty
+      - button "Got it" [ref=e63] [cursor=pointer]
+    - button "Send feedback" [ref=e64] [cursor=pointer]:
+      - img [ref=e65]
+  - link "VP.net - Revolutionary Privacy with Intel SGX" [ref=e70] [cursor=pointer]:
+    - /url: https://vp.net/?_a=8pR5Fr
+    - img "VP.net - Revolutionary Privacy with Intel SGX" [ref=e71]
+```

@@ -8,7 +8,7 @@ const anthropic = new Anthropic({
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_KEY || '' // Service key for server-side queries
+  process.env.SUPABASE_ANON_KEY || '' // Anon key is fine for reading facilities
 );
 
 interface ChatRequest {
