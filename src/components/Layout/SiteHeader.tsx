@@ -139,10 +139,10 @@ const SiteHeader: React.FC = () => {
                 <span className="text-xs bg-gradient-to-r from-gold-500 to-gold-600 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
               </Link>
               <Link
-                to="/help"
-                className={`nav-link ${isActive('/help') ? 'text-gold-500' : ''}`}
+                to="/guide"
+                className={`nav-link ${isActive('/guide') ? 'text-gold-500' : ''}`}
               >
-                Help
+                Guide
               </Link>
               <Link to="/signup" className="btn-gold">
                 Join
@@ -232,13 +232,13 @@ const SiteHeader: React.FC = () => {
                   <span className="text-xs bg-gradient-to-r from-gold-500 to-gold-600 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
                 </Link>
                 <Link
-                  to="/help"
+                  to="/guide"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`px-4 py-2 rounded-lg transition-colors ${
-                    isActive('/help') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                    isActive('/guide') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
                   }`}
                 >
-                  Help
+                  Guide
                 </Link>
                 <Link
                   to="/signup"

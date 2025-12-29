@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-const Help: React.FC = () => {
+const Guide: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string>('getting-started');
 
   const sections = [
@@ -41,7 +41,7 @@ const Help: React.FC = () => {
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-24">
-              <h2 className="text-lg font-display text-ocean-800 mb-4">Help Topics</h2>
+              <h2 className="text-lg font-display text-ocean-800 mb-4">Guide Sections</h2>
               <nav className="space-y-2">
                 {sections.map((section) => (
                   <button
@@ -788,4 +788,4 @@ const Help: React.FC = () => {
   );
 };
 
-export default Help;
+export default Guide;
