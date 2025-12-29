@@ -16,6 +16,7 @@ import Feedback from './pages/Feedback';
 import MedicalTrusts from './pages/MedicalTrusts';
 import BountyBoard from './pages/BountyBoard';
 import MyJourney from './pages/MyJourney';
+import Help from './pages/Help';
 
 // Admin pages
 import AdminLogin from './admin/pages/AdminLogin';
@@ -57,6 +58,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/medical-trusts" element={<MedicalTrusts />} />
       <Route path="/bounty" element={<BountyBoard />} />
       <Route path="/my-journey" element={<MyJourney />} />
+      <Route path="/help" element={<Help />} />
 
       {/* US Hospital Transparency Routes - Lazy loaded with Suspense */}
       <Route path="/us-hospitals" element={<Suspense fallback={<PageLoader />}><USHospitals /></Suspense>} />
