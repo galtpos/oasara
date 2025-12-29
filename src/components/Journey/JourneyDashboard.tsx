@@ -26,6 +26,8 @@ interface JourneyDashboardProps {
 const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
   const [activeTab, setActiveTab] = useState<'compare' | 'shortlist' | 'notes'>('compare');
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [isEditingProcedure, setIsEditingProcedure] = useState(false);
+  const [editedProcedure, setEditedProcedure] = useState(journey.procedure_type);
 
   // Fetch shortlisted facilities
   const { data: shortlistedFacilities, isLoading: facilitiesLoading, refetch: refetchShortlist } = useQuery({
@@ -94,6 +96,49 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
   const shortlistCount = shortlistedFacilities?.length || 0;
   const notesCount = notes?.length || 0;
 
+  const handleSaveProcedure = async () => {
+    if (!editedProcedure.trim()) {
+      alert('Procedure cannot be empty');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('patient_journeys')
+        .update({ procedure_type: editedProcedure.trim() })
+        .eq('id', journey.id);
+
+      if (error) throw error;
+
+      journey.procedure_type = editedProcedure.trim();
+      setIsEditingProcedure(false);
+      window.location.reload(); // Refresh to update recommendations
+    } catch (error) {
+      console.error('Error updating procedure:', error);
+      alert('Failed to update procedure. Please try again.');
+    }
+  };
+
+  const handleDeleteProcedure = async () => {
+    if (!confirm('Are you sure you want to clear your procedure? This will reset your journey.')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('patient_journeys')
+        .update({ procedure_type: '' })
+        .eq('id', journey.id);
+
+      if (error) throw error;
+
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting procedure:', error);
+      alert('Failed to delete procedure. Please try again.');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Journey Summary Card */}
@@ -103,10 +148,58 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
         className="bg-white rounded-2xl shadow-lg p-6 mb-6"
       >
         <div className="flex items-start justify-between">
-          <div>
-            <h2 className="text-2xl font-display text-ocean-800 mb-2">
-              {journey.procedure_type}
-            </h2>
+          <div className="flex-1">
+            {isEditingProcedure ? (
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  value={editedProcedure}
+                  onChange={(e) => setEditedProcedure(e.target.value)}
+                  className="flex-1 px-3 py-2 border-2 border-ocean-300 rounded-lg focus:outline-none focus:border-ocean-600 text-lg font-display"
+                  placeholder="Enter procedure (e.g., Breast Augmentation)"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSaveProcedure}
+                  className="px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors text-sm font-medium"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => {
+                    setEditedProcedure(journey.procedure_type);
+                    setIsEditingProcedure(false);
+                  }}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 mb-2">
+                <h2 className="text-2xl font-display text-ocean-800">
+                  {journey.procedure_type}
+                </h2>
+                <button
+                  onClick={() => setIsEditingProcedure(true)}
+                  className="p-1.5 text-ocean-600 hover:bg-ocean-50 rounded-lg transition-colors"
+                  title="Edit procedure"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleDeleteProcedure}
+                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  title="Delete procedure"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            )}
             <div className="flex items-center gap-4 text-sm text-ocean-600">
               {journey.budget_min && journey.budget_max && (
                 <span className="flex items-center gap-1">
