@@ -274,6 +274,28 @@ const PublicSite: React.FC = () => {
         <SavingsCalculator />
       </Suspense>
 
+      {/* AI-First CTA - Primary Action */}
+      <div className="bg-gradient-to-r from-ocean-600 to-ocean-700 py-12">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="text-3xl md:text-4xl font-display text-white mb-4">
+            Ready to Find Your Perfect Care?
+          </h2>
+          <p className="text-xl text-white/90 mb-8">
+            Skip the forms. Just tell us what you're looking for - our AI will handle the rest.
+          </p>
+          <a
+            href="/start"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-white text-ocean-700 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            </svg>
+            Start a Conversation
+          </a>
+          <p className="text-sm text-white/70 mt-4">No account needed • Takes 2 minutes</p>
+        </div>
+      </div>
+
       {/* How It Works Button */}
       <div className="bg-white py-4 text-center border-b border-sage-200">
         <button
