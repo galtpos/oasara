@@ -9,11 +9,13 @@ import ConfirmEmail from './pages/ConfirmEmail';
 // Main pages
 import PublicSite from './pages/PublicSite';
 import MedicalTourismHub from './pages/MedicalTourismHub';
+import FacilityDetail from './pages/FacilityDetail';
 import WhyZano from './pages/WhyZano';
 import ActionCenter from './pages/ActionCenter';
 import Feedback from './pages/Feedback';
 import MedicalTrusts from './pages/MedicalTrusts';
 import BountyBoard from './pages/BountyBoard';
+import MyJourney from './pages/MyJourney';
 
 // Admin pages
 import AdminLogin from './admin/pages/AdminLogin';
@@ -48,11 +50,13 @@ const AppRoutes: React.FC = () => {
       <Route path="/app" element={<PublicSite />} />
       <Route path="/welcome" element={<PublicSite />} />
       <Route path="/hub" element={<MedicalTourismHub />} />
+      <Route path="/facilities/:id" element={<FacilityDetail />} />
       <Route path="/why-zano" element={<WhyZano />} />
       <Route path="/action" element={<ActionCenter />} />
       <Route path="/feedback" element={<Feedback />} />
       <Route path="/medical-trusts" element={<MedicalTrusts />} />
       <Route path="/bounty" element={<BountyBoard />} />
+      <Route path="/my-journey" element={<MyJourney />} />
 
       {/* US Hospital Transparency Routes - Lazy loaded with Suspense */}
       <Route path="/us-hospitals" element={<Suspense fallback={<PageLoader />}><USHospitals /></Suspense>} />

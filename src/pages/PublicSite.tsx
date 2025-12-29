@@ -17,6 +17,9 @@ const GlobalFacilityMap = lazy(() => import('../components/Map/GlobalFacilityMap
 const ZanoTutorials = lazy(() => import('../components/Zano/ZanoTutorials'));
 const MedicalTourismVideos = lazy(() => import('../components/Videos/MedicalTourismVideos'));
 const USHealthcareCrisis = lazy(() => import('../components/Videos/USHealthcareCrisis'));
+const TestimonialsSection = lazy(() => import('../components/Trust/TestimonialsSection'));
+const SuccessMetrics = lazy(() => import('../components/Trust/SuccessMetrics'));
+const SavingsCalculator = lazy(() => import('../components/Calculator/SavingsCalculator'));
 
 interface PledgeCounts {
   medical_trust: number;
@@ -102,6 +105,19 @@ const PublicSite: React.FC = () => {
       }
     };
     fetchUSStats();
+  }, []);
+
+  // Read URL parameters on mount (from calculator CTA)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const specialtyParam = params.get('specialty');
+    if (specialtyParam) {
+      setSearchQuery(specialtyParam);
+      // Scroll to facility list
+      setTimeout(() => {
+        document.getElementById('main-content')?.scrollIntoView({ behavior: 'smooth' });
+      }, 500);
+    }
   }, []);
 
   // Fetch facilities with error handling
@@ -249,51 +265,27 @@ const PublicSite: React.FC = () => {
         </div>
       </div>
 
-      {/* Hero Section - Value Proposition */}
-      <section className="bg-gradient-to-br from-ocean-600 via-ocean-700 to-ocean-800 text-white py-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="max-w-3xl">
-            <h2 className="font-display text-4xl md:text-5xl mb-4 text-white">
-              Save 60-80% on Medical Procedures
-            </h2>
-            <p className="text-xl text-ocean-100 mb-6 leading-relaxed">
-              Compare {facilities.length}+ JCI-accredited facilities across {countries.length} countries.
-              Transparent pricing. No middleman fees. Your medical sovereignty.
-            </p>
-            <div className="flex flex-wrap gap-4 items-center">
-              <button
-                onClick={() => setShowHowItWorks(!showHowItWorks)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border-2 border-white/30 rounded-lg font-semibold transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                How It Works
-              </button>
-              <div className="flex items-center gap-6 text-ocean-100">
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-gold-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  </svg>
-                  <span className="text-sm font-medium">JCI Accredited</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                  <span className="text-sm font-medium">Verified Facilities</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <span className="text-sm font-medium">Privacy First</span>
-                </div>
-              </div>
-            </div>
-          </div>
+      {/* Hero Section - Savings Calculator */}
+      <Suspense fallback={
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 py-20 text-center text-white">
+          <p>Loading calculator...</p>
         </div>
-      </section>
+      }>
+        <SavingsCalculator />
+      </Suspense>
+
+      {/* How It Works Button */}
+      <div className="bg-white py-4 text-center border-b border-sage-200">
+        <button
+          onClick={() => setShowHowItWorks(!showHowItWorks)}
+          className="inline-flex items-center gap-2 px-6 py-2 bg-ocean-600 hover:bg-ocean-700 text-white rounded-lg font-semibold transition-all"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          How It Works
+        </button>
+      </div>
 
       {/* How It Works - Expandable */}
       <AnimatePresence>
@@ -550,6 +542,16 @@ const PublicSite: React.FC = () => {
           <MedicalTourismVideos />
         </Suspense>
       )}
+
+      {/* Success Metrics - Industry Statistics */}
+      <Suspense fallback={<div className="py-12 text-center"><p className="text-ocean-600">Loading metrics...</p></div>}>
+        <SuccessMetrics />
+      </Suspense>
+
+      {/* Patient Testimonials */}
+      <Suspense fallback={<div className="py-12 text-center"><p className="text-ocean-600">Loading testimonials...</p></div>}>
+        <TestimonialsSection />
+      </Suspense>
 
       {/* Zano Tutorials Section - Intersection Observer lazy loads videos on demand */}
       <Suspense fallback={<div className="py-12 bg-ocean-50 text-center"><p className="text-ocean-600">Loading tutorials...</p></div>}>

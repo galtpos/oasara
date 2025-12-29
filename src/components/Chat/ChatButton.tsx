@@ -20,7 +20,7 @@ const ChatButton: React.FC = () => {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            className="fixed bottom-6 right-6 z-40"
+            className="fixed bottom-6 right-6 z-[9998]"
           >
             {/* Pulse ring animation */}
             {!hasInteracted && (

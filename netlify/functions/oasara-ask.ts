@@ -1,10 +1,18 @@
 import { Handler } from '@netlify/functions';
 import { HfInference } from '@huggingface/inference';
+import { procedures, searchProcedures, getCheapestGlobalCost } from '../../src/data/procedureDatabase';
+import { createClient } from '@supabase/supabase-js';
 
 /**
- * OASARA RAG Query Function
+ * OASARA COMPREHENSIVE CHATBOT
  *
- * Handles questions about medical facilities, trust laws, and medical tourism.
+ * Accesses ALL site data:
+ * - 518 JCI facilities (Supabase)
+ * - 43 procedures with pricing
+ * - Doctor profiles
+ * - Medical trust laws (Qdrant)
+ * - Legal services (Qdrant)
+ * - Medical tourism knowledge (Qdrant)
  *
  * POST body: { question: string, k?: number }
  * Response: { answer: string, sources: Source[] }
@@ -14,9 +22,14 @@ const QDRANT_URL = process.env.QDRANT_URL || '';
 const QDRANT_API_KEY = process.env.QDRANT_API_KEY || '';
 const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || '';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
 
 const COLLECTION_NAME = 'oasara_medical';
 const EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2';
+
+// Initialize Supabase client for facility queries
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 interface Source {
   type: string;
@@ -28,6 +41,7 @@ interface Source {
   website?: string;
   price?: string;
   rating?: number;
+  id?: string;
 }
 
 interface QdrantSearchResult {
@@ -97,25 +111,203 @@ async function searchQdrant(vector: number[], k: number = 5): Promise<QdrantSear
 }
 
 /**
+ * Classify user intent to route to appropriate data source
+ */
+function classifyIntent(question: string): string[] {
+  const q = question.toLowerCase();
+  const intents: string[] = [];
+
+  // Facility search indicators
+  if (q.match(/\b(hospital|clinic|facility|facilities|center|centres)\b/) ||
+      q.match(/\b(where|which|find|show|list)\b.*\b(in|at)\b/)) {
+    intents.push('facility');
+  }
+
+  // Doctor search indicators
+  if (q.match(/\b(doctor|surgeon|physician|specialist|dr\.)\b/)) {
+    intents.push('doctor');
+  }
+
+  // Procedure indicators
+  if (q.match(/\b(surgery|procedure|treatment|operation|therapy)\b/) ||
+      q.match(/\b(cost|price|how much|save|savings)\b/) ||
+      q.match(/\b(hip|knee|heart|dental|lasik|ivf)\b/)) {
+    intents.push('procedure');
+  }
+
+  // Trust/legal indicators
+  if (q.match(/\b(trust|legal|law|estate|planning|will|directive)\b/)) {
+    intents.push('trust');
+  }
+
+  // Country/location indicators
+  if (q.match(/\b(thailand|mexico|india|turkey|costa rica|colombia|panama|singapore)\b/i)) {
+    intents.push('location');
+  }
+
+  return intents.length > 0 ? intents : ['general'];
+}
+
+/**
+ * Search facilities in Supabase
+ */
+async function searchFacilities(question: string, procedureName?: string) {
+  try {
+    let query = supabase.from('facilities').select('*');
+
+    // If specific procedure mentioned, filter by it
+    if (procedureName) {
+      query = query.or(`popular_procedures.cs.{${procedureName}},specialties.cs.{${procedureName}}`);
+    }
+
+    // Extract country/city from question
+    const countryMatch = question.match(/\b(thailand|mexico|india|turkey|costa rica|colombia|panama|singapore|brazil|south korea|malaysia|czech republic|spain|greece|hungary|dubai|germany|japan|iran)\b/i);
+    if (countryMatch) {
+      const country = countryMatch[0];
+      query = query.ilike('country', `%${country}%`);
+    }
+
+    // Limit to top results
+    query = query.limit(10);
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Supabase facility search error:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Facility search error:', error);
+    return [];
+  }
+}
+
+/**
+ * Search doctors across facilities
+ */
+async function searchDoctors(question: string) {
+  try {
+    const { data, error } = await supabase
+      .from('facilities')
+      .select('name, city, country, doctors, website')
+      .not('doctors', 'is', null)
+      .limit(10);
+
+    if (error) {
+      console.error('Doctor search error:', error);
+      return [];
+    }
+
+    // Filter facilities that have doctor data
+    return (data || []).filter(f => f.doctors && f.doctors.length > 0);
+  } catch (error) {
+    console.error('Doctor search error:', error);
+    return [];
+  }
+}
+
+/**
+ * Search US hospitals with pricing for comparison
+ */
+async function searchUSHospitals(question: string, procedureName?: string) {
+  try {
+    let query = supabase
+      .from('facilities')
+      .select('id, name, city, state, country, procedure_pricing, website')
+      .eq('country', 'United States');
+
+    // If specific procedure mentioned, filter by it
+    if (procedureName) {
+      query = query.or(`procedure_pricing.cs.{${procedureName}},popular_procedures.cs.{${procedureName}}`);
+    }
+
+    // Extract hospital name from question
+    const hospitalMatch = question.match(/\b([A-Z][a-z]+ (?:General |Medical |Regional )?(?:Hospital|Medical Center|Clinic|Health System))\b/);
+    if (hospitalMatch) {
+      const hospitalName = hospitalMatch[1];
+      query = query.ilike('name', `%${hospitalName}%`);
+    }
+
+    // Extract state from question
+    const stateMatch = question.match(/\b(Alabama|Alaska|Arizona|Arkansas|California|Colorado|Connecticut|Delaware|Florida|Georgia|Hawaii|Idaho|Illinois|Indiana|Iowa|Kansas|Kentucky|Louisiana|Maine|Maryland|Massachusetts|Michigan|Minnesota|Mississippi|Missouri|Montana|Nebraska|Nevada|New Hampshire|New Jersey|New Mexico|New York|North Carolina|North Dakota|Ohio|Oklahoma|Oregon|Pennsylvania|Rhode Island|South Carolina|South Dakota|Tennessee|Texas|Utah|Vermont|Virginia|Washington|West Virginia|Wisconsin|Wyoming)\b/i);
+    if (stateMatch) {
+      query = query.ilike('state', `%${stateMatch[0]}%`);
+    }
+
+    query = query.limit(10);
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('US hospital search error:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('US hospital search error:', error);
+    return [];
+  }
+}
+
+/**
+ * Format facility data for LLM context
+ */
+function formatFacilityContext(facilities: any[]): string {
+  return facilities.map(f => {
+    const parts = [
+      `**${f.name}** (${f.city}, ${f.country}) [ID: ${f.id}]`,
+      f.jci_accredited ? '✓ JCI Accredited' : '',
+      f.specialties ? `Specialties: ${f.specialties.slice(0, 3).join(', ')}` : '',
+      f.website ? `Website: ${f.website}` : '',
+    ];
+    return parts.filter(Boolean).join('\n');
+  }).join('\n\n');
+}
+
+/**
  * Generate answer using DeepSeek v3.2 via OpenRouter
  */
 async function generateAnswer(question: string, context: string): Promise<string> {
-  const systemPrompt = `You are the OASARA Guide, an expert assistant for medical tourism and healthcare sovereignty. You help people:
-- Find JCI-accredited medical facilities worldwide
-- Understand state trust laws for asset protection
-- Navigate online legal services for creating trusts and healthcare directives
-- Plan medical tourism trips safely and privately
+  const systemPrompt = `You are Oasara's medical tourism assistant. Be direct, clear, and helpful.
 
-IMPORTANT GUIDELINES:
-1. Be helpful, accurate, and concise
-2. When discussing facilities, mention specific details like location, specialties, and ratings
-3. When discussing trust laws, explain the benefits clearly
-4. **When users ask about creating trusts, estate planning, healthcare directives, or need legal help, ALWAYS recommend our partner legal services from the context with their links**
-5. Format legal service recommendations as: "**[Service Name]** (website) - description, price"
-6. Always prioritize patient safety and privacy
-7. If context includes legal services (type: legal_service), prominently recommend them with pricing
+CRITICAL: When context includes facilities with [ID: xxx], you MUST create markdown links using that EXACT ID.
+Example from context: "Berlin Medical Center (Berlin, Germany) [ID: abc-123]"
+Your response: "[Berlin Medical Center](/facilities/abc-123) - Berlin, Germany"
 
-If you don't have enough information to answer fully, say so and suggest what additional information would help.`;
+RESPONSE RULES:
+1. Start with answer immediately (no "based on context")
+2. ALWAYS link facilities: [Facility Name](/facilities/ID-from-context)
+3. Format prices: $12,000 (comma + dollar sign)
+4. Keep SHORT: 2-3 sentences + bullet list (max 3 items)
+5. NO call to action arrows (→) - just end naturally
+6. Show savings: Save $33,000 (73%)
+7. Never apologize or use filler phrases
+8. For sections: Use plain text "Facility Name:" not **bold**
+9. Max 3 facilities per list
+
+FACILITY LINKING (MANDATORY):
+- Context shows: "Bangkok Hospital (Bangkok, Thailand) [ID: abc-123]"
+- You write: "[Bangkok Hospital](/facilities/abc-123) - Bangkok, Thailand, $12,000"
+- NEVER make up IDs or use slugs
+- NEVER use **bold** inside markdown links
+- If no [ID: xxx] in context, don't create a link
+
+FORMATTING:
+- Prices: $12,000-$15,000
+- Comparison: US: $45,000 | Thailand: $12,000 | Save $33,000 (73%)
+- Lists: Use "-" for bullet points (3 max)
+- NO headers (###), NO bold (**), NO arrows (→)
+
+BANNED:
+- "Based on context", "I apologize", "Let me help", "Compare quotes"
+- Headers: ###, ##, #
+- Bold: ** (except in plain text, not in links)
+- Arrows: →
+- Bad numbers: "12k", "approximately"
+
+TONE: Direct friend. Just the facts and links.`;
 
   const response = await fetch(
     'https://openrouter.ai/api/v1/chat/completions',
@@ -133,14 +325,13 @@ If you don't have enough information to answer fully, say so and suggest what ad
           { role: 'system', content: systemPrompt },
           {
             role: 'user',
-            content: `Based on the following information from the OASARA database, please answer the user's question.
+            content: `CONTEXT FROM OASARA DATABASE:
 
-CONTEXT:
 ${context}
 
-USER QUESTION: ${question}
+QUESTION: ${question}
 
-Provide a helpful, accurate answer based on the context. If the context doesn't contain enough information, acknowledge that and provide what guidance you can.`
+Answer directly. Start with the answer, then support with data. End with one call to action.`
           }
         ],
         temperature: 0.7,
@@ -196,28 +387,161 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    // 1. Generate embedding for the question
-    const embedding = await getEmbedding(question);
+    // COMPREHENSIVE DATA ACCESS - Query ALL sources in parallel
+    const intents = classifyIntent(question);
+    let context = '';
+    const sources: Source[] = [];
 
-    // 2. Search Qdrant for relevant documents
-    const results = await searchQdrant(embedding, k);
+    // First, search procedures to get procedure name for filtering
+    const procedureResults = searchProcedures(question);
+    const topProcedureName = procedureResults.length > 0 ? procedureResults[0].name : undefined;
 
-    // 3. Build context from results
-    const sources: Source[] = results.map(r => ({
-      type: r.payload.type,
-      name: r.payload.name || r.payload.state || r.payload.title,
-      state: r.payload.state,
-      title: r.payload.title,
-      text: r.payload.text,
-      score: r.score,
-      website: r.payload.affiliateLink || r.payload.website,
-      price: r.payload.price,
-      rating: r.payload.rating
-    }));
+    // Query ALL data sources simultaneously (not just what matches intent)
+    const [
+      facilities,
+      usHospitals,
+      doctorFacilities,
+      ragResults
+    ] = await Promise.all([
+      // Query facilities if facility/location intent
+      (intents.includes('facility') || intents.includes('location'))
+        ? searchFacilities(question, topProcedureName)
+        : Promise.resolve([]),
 
-    const context = results.map(r => r.payload.text).join('\n\n---\n\n');
+      // ALWAYS search US hospitals for comparison
+      searchUSHospitals(question, topProcedureName),
 
-    // 4. Generate answer using LLM
+      // Query doctors if doctor intent
+      intents.includes('doctor')
+        ? searchDoctors(question)
+        : Promise.resolve([]),
+
+      // ALWAYS search RAG (trust, legal, medical tourism)
+      (async () => {
+        const embedding = await getEmbedding(question);
+        return await searchQdrant(embedding, k);
+      })()
+    ]);
+
+    // Build comprehensive context from ALL results
+
+    // 1. US Hospitals (for comparison)
+    if (usHospitals.length > 0) {
+      const usContext = usHospitals.map(h => {
+        const parts = [
+          `**${h.name}** (${h.city}, ${h.state}) [ID: ${h.id}]`,
+          h.procedure_pricing ? `Has pricing data for procedures` : '',
+          h.website ? `Website: ${h.website}` : ''
+        ];
+        return parts.filter(Boolean).join('\n');
+      }).join('\n\n');
+
+      context += `US HOSPITALS:\n\n${usContext}\n\n`;
+
+      usHospitals.slice(0, 3).forEach(h => {
+        sources.push({
+          type: 'us_hospital',
+          name: h.name,
+          text: `${h.name} in ${h.city}, ${h.state}`,
+          score: 0.95,
+          website: h.website,
+          id: h.id
+        });
+      });
+    }
+
+    // 2. Global Facilities
+    if (facilities.length > 0) {
+      context += `GLOBAL MEDICAL TOURISM FACILITIES:\n\n${formatFacilityContext(facilities)}\n\n`;
+      facilities.slice(0, 3).forEach(f => {
+        sources.push({
+          type: 'facility',
+          name: f.name,
+          text: `${f.name} in ${f.city}, ${f.country}`,
+          score: 0.9,
+          website: f.website,
+          id: f.id
+        });
+      });
+    }
+
+    // 3. Doctors
+    if (doctorFacilities.length > 0) {
+      const doctorContext = doctorFacilities.map(f => {
+        const doctors = f.doctors.slice(0, 3).map((d: any) =>
+          `- ${d.name}${d.specialization ? ` (${d.specialization})` : ''}`
+        ).join('\n');
+        return `**${f.name}** (${f.city}, ${f.country})\n${doctors}`;
+      }).join('\n\n');
+
+      context += `DOCTORS:\n\n${doctorContext}\n\n`;
+
+      doctorFacilities.slice(0, 3).forEach(f => {
+        sources.push({
+          type: 'doctor',
+          name: f.name,
+          text: `${f.name} - ${f.doctors.length} doctors`,
+          score: 0.85,
+          website: f.website
+        });
+      });
+    }
+
+    // 4. Procedures (only top match)
+    if (procedureResults.length > 0) {
+      const topProcedure = procedureResults[0];
+      const procedureFacilities = await searchFacilities(question, topProcedure.name);
+      const cheapest = getCheapestGlobalCost(topProcedure);
+      const bestCountry = topProcedure.globalCosts.find(gc => gc.costMin === cheapest);
+
+      context += `PROCEDURE PRICING:\n\n**${topProcedure.name}**\n- US: ${topProcedure.usaCost} (up to $${topProcedure.usaCostMax.toLocaleString()})\n- Cheapest: $${cheapest.toLocaleString()} in ${bestCountry?.city}, ${bestCountry?.country}\n- Savings: ${topProcedure.savings}\n\n`;
+
+      if (procedureFacilities.length > 0) {
+        context += `Facilities offering this:\n${formatFacilityContext(procedureFacilities)}\n\n`;
+      }
+
+      sources.push({
+        type: 'procedure',
+        name: topProcedure.name,
+        text: topProcedure.description || topProcedure.categoryTitle,
+        score: 0.95
+      });
+    }
+
+    // 5. Trust/Legal/Medical Tourism (ALWAYS include from RAG)
+    if (ragResults.length > 0) {
+      const ragContext = ragResults.map(r => r.payload.text).join('\n\n---\n\n');
+      context += `TRUST & LEGAL INFO:\n\n${ragContext}\n\n`;
+
+      ragResults.slice(0, 5).forEach(r => {
+        sources.push({
+          type: r.payload.type,
+          name: r.payload.name || r.payload.state || r.payload.title,
+          state: r.payload.state,
+          title: r.payload.title,
+          text: r.payload.text,
+          score: r.score,
+          website: r.payload.affiliateLink || r.payload.website,
+          price: r.payload.price,
+          rating: r.payload.rating
+        });
+      });
+    }
+
+    // If no context found anywhere, return helpful message
+    if (!context) {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          answer: `I'm here to help you with:\n\n- **Finding facilities**: "Show me hospitals in Thailand"\n- **Procedure pricing**: "How much does hip replacement cost?"\n- **Doctor search**: "Find cardiac surgeons in India"\n- **Legal help**: "How do I set up a medical trust?"\n\nWhat can I help you with?`,
+          sources: [],
+          question
+        })
+      };
+    }
+
+    // Generate answer using LLM with aggregated context
     const answer = await generateAnswer(question, context);
 
     return {
@@ -225,7 +549,7 @@ export const handler: Handler = async (event) => {
       headers,
       body: JSON.stringify({
         answer,
-        sources: sources.slice(0, 3), // Return top 3 sources
+        sources: sources.slice(0, 5), // Return top 5 sources
         question
       })
     };

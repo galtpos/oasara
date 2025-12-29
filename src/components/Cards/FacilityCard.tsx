@@ -5,6 +5,7 @@ import RequestZanoButton from '../Outreach/RequestZanoButton';
 import ContactOptionsMenu from '../Contact/ContactOptionsMenu';
 import ContactFacilityModal from '../Contact/ContactFacilityModal';
 import USPriceWidget from '../Pricing/USPriceWidget';
+import AccreditationBadge from '../Trust/AccreditationBadge';
 
 interface FacilityCardProps {
   facility: Facility;
@@ -357,11 +358,9 @@ const FacilityCard: React.FC<FacilityCardProps> = memo(({ facility, onClick }) =
       {/* Footer */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs">
-          {/* JCI Badge */}
+          {/* JCI Accreditation Badge with Tooltip */}
           {facility.jci_accredited && (
-            <div className="px-2.5 py-1 rounded bg-gold-100 border border-gold-200">
-              <span className="text-gold-700 font-bold">JCI Certified</span>
-            </div>
+            <AccreditationBadge type="jci" />
           )}
 
           {/* Distance */}

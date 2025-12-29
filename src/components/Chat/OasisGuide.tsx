@@ -274,7 +274,7 @@ const OasisGuide: React.FC<OasisGuideProps> = ({ isOpen, onClose }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-ocean-900/40 backdrop-blur-sm z-40 lg:hidden"
+            className="fixed inset-0 bg-ocean-900/40 backdrop-blur-sm z-[9997] lg:hidden"
             onClick={onClose}
           />
 
@@ -284,7 +284,7 @@ const OasisGuide: React.FC<OasisGuideProps> = ({ isOpen, onClose }) => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 400 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-gradient-to-br from-sage-50 via-white to-ocean-50/30 shadow-2xl z-50 flex flex-col"
+            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-gradient-to-br from-sage-50 via-white to-ocean-50/30 shadow-2xl z-[9999] flex flex-col"
           >
             {/* Header */}
             <div className="bg-gradient-to-r from-ocean-600 to-ocean-700 px-4 py-4 flex items-center justify-between">
