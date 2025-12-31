@@ -100,19 +100,6 @@ export function FeedbackWidget({ projectName, primaryColor = '#3B82F6' }: Feedba
 
   return (
     <div id="feedback-widget-container">
-      {/* Welcome Banner */}
-      {showBanner && (
-        <div className="feedback-banner" style={{ backgroundColor: primaryColor }}>
-          <p>
-            <strong>Earn up to $50 fUSD!</strong> Report bugs, suggest features, or improve UX.
-            <a href="/bounty" style={{ color: '#FCD34D', textDecoration: 'underline', marginLeft: '4px' }}>View Bounty Board</a>
-          </p>
-          <button onClick={dismissBanner} className="banner-dismiss">
-            Got it
-          </button>
-        </div>
-      )}
-
       {/* Floating Button */}
       <button
         className="feedback-fab"
