@@ -12,6 +12,12 @@ interface ChatRequest {
   context: {
     journeyId?: string | null;
     userId?: string | null;
+    procedure?: string;
+    shortlist?: Array<{
+      id: string;
+      name: string;
+      location: string;
+    }>;
   };
 }
 
@@ -37,6 +43,11 @@ const handler: Handler = async (event: HandlerEvent) => {
 
   try {
     const { messages, userMessage, context } = JSON.parse(event.body || '{}') as ChatRequest;
+
+    // Debug logging
+    console.log('[journey-chat] Received context:', JSON.stringify(context));
+    console.log('[journey-chat] journeyId:', context?.journeyId);
+    console.log('[journey-chat] userId:', context?.userId);
 
     // Create Supabase client with user's auth token if provided
     const authHeader = event.headers.authorization || event.headers.Authorization;
@@ -343,6 +354,25 @@ Answer their question:`;
       }
     ];
 
+    // Build dynamic context about user's current state
+    let userContext = '';
+    if (context.journeyId) {
+      userContext += `\n\n**CURRENT USER STATE:**\n`;
+      userContext += `- Journey ID: ${context.journeyId}\n`;
+      userContext += `- User ID: ${context.userId || 'Not logged in'}\n`;
+      userContext += `- Procedure: ${context.procedure || 'Not specified'}\n`;
+
+      if (context.shortlist && context.shortlist.length > 0) {
+        userContext += `\n**USER'S SHORTLIST (${context.shortlist.length} facilities):**\n`;
+        context.shortlist.forEach((f, i) => {
+          userContext += `${i + 1}. ${f.name} - ${f.location}\n`;
+        });
+        userContext += `\n**IMPORTANT:** When user asks to "compare" or wants to see their shortlist, IMMEDIATELY call generate_comparison tool. Do NOT ask questions - they already have facilities!`;
+      } else {
+        userContext += `\n**SHORTLIST:** Empty - user needs to add facilities first.\n`;
+      }
+    }
+
     // Call Claude API with function calling
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
@@ -350,7 +380,7 @@ Answer their question:`;
       system: [
         {
           type: 'text',
-          text: systemPrompt,
+          text: systemPrompt + userContext,
           cache_control: { type: 'ephemeral' }
         }
       ],
@@ -364,6 +394,7 @@ Answer their question:`;
     let assistantMessage = '';
     let facilities: any[] = [];
     let journeyId: string | null = context.journeyId || null;
+    let isComparison = false;
 
     // Process response content and handle tool calls
     for (const content of response.content) {
@@ -478,6 +509,8 @@ Answer their question:`;
                 break;
               }
 
+              console.log('[AddFacility] Inserting:', { journeyId: context.journeyId, facilityId: facilityMatch.id });
+
               const { error } = await supabase
                 .from('journey_facilities')
                 .insert({
@@ -488,7 +521,17 @@ Answer their question:`;
               if (!error) {
                 assistantMessage += `\n\n✅ Added **${facilityMatch.name}** to your shortlist!`;
               } else {
-                assistantMessage += `\n\n**${facilityMatch.name}** is already in your shortlist.`;
+                console.error('[AddFacility] Insert error:', error);
+                // Check specific error codes
+                if (error.code === '23505') {
+                  // Unique constraint violation = duplicate
+                  assistantMessage += `\n\n**${facilityMatch.name}** is already in your shortlist.`;
+                } else if (error.code === '42501' || error.message?.includes('policy')) {
+                  // RLS policy violation - the user doesn't own this journey
+                  assistantMessage += `\n\n**Something went wrong** - please make sure you're logged in and this is your journey.`;
+                } else {
+                  assistantMessage += `\n\n**Couldn't add ${facilityMatch.name}** - ${error.message}`;
+                }
               }
             }
             break;
@@ -531,30 +574,44 @@ Answer their question:`;
 
           case 'generate_comparison':
             {
+              console.log('[generate_comparison] context.journeyId:', context.journeyId);
+              console.log('[generate_comparison] context.userId:', context.userId);
+              console.log('[generate_comparison] context.shortlist:', context.shortlist);
+
               if (!context.journeyId || !context.userId) {
+                console.log('[generate_comparison] Missing journeyId or userId, returning login prompt');
                 assistantMessage += '\n\n**To generate comparisons, please [log in](/login) first.**';
                 break;
               }
 
-              // Get all shortlisted facilities for this journey
-              const { data: shortlist, error: shortlistError } = await supabase
-                .from('journey_facilities')
-                .select('facility_id')
-                .eq('journey_id', context.journeyId);
+              // Use shortlist from context (passed from frontend) to avoid RLS issues
+              const shortlistFromContext = context.shortlist || [];
 
-              if (shortlistError || !shortlist || shortlist.length === 0) {
-                assistantMessage += '\n\n**You haven\'t added any facilities to your shortlist yet.** Search for facilities and tell me to "add [facility name]" to build your comparison.';
+              if (shortlistFromContext.length === 0) {
+                console.log('[generate_comparison] No facilities in context shortlist');
+                assistantMessage += `\n\n**Your shortlist is empty!** Here's how to add facilities:
+
+1. **Ask me to search**: "Find hospitals for ${context.procedure || 'my procedure'} in Thailand"
+2. **Click "+ List"** on any facility card I show you
+3. **Or use the dashboard**: Go to the "My Shortlist" tab and click "Add" on recommended facilities
+
+Once you have 2+ facilities on your shortlist, I can create a detailed comparison for you!`;
                 break;
               }
 
-              // Get full facility details for each shortlisted facility
-              const facilityIds = shortlist.map(s => s.facility_id);
+              // Get full facility details using the IDs from context
+              const facilityIds = shortlistFromContext.map(s => s.id);
+              console.log('[generate_comparison] Fetching details for facility IDs:', facilityIds);
+
               const { data: comparisonFacilities, error: facilitiesError } = await supabase
                 .from('facilities')
                 .select('*')
                 .in('id', facilityIds);
 
-              if (facilitiesError || !comparisonFacilities) {
+              console.log('[generate_comparison] Facilities result:', comparisonFacilities?.length, 'facilities');
+              console.log('[generate_comparison] Facilities error:', facilitiesError);
+
+              if (facilitiesError || !comparisonFacilities || comparisonFacilities.length === 0) {
                 assistantMessage += '\n\n**I had trouble loading your shortlisted facilities.** Please try again.';
                 break;
               }
@@ -572,8 +629,9 @@ Answer their question:`;
                 console.error('Error saving comparison:', comparisonError);
               }
 
-              // Set facilities for frontend to render
+              // Set facilities for frontend to render as comparison table
               facilities = comparisonFacilities;
+              isComparison = true;
 
               assistantMessage += `\n\n📊 **Here's your side-by-side comparison of ${comparisonFacilities.length} facilities:**\n\nI've pulled together all the key details you need to make your decision. Take your time reviewing each option.`;
             }
@@ -582,31 +640,671 @@ Answer their question:`;
           // Stubs for Phase 2-4 tools
 
           case 'get_facility_details':
-            assistantMessage += '\n\n🏥 **Detailed facility view is coming in Phase 2!** Click "View Details" on any facility card.';
+            {
+              const { facility_id } = content.input as any;
+
+              // Try to find facility by ID or name
+              let facilityQuery = supabase
+                .from('facilities')
+                .select('*');
+
+              // Check if it's a UUID or a name
+              const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(facility_id);
+
+              if (isUUID) {
+                facilityQuery = facilityQuery.eq('id', facility_id);
+              } else {
+                facilityQuery = facilityQuery.ilike('name', `%${facility_id}%`);
+              }
+
+              const { data: facility, error: facilityError } = await facilityQuery.limit(1).single();
+
+              if (facilityError || !facility) {
+                assistantMessage += `\n\n**I couldn't find a facility matching "${facility_id}".** Try searching for facilities first.`;
+                break;
+              }
+
+              // Build detailed response
+              assistantMessage += `\n\n🏥 **${facility.name}**\n\n`;
+
+              // Location & Contact
+              assistantMessage += `📍 **Location:** ${facility.city}, ${facility.country}\n`;
+              if (facility.address) {
+                assistantMessage += `🏠 **Address:** ${facility.address}\n`;
+              }
+              if (facility.phone) {
+                assistantMessage += `📞 **Phone:** ${facility.phone}\n`;
+              }
+              if (facility.email) {
+                assistantMessage += `📧 **Email:** ${facility.email}\n`;
+              }
+              if (facility.website) {
+                assistantMessage += `🌐 **Website:** [Visit Site](${facility.website})\n`;
+              }
+
+              assistantMessage += '\n---\n\n';
+
+              // Credentials
+              assistantMessage += '**Credentials & Quality:**\n';
+              assistantMessage += `- JCI Accredited: ${facility.jci_accredited ? '✅ Yes' : '❌ No'}\n`;
+              if (facility.google_rating) {
+                assistantMessage += `- Google Rating: ⭐ ${facility.google_rating}/5 (${facility.review_count || 0} reviews)\n`;
+              }
+              if (facility.year_established) {
+                assistantMessage += `- Established: ${facility.year_established}\n`;
+              }
+
+              // Procedures & Pricing
+              if (facility.popular_procedures && facility.popular_procedures.length > 0) {
+                assistantMessage += '\n**Popular Procedures:**\n';
+                facility.popular_procedures.slice(0, 5).forEach((proc: any) => {
+                  assistantMessage += `- **${proc.name}**: ${proc.price_range || 'Contact for pricing'}`;
+                  if (proc.wait_time) {
+                    assistantMessage += ` (Wait: ${proc.wait_time})`;
+                  }
+                  assistantMessage += '\n';
+                });
+              }
+
+              // Payment & Amenities
+              assistantMessage += '\n**Payment & Amenities:**\n';
+              assistantMessage += `- Accepts Zano: ${facility.accepts_zano ? '✅ Yes' : '❌ Not yet'}\n`;
+              if (facility.languages_spoken && facility.languages_spoken.length > 0) {
+                assistantMessage += `- Languages: ${facility.languages_spoken.join(', ')}\n`;
+              }
+              if (facility.amenities && facility.amenities.length > 0) {
+                assistantMessage += `- Amenities: ${facility.amenities.slice(0, 5).join(', ')}\n`;
+              }
+
+              // Description
+              if (facility.description) {
+                assistantMessage += `\n**About:**\n${facility.description.substring(0, 300)}${facility.description.length > 300 ? '...' : ''}\n`;
+              }
+
+              assistantMessage += `\n[View Full Details](/facilities/${facility.id})`;
+            }
             break;
 
           case 'add_journey_note':
-            assistantMessage += '\n\n📝 **Note-taking is coming in Phase 3!** I\'ll remember to ask you about that.';
+            {
+              if (!context.journeyId || !context.userId) {
+                assistantMessage += '\n\n**To save notes, please [log in](/login) first.**';
+                break;
+              }
+
+              const { note_text, note_type = 'general' } = content.input as any;
+
+              if (!note_text || note_text.trim().length === 0) {
+                assistantMessage += '\n\n**Please tell me what you\'d like to note down.** For example: "Note: ask about recovery time"';
+                break;
+              }
+
+              const { data: note, error: noteError } = await supabase
+                .from('journey_notes')
+                .insert({
+                  journey_id: context.journeyId,
+                  content: note_text.trim(),
+                  note_type: note_type,
+                  completed: false
+                })
+                .select()
+                .single();
+
+              if (noteError) {
+                console.error('Note creation error:', noteError);
+                assistantMessage += '\n\n**I had trouble saving that note.** Please try again.';
+                break;
+              }
+
+              const noteTypeEmojis: Record<string, string> = {
+                general: '📝',
+                question: '❓',
+                concern: '⚠️',
+                todo: '✅',
+                research: '🔍'
+              };
+
+              assistantMessage += `\n\n${noteTypeEmojis[note_type] || '📝'} **Got it! I've saved your note:**\n\n> "${note_text}"\n\nYou can view all your notes on the [journey dashboard](/my-journey).`;
+            }
             break;
 
           case 'share_journey':
-            assistantMessage += '\n\n🔗 **Journey sharing is coming in Phase 3!** You\'ll be able to share with family soon.';
+            {
+              if (!context.journeyId || !context.userId) {
+                assistantMessage += '\n\n**To share your journey, please [log in](/login) first.**';
+                break;
+              }
+
+              const { email, role } = content.input as any;
+
+              // Validate email format
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (!emailRegex.test(email)) {
+                assistantMessage += '\n\n**Please provide a valid email address.** For example: "share with john@example.com"';
+                break;
+              }
+
+              // Get current user's email for the invitation
+              const { data: { user: currentUser } } = await supabase.auth.getUser();
+              if (!currentUser?.email) {
+                assistantMessage += '\n\n**I couldn\'t retrieve your email.** Please try again.';
+                break;
+              }
+
+              // Get journey details for the email
+              const { data: journeyData, error: journeyError } = await supabase
+                .from('patient_journeys')
+                .select('procedure_type')
+                .eq('id', context.journeyId)
+                .single();
+
+              if (journeyError || !journeyData) {
+                assistantMessage += '\n\n**I couldn\'t find your journey.** Please refresh and try again.';
+                break;
+              }
+
+              // Check if already invited
+              const { data: existingInvite } = await supabase
+                .from('journey_collaborators')
+                .select('id, status')
+                .eq('journey_id', context.journeyId)
+                .eq('email', email.toLowerCase())
+                .single();
+
+              if (existingInvite && existingInvite.status !== 'declined') {
+                assistantMessage += `\n\n**${email}** has already been invited to view your journey.`;
+                break;
+              }
+
+              // Create invitation
+              const { data: invitation, error: inviteError } = await supabase
+                .from('journey_collaborators')
+                .insert({
+                  journey_id: context.journeyId,
+                  email: email.toLowerCase(),
+                  role: role || 'viewer',
+                  invited_by: context.userId
+                })
+                .select()
+                .single();
+
+              if (inviteError) {
+                console.error('Invitation creation error:', inviteError);
+                assistantMessage += '\n\n**I had trouble creating the invitation.** Please try again.';
+                break;
+              }
+
+              // Send invitation email via the send-journey-invitation function
+              try {
+                const emailResponse = await fetch(`${process.env.URL || 'https://oasara.com'}/.netlify/functions/send-journey-invitation`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    to: email,
+                    inviterEmail: currentUser.email,
+                    procedureType: journeyData.procedure_type,
+                    invitationToken: invitation.invitation_token,
+                    role: role || 'viewer'
+                  })
+                });
+
+                if (!emailResponse.ok) {
+                  console.error('Email send failed:', await emailResponse.text());
+                  // Still show success but note the email issue
+                  assistantMessage += `\n\n✅ **I've created a share link for ${email}!**\n\nThe email delivery might be delayed. You can also copy the link directly:\n\`${process.env.URL || 'https://oasara.com'}/journey/accept-invite/${invitation.invitation_token}\``;
+                } else {
+                  assistantMessage += `\n\n✅ **I've sent an invitation to ${email}!**\n\nThey'll receive an email with a link to view your ${journeyData.procedure_type} journey. The invitation expires in 7 days.\n\nYou can manage sharing from your [journey dashboard](/my-journey).`;
+                }
+              } catch (emailError) {
+                console.error('Email send error:', emailError);
+                assistantMessage += `\n\n✅ **Share link created for ${email}!**\n\nHere's the direct link:\n\`${process.env.URL || 'https://oasara.com'}/journey/accept-invite/${invitation.invitation_token}\``;
+              }
+            }
             break;
 
           case 'invite_collaborator':
-            assistantMessage += '\n\n👥 **Collaborator invites are coming in Phase 3!**';
+            {
+              if (!context.journeyId || !context.userId) {
+                assistantMessage += '\n\n**To invite collaborators, please [log in](/login) first.**';
+                break;
+              }
+
+              const { email } = content.input as any;
+
+              // Validate email format
+              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+              if (!email || !emailRegex.test(email)) {
+                assistantMessage += '\n\n**Please provide a valid email address.** For example: "invite mom@example.com to help"';
+                break;
+              }
+
+              // Get current user's email for the invitation
+              const { data: { user: currentUser } } = await supabase.auth.getUser();
+              if (!currentUser?.email) {
+                assistantMessage += '\n\n**I couldn\'t retrieve your email.** Please try again.';
+                break;
+              }
+
+              // Get journey details for the email
+              const { data: journeyData, error: journeyError } = await supabase
+                .from('patient_journeys')
+                .select('procedure_type')
+                .eq('id', context.journeyId)
+                .single();
+
+              if (journeyError || !journeyData) {
+                assistantMessage += '\n\n**I couldn\'t find your journey.** Please refresh and try again.';
+                break;
+              }
+
+              // Check if already invited
+              const { data: existingInvite } = await supabase
+                .from('journey_collaborators')
+                .select('id, status, role')
+                .eq('journey_id', context.journeyId)
+                .eq('email', email.toLowerCase())
+                .single();
+
+              if (existingInvite && existingInvite.status !== 'declined') {
+                const roleLabel = existingInvite.role === 'editor' ? 'collaborator' : 'viewer';
+                assistantMessage += `\n\n**${email}** has already been invited as a ${roleLabel}.`;
+                break;
+              }
+
+              // Create invitation with editor role for collaborators
+              const { data: invitation, error: inviteError } = await supabase
+                .from('journey_collaborators')
+                .insert({
+                  journey_id: context.journeyId,
+                  email: email.toLowerCase(),
+                  role: 'editor',
+                  invited_by: context.userId
+                })
+                .select()
+                .single();
+
+              if (inviteError) {
+                console.error('Collaborator invitation error:', inviteError);
+                assistantMessage += '\n\n**I had trouble creating the invitation.** Please try again.';
+                break;
+              }
+
+              // Send invitation email
+              try {
+                const emailResponse = await fetch(`${process.env.URL || 'https://oasara.com'}/.netlify/functions/send-journey-invitation`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    to: email,
+                    inviterEmail: currentUser.email,
+                    procedureType: journeyData.procedure_type,
+                    invitationToken: invitation.invitation_token,
+                    role: 'editor'
+                  })
+                });
+
+                if (!emailResponse.ok) {
+                  console.error('Email send failed:', await emailResponse.text());
+                  assistantMessage += `\n\n✅ **Invitation created for ${email}!**\n\nThey can collaborate on your journey using this link:\n\`${process.env.URL || 'https://oasara.com'}/journey/accept-invite/${invitation.invitation_token}\``;
+                } else {
+                  assistantMessage += `\n\n✅ **I've invited ${email} to collaborate on your journey!**\n\nThey'll be able to:\n- View your ${journeyData.procedure_type} research\n- Add notes and suggestions\n- Help compare facilities\n\nThe invitation expires in 7 days.`;
+                }
+              } catch (emailError) {
+                console.error('Email send error:', emailError);
+                assistantMessage += `\n\n✅ **Collaboration invite created!**\n\nShare this link with ${email}:\n\`${process.env.URL || 'https://oasara.com'}/journey/accept-invite/${invitation.invitation_token}\``;
+              }
+            }
             break;
 
           case 'contact_facility':
-            assistantMessage += '\n\n📧 **Facility contact is coming in Phase 3!** You can contact them directly for now.';
+            {
+              if (!context.journeyId || !context.userId) {
+                assistantMessage += '\n\n**To contact a facility, please [log in](/login) first.**';
+                break;
+              }
+
+              const { facility_id, message } = content.input as any;
+
+              // Get current user's info
+              const { data: { user: currentUser } } = await supabase.auth.getUser();
+              if (!currentUser?.email) {
+                assistantMessage += '\n\n**I couldn\'t retrieve your contact info.** Please make sure you\'re logged in.';
+                break;
+              }
+
+              // Get user profile for name
+              const { data: userProfile } = await supabase
+                .from('user_profiles')
+                .select('first_name, last_name, phone')
+                .eq('id', currentUser.id)
+                .single();
+
+              const userName = userProfile
+                ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Oasara User'
+                : 'Oasara User';
+
+              // Get facility details
+              const { data: facility, error: facilityError } = await supabase
+                .from('facilities')
+                .select('id, name, email, city, country')
+                .eq('id', facility_id)
+                .single();
+
+              if (facilityError || !facility) {
+                assistantMessage += '\n\n**I couldn\'t find that facility.** Please try again with a valid facility ID.';
+                break;
+              }
+
+              // Get journey details for procedure type
+              const { data: journeyData } = await supabase
+                .from('patient_journeys')
+                .select('procedure_type')
+                .eq('id', context.journeyId)
+                .single();
+
+              const procedureType = journeyData?.procedure_type || 'Medical procedure';
+
+              // Create contact request
+              const defaultMessage = message || `I am interested in learning more about ${procedureType} at your facility. Please send me information about pricing, availability, and the treatment process.`;
+
+              const { data: contactRequest, error: contactError } = await supabase
+                .from('contact_requests')
+                .insert({
+                  journey_id: context.journeyId,
+                  facility_id: facility.id,
+                  user_name: userName,
+                  user_email: currentUser.email,
+                  user_phone: userProfile?.phone || null,
+                  message: defaultMessage,
+                  procedure_type: procedureType,
+                  status: 'pending'
+                })
+                .select()
+                .single();
+
+              if (contactError) {
+                console.error('Contact request error:', contactError);
+                assistantMessage += '\n\n**I had trouble creating your contact request.** Please try again.';
+                break;
+              }
+
+              assistantMessage += `\n\n✅ **Contact request submitted to ${facility.name}!**\n\n`;
+              assistantMessage += `📍 **Location:** ${facility.city}, ${facility.country}\n`;
+              assistantMessage += `📋 **Procedure:** ${procedureType}\n\n`;
+
+              if (facility.email) {
+                assistantMessage += `The facility will receive your inquiry at their registered email. `;
+              }
+
+              assistantMessage += `You can track the status of your requests on your [journey dashboard](/my-journey).\n\n`;
+              assistantMessage += `**Your message:**\n> "${defaultMessage.substring(0, 200)}${defaultMessage.length > 200 ? '...' : ''}"`;
+            }
             break;
 
           case 'export_journey_pdf':
-            assistantMessage += '\n\n📄 **PDF export is coming in Phase 4!**';
+            {
+              if (!context.journeyId || !context.userId) {
+                assistantMessage += '\n\n**To export your journey, please [log in](/login) first.**';
+                break;
+              }
+
+              // Get journey details
+              const { data: journeyData, error: journeyError } = await supabase
+                .from('patient_journeys')
+                .select('procedure_type, budget_min, budget_max, budget_preference, timeline, status, created_at')
+                .eq('id', context.journeyId)
+                .single();
+
+              if (journeyError || !journeyData) {
+                assistantMessage += '\n\n**I couldn\'t find your journey details.** Please refresh and try again.';
+                break;
+              }
+
+              // Get shortlisted facilities with full details
+              const { data: shortlistData } = await supabase
+                .from('journey_facilities')
+                .select(`
+                  facility_id,
+                  facilities (
+                    name,
+                    city,
+                    country,
+                    jci_accredited,
+                    google_rating,
+                    review_count,
+                    phone,
+                    email,
+                    website,
+                    popular_procedures
+                  )
+                `)
+                .eq('journey_id', context.journeyId);
+
+              // Get notes
+              const { data: notesData } = await supabase
+                .from('journey_notes')
+                .select('content, note_type, created_at')
+                .eq('journey_id', context.journeyId)
+                .order('created_at', { ascending: false });
+
+              // Get contact requests
+              const { data: contactsData } = await supabase
+                .from('contact_requests')
+                .select(`
+                  status,
+                  created_at,
+                  facilities (name)
+                `)
+                .eq('journey_id', context.journeyId);
+
+              // Build comprehensive export
+              const exportDate = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              });
+
+              assistantMessage += `\n\n📄 **Your Journey Export**\n`;
+              assistantMessage += `_Generated ${exportDate} via Oasara_\n\n`;
+              assistantMessage += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+              // Journey Overview
+              assistantMessage += `## Journey Overview\n\n`;
+              assistantMessage += `**Procedure:** ${journeyData.procedure_type}\n`;
+              assistantMessage += `**Timeline:** ${journeyData.timeline === 'urgent' ? 'Urgent (< 2 weeks)' : journeyData.timeline === 'soon' ? 'Soon (1-3 months)' : 'Flexible (3+ months)'}\n`;
+              assistantMessage += `**Status:** ${journeyData.status}\n`;
+
+              if (journeyData.budget_min && journeyData.budget_max) {
+                assistantMessage += `**Budget:** $${journeyData.budget_min.toLocaleString()} - $${journeyData.budget_max.toLocaleString()}\n`;
+              } else if (journeyData.budget_preference) {
+                const prefLabels: Record<string, string> = {
+                  save_most: 'Save as much as possible',
+                  balanced: 'Balance of quality & value',
+                  quality_first: 'Quality is top priority',
+                  no_preference: 'Open to all options'
+                };
+                assistantMessage += `**Budget Focus:** ${prefLabels[journeyData.budget_preference] || journeyData.budget_preference}\n`;
+              }
+
+              assistantMessage += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+              // Shortlisted Facilities
+              assistantMessage += `## Shortlisted Facilities (${shortlistData?.length || 0})\n\n`;
+
+              if (shortlistData && shortlistData.length > 0) {
+                shortlistData.forEach((item: any, index: number) => {
+                  const f = item.facilities;
+                  assistantMessage += `### ${index + 1}. ${f.name}\n`;
+                  assistantMessage += `📍 ${f.city}, ${f.country}\n`;
+                  assistantMessage += `${f.jci_accredited ? '✅ JCI Accredited' : '❌ Not JCI Accredited'}\n`;
+                  if (f.google_rating) {
+                    assistantMessage += `⭐ ${f.google_rating}/5 (${f.review_count || 0} reviews)\n`;
+                  }
+                  if (f.phone) assistantMessage += `📞 ${f.phone}\n`;
+                  if (f.email) assistantMessage += `📧 ${f.email}\n`;
+                  if (f.website) assistantMessage += `🌐 ${f.website}\n`;
+                  assistantMessage += '\n';
+                });
+              } else {
+                assistantMessage += '_No facilities shortlisted yet._\n\n';
+              }
+
+              assistantMessage += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+              // Notes
+              assistantMessage += `## Notes (${notesData?.length || 0})\n\n`;
+
+              if (notesData && notesData.length > 0) {
+                notesData.forEach((note: any) => {
+                  const noteDate = new Date(note.created_at).toLocaleDateString();
+                  const typeEmoji: Record<string, string> = {
+                    general: '📝',
+                    question: '❓',
+                    concern: '⚠️',
+                    todo: '✅',
+                    research: '🔍'
+                  };
+                  assistantMessage += `${typeEmoji[note.note_type] || '📝'} **[${noteDate}]** ${note.content}\n`;
+                });
+              } else {
+                assistantMessage += '_No notes saved yet._\n';
+              }
+
+              assistantMessage += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+              // Contact Requests
+              assistantMessage += `## Contact Requests (${contactsData?.length || 0})\n\n`;
+
+              if (contactsData && contactsData.length > 0) {
+                contactsData.forEach((contact: any) => {
+                  const contactDate = new Date(contact.created_at).toLocaleDateString();
+                  const statusEmoji = contact.status === 'responded' ? '✅' : contact.status === 'pending' ? '⏳' : '📤';
+                  assistantMessage += `${statusEmoji} **${(contact.facilities as any)?.name || 'Unknown'}** - ${contact.status} (${contactDate})\n`;
+                });
+              } else {
+                assistantMessage += '_No contact requests sent yet._\n';
+              }
+
+              assistantMessage += `\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+              // Footer
+              assistantMessage += `**💡 Tip:** To save this as a PDF:\n`;
+              assistantMessage += `1. Press **Ctrl+P** (or **Cmd+P** on Mac)\n`;
+              assistantMessage += `2. Select "Save as PDF" as destination\n`;
+              assistantMessage += `3. Click Save\n\n`;
+              assistantMessage += `Or visit your [journey dashboard](/my-journey) and use your browser's print function for a formatted version.\n\n`;
+              assistantMessage += `_Powered by [Oasara](https://oasara.com) - Your Medical Tourism Companion_`;
+            }
             break;
 
           case 'get_journey_summary':
-            assistantMessage += '\n\n📋 **Journey summary is coming in Phase 2!** Check your [dashboard](/my-journey).';
+            {
+              if (!context.journeyId || !context.userId) {
+                assistantMessage += '\n\n**You don\'t have an active journey yet.** Tell me what procedure you\'re interested in to get started!';
+                break;
+              }
+
+              // Get journey details
+              const { data: journeyData, error: journeyError } = await supabase
+                .from('patient_journeys')
+                .select('procedure_type, budget_min, budget_max, budget_preference, timeline, status, created_at')
+                .eq('id', context.journeyId)
+                .single();
+
+              if (journeyError || !journeyData) {
+                assistantMessage += '\n\n**I couldn\'t find your journey details.** Please refresh and try again.';
+                break;
+              }
+
+              // Get shortlisted facilities
+              const { data: shortlist, error: shortlistError } = await supabase
+                .from('journey_facilities')
+                .select(`
+                  facility_id,
+                  facilities (
+                    name,
+                    city,
+                    country,
+                    jci_accredited
+                  )
+                `)
+                .eq('journey_id', context.journeyId);
+
+              // Get notes count
+              const { count: notesCount } = await supabase
+                .from('journey_notes')
+                .select('id', { count: 'exact', head: true })
+                .eq('journey_id', context.journeyId);
+
+              // Get contact requests count
+              const { count: contactsCount } = await supabase
+                .from('contact_requests')
+                .select('id', { count: 'exact', head: true })
+                .eq('journey_id', context.journeyId);
+
+              // Build summary message
+              assistantMessage += '\n\n📋 **Your Journey Summary**\n\n';
+
+              // Procedure & Timeline
+              assistantMessage += `**Procedure:** ${journeyData.procedure_type}\n`;
+              assistantMessage += `**Timeline:** ${journeyData.timeline === 'urgent' ? 'Urgent (< 2 weeks)' : journeyData.timeline === 'soon' ? 'Soon (1-3 months)' : 'Flexible (3+ months)'}\n`;
+
+              // Budget
+              if (journeyData.budget_min && journeyData.budget_max) {
+                assistantMessage += `**Budget:** $${journeyData.budget_min.toLocaleString()} - $${journeyData.budget_max.toLocaleString()}\n`;
+              } else if (journeyData.budget_preference) {
+                const prefLabels: Record<string, string> = {
+                  save_most: 'Save as much as possible',
+                  balanced: 'Balance of quality & value',
+                  quality_first: 'Quality is top priority',
+                  no_preference: 'Open to all options'
+                };
+                assistantMessage += `**Budget Focus:** ${prefLabels[journeyData.budget_preference] || journeyData.budget_preference}\n`;
+              }
+
+              assistantMessage += '\n---\n\n';
+
+              // Shortlist
+              if (shortlist && shortlist.length > 0) {
+                assistantMessage += `**🏥 Shortlist (${shortlist.length} facilities):**\n`;
+                shortlist.forEach((item: any, index: number) => {
+                  const f = item.facilities;
+                  assistantMessage += `${index + 1}. **${f.name}** - ${f.city}, ${f.country}${f.jci_accredited ? ' ✓ JCI' : ''}\n`;
+                });
+              } else {
+                assistantMessage += '**🏥 Shortlist:** No facilities added yet\n';
+              }
+
+              // Notes & Contacts
+              assistantMessage += `\n**📝 Notes:** ${notesCount || 0} saved\n`;
+              assistantMessage += `**📧 Contact Requests:** ${contactsCount || 0} sent\n`;
+
+              // Progress indicator
+              let progress = 0;
+              if (journeyData.procedure_type) progress += 20;
+              if (journeyData.timeline) progress += 10;
+              if (shortlist && shortlist.length >= 1) progress += 20;
+              if (shortlist && shortlist.length >= 3) progress += 20;
+              if (notesCount && notesCount >= 1) progress += 10;
+              if (contactsCount && contactsCount >= 1) progress += 20;
+
+              assistantMessage += `\n**Progress:** ${Math.min(progress, 100)}% complete\n`;
+
+              // Next steps
+              assistantMessage += '\n---\n\n**Suggested next steps:**\n';
+              if (!shortlist || shortlist.length === 0) {
+                assistantMessage += '- Search for facilities and add some to your shortlist\n';
+              } else if (shortlist.length < 3) {
+                assistantMessage += '- Add more facilities to compare (aim for 3-5)\n';
+              }
+              if (shortlist && shortlist.length >= 2) {
+                assistantMessage += '- Ask me to "compare my shortlist" for a side-by-side view\n';
+              }
+              if (!contactsCount || contactsCount === 0) {
+                assistantMessage += '- Contact facilities for quotes\n';
+              }
+              assistantMessage += '- Visit your [full dashboard](/my-journey) for more details';
+            }
             break;
 
           default:
@@ -651,7 +1349,8 @@ Answer their question:`;
       body: JSON.stringify({
         message: assistantMessage,
         facilities: facilities.length > 0 ? facilities : undefined,
-        journeyId: journeyId || undefined
+        journeyId: journeyId || undefined,
+        isComparison: isComparison || undefined
       })
     };
 

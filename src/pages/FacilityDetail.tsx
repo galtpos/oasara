@@ -7,6 +7,7 @@ import { CommentsSection } from '../components/Comments';
 import { ActivityWidget } from '../components/Activity';
 import ContactFacilityModal from '../components/Contact/ContactFacilityModal';
 import USPriceWidget from '../components/Pricing/USPriceWidget';
+import RequestZanoButton from '../components/Outreach/RequestZanoButton';
 
 interface Facility {
   id: string;
@@ -349,9 +350,7 @@ const FacilityDetail: React.FC = () => {
               <p className="text-ocean-100 text-sm mb-4">
                 Request this facility to accept Zano cryptocurrency for private, secure payments.
               </p>
-              <button className="w-full py-2 bg-gold-500 hover:bg-gold-600 text-white rounded-lg font-medium transition-colors">
-                Request Zano Payment
-              </button>
+              <RequestZanoButton facility={facility as any} variant="large" />
             </motion.div>
           </div>
         </div>

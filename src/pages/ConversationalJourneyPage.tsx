@@ -1,31 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import ConversationalJourney from '../components/Journey/ConversationalJourney';
 import { supabase } from '../lib/supabase';
+import { getGuestJourney } from '../lib/guestJourney';
 
 const ConversationalJourneyPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [journeyId, setJourneyId] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkJourney = async () => {
       try {
-        // Check if user has valid session (not just cached user data)
-        const { data: { session }, error: authError } = await supabase.auth.getSession();
-
-        if (authError || !session || !session.user) {
-          // Redirect to login with return URL
-          console.log('[Auth] No valid session found, redirecting to login');
-          navigate('/login?redirect=/my-journey/chat', { replace: true });
-          return;
-        }
-
-        const user = session.user;
-        console.log('[Auth] Valid session found:', user.email);
-
-        // Get journey ID from URL params or check if user has existing journey
+        // Get journey ID from URL params first
         const paramJourneyId = searchParams.get('id');
 
         if (paramJourneyId) {
@@ -35,24 +22,41 @@ const ConversationalJourneyPage: React.FC = () => {
           return;
         }
 
-        // Check if user has an active journey
-        const { data: journeys, error: journeyError } = await supabase
-          .from('patient_journeys')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('status', 'researching')
-          .order('created_at', { ascending: false })
-          .limit(1);
+        // Check if user has valid session
+        const { data: { session } } = await supabase.auth.getSession();
 
-        if (journeyError) {
-          console.error('[Journey] Error fetching journey:', journeyError);
-        }
+        if (session?.user) {
+          console.log('[Auth] Valid session found:', session.user.email);
 
-        if (journeys && journeys.length > 0) {
-          console.log('[Journey] Found existing journey:', journeys[0].id);
-          setJourneyId(journeys[0].id);
+          // Check if user has an active journey (any active status)
+          const { data: journeys, error: journeyError } = await supabase
+            .from('patient_journeys')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .in('status', ['researching', 'comparing', 'decided'])
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (journeyError) {
+            console.error('[Journey] Error fetching journey:', journeyError);
+          }
+
+          if (journeys && journeys.length > 0) {
+            console.log('[Journey] Found existing journey:', journeys[0].id);
+            setJourneyId(journeys[0].id);
+          } else {
+            console.log('[Journey] No existing journey found, starting fresh');
+          }
         } else {
-          console.log('[Journey] No existing journey found, starting fresh');
+          // Guest user - check localStorage for guest journey
+          console.log('[Auth] No session, checking guest journey');
+          const guestJourney = getGuestJourney();
+          if (guestJourney?.id) {
+            console.log('[Journey] Found guest journey:', guestJourney.id);
+            setJourneyId(guestJourney.id);
+          } else {
+            console.log('[Journey] No guest journey, starting fresh onboarding');
+          }
         }
 
         setLoading(false);
@@ -63,9 +67,9 @@ const ConversationalJourneyPage: React.FC = () => {
     };
 
     checkJourney();
-  }, [searchParams, navigate]);
+  }, [searchParams]);
 
-  // Don't render anything while checking auth - prevents flash of content
+  // Don't render anything while checking - prevents flash of content
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-sage-50">
@@ -77,7 +81,7 @@ const ConversationalJourneyPage: React.FC = () => {
     );
   }
 
-  // This component should only be reachable if authenticated
+  // Works for both authenticated users and guests
   return <ConversationalJourney journeyId={journeyId} />;
 };
 

@@ -124,7 +124,7 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
   };
 
   const handleRevoke = async (collaboratorId: string, collaboratorEmail: string) => {
-    if (!confirm(`Revoke access for ${collaboratorEmail}?`)) return;
+    if (!window.confirm(`Revoke access for ${collaboratorEmail}?`)) return;
 
     try {
       const { error } = await supabase

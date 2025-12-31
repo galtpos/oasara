@@ -113,11 +113,28 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           </svg>
         </div>
         <h3 className="text-xl font-display text-ocean-800 mb-2">
-          You're not alone in this
+          Your comparison list is empty
         </h3>
-        <p className="text-ocean-600 mb-6">
-          Let's explore your options together. I'll help you find facilities that match your needs, budget, and most importantly—give you confidence in your choice.
+        <p className="text-ocean-600 mb-4">
+          To compare facilities, you need to add them to your shortlist first.
         </p>
+        <div className="bg-sage-50 rounded-lg p-4 mb-6 text-left max-w-md mx-auto">
+          <p className="text-sm text-ocean-700 font-medium mb-2">How to add facilities:</p>
+          <ul className="text-sm text-ocean-600 space-y-1">
+            <li className="flex items-start gap-2">
+              <span className="text-ocean-500">1.</span>
+              <span>Scroll down to see <strong>Recommended Facilities</strong></span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-ocean-500">2.</span>
+              <span>Click the <strong>"Add"</strong> button on facilities you want to compare</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-ocean-500">3.</span>
+              <span>Or chat with our AI to search and add facilities</span>
+            </li>
+          </ul>
+        </div>
         <button
           onClick={onOpenChatbot}
           className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all"
@@ -125,7 +142,7 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
           </svg>
-          I'm Ready to Explore
+          Chat to Find Facilities
         </button>
       </div>
     );

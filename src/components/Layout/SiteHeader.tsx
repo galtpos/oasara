@@ -47,12 +47,12 @@ const SiteHeader: React.FC = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
-              {/* My Journey - FIRST */}
+              {/* Dashboard - FIRST */}
               <Link
-                to="/my-journey/chat"
-                className={`nav-link font-semibold ${isActive('/my-journey/chat') || location.pathname.startsWith('/my-journey') ? 'text-gold-500' : ''}`}
+                to="/my-journey"
+                className={`nav-link font-semibold ${location.pathname.startsWith('/my-journey') ? 'text-gold-500' : ''}`}
               >
-                My Journey
+                Dashboard
               </Link>
 
               {/* US Prices Dropdown */}
@@ -153,15 +153,15 @@ const SiteHeader: React.FC = () => {
           {mobileMenuOpen && (
             <nav className="md:hidden mt-4 pt-4 border-t border-sage-200" aria-label="Mobile navigation">
               <div className="flex flex-col space-y-3">
-                {/* My Journey - FIRST */}
+                {/* Dashboard - FIRST */}
                 <Link
-                  to="/my-journey/chat"
+                  to="/my-journey"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`px-4 py-2 rounded-lg transition-colors font-semibold ${
-                    isActive('/my-journey/chat') || location.pathname.startsWith('/my-journey') ? 'bg-gold-100 text-gold-700' : 'text-ocean-700 hover:bg-sage-50'
+                    location.pathname.startsWith('/my-journey') ? 'bg-gold-100 text-gold-700' : 'text-ocean-700 hover:bg-sage-50'
                   }`}
                 >
-                  My Journey
+                  Dashboard
                 </Link>
 
                 {/* US Prices Mobile */}

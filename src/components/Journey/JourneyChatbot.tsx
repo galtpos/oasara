@@ -216,22 +216,35 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
     setIsLoading(true);
 
     try {
-      // Build context for the AI
+      // Get current user and session for context
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      // Build context for the AI - include journeyId and userId for tool access
       const context = {
+        journeyId: journey.id,
+        userId: user?.id || null,
         procedure: journey.procedure_type,
         budget: journey.budget_min && journey.budget_max
           ? `$${journey.budget_min.toLocaleString()} - $${journey.budget_max.toLocaleString()}`
           : 'Not specified',
         timeline: journey.timeline || 'Not specified',
         shortlist: shortlistedFacilities.map(sf => ({
+          id: sf.facilities.id,
           name: sf.facilities.name,
           location: `${sf.facilities.city}, ${sf.facilities.country}`
         }))
       };
 
+      // Build headers - include auth token for RLS
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
       const response = await fetch('/.netlify/functions/journey-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           messages: messages.map(m => ({ role: m.role, content: m.content })),
           userMessage: userMessage.content,
@@ -264,12 +277,20 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
     }
   };
 
-  const quickActions = [
-    { label: "How safe are these facilities?", query: "I want to make sure I'm safe. Which facilities have the best safety records and accreditation for my procedure?" },
-    { label: "What's the real cost?", query: "I'm worried about hidden costs. What's typically included in the procedure price and what surprises should I watch for?" },
-    { label: "What's recovery like?", query: "I'm nervous about recovery. How long does it take for this procedure and when can I travel home?" },
-    { label: "Help me decide", query: shortlistedFacilities.length > 0 ? "I'm looking at a few options but not sure how to choose. Can you help me compare the facilities on my shortlist?" : "I'm feeling a bit overwhelmed. Can you recommend some facilities to get me started?" }
-  ];
+  // Quick actions change based on whether user has facilities
+  const quickActions = shortlistedFacilities.length > 0
+    ? [
+        { label: "Compare my facilities", query: "Compare my shortlisted facilities side by side" },
+        { label: "Get journey summary", query: "Give me a summary of my journey so far" },
+        { label: "Share with family", query: "I want to share my journey with a family member" },
+        { label: "Contact a facility", query: "Help me contact one of my shortlisted facilities for a quote" }
+      ]
+    : [
+        { label: "Find facilities", query: `Search for facilities that do ${journey.procedure_type}` },
+        { label: "What's the real cost?", query: "I'm worried about hidden costs. What's typically included in the procedure price?" },
+        { label: "How safe is this?", query: "How safe are medical tourism facilities? What should I look for?" },
+        { label: "Help me get started", query: "I'm feeling overwhelmed. Can you help me get started?" }
+      ];
 
   const handleQuickAction = async (query: string) => {
     const userMessage: Message = {
@@ -282,21 +303,35 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
     setIsLoading(true);
 
     try {
+      // Get current user and session for context
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+
+      // Build context for the AI - include journeyId and userId for tool access
       const context = {
+        journeyId: journey.id,
+        userId: user?.id || null,
         procedure: journey.procedure_type,
         budget: journey.budget_min && journey.budget_max
           ? `$${journey.budget_min.toLocaleString()} - $${journey.budget_max.toLocaleString()}`
           : 'Not specified',
         timeline: journey.timeline || 'Not specified',
         shortlist: shortlistedFacilities.map(sf => ({
+          id: sf.facilities.id,
           name: sf.facilities.name,
           location: `${sf.facilities.city}, ${sf.facilities.country}`
         }))
       };
 
+      // Build headers - include auth token for RLS
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
       const response = await fetch('/.netlify/functions/journey-chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           messages: messages.map(m => ({ role: m.role, content: m.content })),
           userMessage: query,
@@ -352,14 +387,32 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                   <div className="text-xs opacity-90">Here for you, every step</div>
                 </div>
               </div>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    localStorage.removeItem(`oasara-chat-${journey.id}`);
+                    setMessages([{
+                      role: 'assistant',
+                      content: `Hey there! I'm here to help you navigate your ${journey.procedure_type} journey. I know making healthcare decisions can feel overwhelming, and you might have a lot of questions or concerns. That's completely normal—and you're not alone in this. What would you like to talk about first?`,
+                      timestamp: new Date()
+                    }]);
+                  }}
+                  className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+                  title="Clear chat history"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             {/* Messages */}
@@ -476,11 +529,12 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Actions */}
-            {messages.length === 1 && (
-              <div className="px-4 py-2 border-t border-sage-200 bg-sage-50/50">
-                <div className="text-xs font-medium text-ocean-700 mb-2">Quick start:</div>
-                <div className="flex flex-wrap gap-2">
+            {/* Quick Actions - Always show */}
+            <div className="px-4 py-2 border-t border-sage-200 bg-sage-50/50">
+              <div className="text-xs font-medium text-ocean-700 mb-2">
+                {shortlistedFacilities.length > 0 ? 'Quick actions:' : 'Get started:'}
+              </div>
+              <div className="flex flex-wrap gap-2">
                   {quickActions.map((action, index) => (
                     <button
                       key={index}
@@ -491,9 +545,8 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                       {action.label}
                     </button>
                   ))}
-                </div>
               </div>
-            )}
+            </div>
 
             {/* Input */}
             <div className="p-4 border-t border-sage-200">

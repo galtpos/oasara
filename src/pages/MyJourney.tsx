@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { getGuestJourney, shouldPromptToSave, getGuestEngagementMetrics, clearGuestJourney } from '../lib/guestJourney';
-import PatientJourneyWizard from '../components/Journey/PatientJourneyWizard';
 import JourneyDashboard from '../components/Journey/JourneyDashboard';
 
 const MyJourney: React.FC = () => {
+  const navigate = useNavigate();
   const [activeJourneyId, setActiveJourneyId] = useState<string | null>(null);
   const [showSavePrompt, setShowSavePrompt] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   const [dismissedSavePrompt, setDismissedSavePrompt] = useState(false);
+  const [isCheckingJourney, setIsCheckingJourney] = useState(true);
 
   // Check authentication
   const { data: user, isLoading: authLoading } = useQuery({
@@ -50,8 +51,11 @@ const MyJourney: React.FC = () => {
   // Get guest journey from localStorage
   const guestJourney = getGuestJourney();
 
-  // Determine which journey to use
+  // Determine which journey to use or redirect to chat
   useEffect(() => {
+    // Wait for auth to finish loading
+    if (authLoading) return;
+
     // Check if user dismissed the prompt
     const dismissed = localStorage.getItem('oasara-save-prompt-dismissed');
     if (dismissed) {
@@ -59,33 +63,32 @@ const MyJourney: React.FC = () => {
     }
 
     if (user && authJourney) {
-      // Authenticated user with journey
+      // Authenticated user with journey - show dashboard
       setActiveJourneyId(authJourney.id);
       setIsGuest(false);
+      setIsCheckingJourney(false);
     } else if (guestJourney) {
-      // Guest user with localStorage journey
+      // Guest user with localStorage journey - show dashboard
       setActiveJourneyId(guestJourney.id);
       setIsGuest(true);
+      setIsCheckingJourney(false);
 
       // Check if we should prompt to save (and haven't dismissed it)
       if (shouldPromptToSave() && !user && !dismissed) {
         setTimeout(() => setShowSavePrompt(true), 3000); // Show after 3 seconds
       }
+    } else {
+      // No journey exists - redirect to conversational chat for onboarding
+      navigate('/my-journey/chat', { replace: true });
     }
-  }, [user, authJourney, guestJourney]);
-
-  const handleWizardComplete = async (journeyId: string) => {
-    setActiveJourneyId(journeyId);
-    if (!isGuest) {
-      await refetchJourney();
-    }
-  };
+  }, [user, authJourney, guestJourney, authLoading, navigate]);
 
   const handleStartNewJourney = () => {
-    setActiveJourneyId(null);
     if (isGuest) {
       clearGuestJourney();
     }
+    // Redirect to chat for new journey onboarding
+    navigate('/my-journey/chat');
   };
 
   const handleSaveJourney = async () => {
@@ -101,7 +104,8 @@ const MyJourney: React.FC = () => {
     }
   };
 
-  if (authLoading) {
+  // Show loading while checking auth and journey
+  if (authLoading || isCheckingJourney) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50/30 flex items-center justify-center">
         <div className="text-center">
@@ -112,8 +116,20 @@ const MyJourney: React.FC = () => {
     );
   }
 
-  // Render journey or wizard
+  // Get the active journey for rendering
   const journey = user ? authJourney : guestJourney;
+
+  // If no journey, the useEffect will redirect - show loading in the meantime
+  if (!journey) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-ocean-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-ocean-700 font-display">Starting your journey...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50/30">
@@ -247,13 +263,9 @@ const MyJourney: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Content */}
+      {/* Content - Always show dashboard since redirect handles no-journey case */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {!journey ? (
-          <PatientJourneyWizard onComplete={handleWizardComplete} />
-        ) : (
-          <JourneyDashboard journey={journey} />
-        )}
+        <JourneyDashboard journey={journey} />
       </div>
     </div>
   );

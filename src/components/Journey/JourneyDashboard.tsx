@@ -7,6 +7,7 @@ import FacilityShortlist from './FacilityShortlist';
 import PersonalNotes from './PersonalNotes';
 import { Link } from 'react-router-dom';
 import JourneyChatbot from './JourneyChatbot';
+import ShareJourneyModal from './ShareJourneyModal';
 import { exportJourneyToPDF } from '../../utils/exportJourneyPDF';
 
 interface Journey {
@@ -27,6 +28,7 @@ interface JourneyDashboardProps {
 const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
   const [activeTab, setActiveTab] = useState<'compare' | 'shortlist' | 'notes'>('compare');
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isEditingProcedure, setIsEditingProcedure] = useState(false);
   const [editedProcedure, setEditedProcedure] = useState(journey.procedure_type);
 
@@ -240,6 +242,16 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
           </div>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => setIsShareModalOpen(true)}
+              className="px-4 py-2 bg-white border-2 border-ocean-600 text-ocean-600 rounded-lg hover:bg-ocean-50 transition-all text-sm font-medium flex items-center gap-2"
+              title="Share journey with family or friends"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+              </svg>
+              Share
+            </button>
+            <button
               onClick={handleExportPDF}
               disabled={shortlistCount === 0}
               className="px-4 py-2 bg-white border-2 border-ocean-600 text-ocean-600 rounded-lg hover:bg-ocean-50 transition-all text-sm font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -248,17 +260,17 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Export PDF
+              PDF
             </button>
-            <button
-              onClick={() => setIsChatbotOpen(true)}
+            <Link
+              to={`/my-journey/chat?id=${journey.id}`}
               className="px-4 py-2 bg-gradient-to-r from-ocean-600 to-ocean-700 text-white rounded-lg hover:shadow-lg transition-all text-sm font-medium flex items-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
               </svg>
-              Have Questions?
-            </button>
+              Chat
+            </Link>
           </div>
         </div>
       </motion.div>
@@ -452,6 +464,14 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
         shortlistedFacilities={shortlistedFacilities || []}
         isOpen={isChatbotOpen}
         setIsOpen={setIsChatbotOpen}
+      />
+
+      {/* Share Journey Modal */}
+      <ShareJourneyModal
+        journeyId={journey.id}
+        procedureType={journey.procedure_type}
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
       />
     </div>
   );

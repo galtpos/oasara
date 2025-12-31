@@ -2,11 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import FacilityCard from './FacilityCard';
+import InlineComparison from './InlineComparison';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
+  isComparison?: boolean;
   facilities?: Array<{
     id: string;
     name: string;
@@ -15,7 +18,12 @@ interface Message {
     jci_accredited: boolean;
     google_rating: number;
     review_count: number;
-    price_usd?: number;
+    popular_procedures?: Array<{
+      name: string;
+      price_range: string;
+      wait_time?: string;
+    }>;
+    accepts_zano?: boolean;
   }>;
 }
 
@@ -23,7 +31,9 @@ interface ConversationalJourneyProps {
   journeyId?: string;
 }
 
-const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId }) => {
+const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId: initialJourneyId }) => {
+  // Track journeyId in local state so we can update it when journey is created
+  const [currentJourneyId, setCurrentJourneyId] = useState<string | undefined>(initialJourneyId);
   const [messages, setMessages] = useState<Message[]>([{
     role: 'assistant',
     content: 'Hey there! I\'m here to help you find the perfect care for your medical journey. Whether you\'re just exploring options or ready to take action, I\'m with you every step. What brings you here today?',
@@ -37,6 +47,13 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
   const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
 
+  // Update currentJourneyId if prop changes
+  useEffect(() => {
+    if (initialJourneyId && initialJourneyId !== currentJourneyId) {
+      setCurrentJourneyId(initialJourneyId);
+    }
+  }, [initialJourneyId]);
+
   // Get current user
   useEffect(() => {
     const getUser = async () => {
@@ -49,13 +66,13 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
   // Load conversation history on mount
   useEffect(() => {
     const loadHistory = async () => {
-      if (!journeyId) return;
+      if (!currentJourneyId) return;
 
       try {
         const { data, error } = await supabase
           .from('conversation_history')
           .select('role, content, timestamp, metadata')
-          .eq('journey_id', journeyId)
+          .eq('journey_id', currentJourneyId)
           .order('timestamp', { ascending: true });
 
         if (error) throw error;
@@ -75,7 +92,7 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
     };
 
     loadHistory();
-  }, [journeyId]);
+  }, [currentJourneyId]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -164,7 +181,7 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
           messages: messages.map(m => ({ role: m.role, content: m.content })),
           userMessage,
           context: {
-            journeyId: journeyId || null,
+            journeyId: currentJourneyId || null,
             userId: user?.id || null
           }
         })
@@ -181,15 +198,17 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
         role: 'assistant',
         content: data.message,
         timestamp: new Date(),
-        facilities: data.facilities || []
+        facilities: data.facilities || [],
+        isComparison: data.isComparison || false
       };
       setMessages(prev => [...prev, aiMessage]);
 
-      // If journey was created, navigate to it
-      if (data.journeyId && !journeyId) {
-        setTimeout(() => {
-          navigate(`/my-journey?id=${data.journeyId}`);
-        }, 2000);
+      // If journey was created, update local state and URL
+      if (data.journeyId && !currentJourneyId) {
+        console.log('[Journey] New journey created:', data.journeyId);
+        setCurrentJourneyId(data.journeyId);
+        // Update URL without full navigation to preserve chat state
+        window.history.replaceState(null, '', `/my-journey/chat?id=${data.journeyId}`);
       }
     } catch (error) {
       console.error('Error sending message:', error);
@@ -249,12 +268,13 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
           </div>
           <button
             onClick={() => navigate('/my-journey')}
-            className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors text-sm font-medium"
             title="Back to Dashboard"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
+            Dashboard
           </button>
         </div>
       </div>
@@ -282,55 +302,21 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
                   dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
                 />
 
-                {/* Facility Cards */}
+                {/* Facility Cards or Comparison Table */}
                 {message.facilities && message.facilities.length > 0 && (
-                  <div className="mt-4 space-y-3">
-                    {message.facilities.map((facility) => (
-                      <div
-                        key={facility.id}
-                        className="bg-sage-50 rounded-xl p-4 border border-ocean-200"
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-ocean-800">{facility.name}</h4>
-                            <p className="text-sm text-ocean-600">
-                              📍 {facility.city}, {facility.country}
-                            </p>
-                          </div>
-                          {facility.jci_accredited && (
-                            <span className="px-2 py-1 bg-gold-100 text-gold-700 text-xs font-semibold rounded">
-                              ✓ JCI
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex items-center gap-4 text-sm text-ocean-700 mb-3">
-                          <span>⭐ {facility.google_rating}/5</span>
-                          <span>({facility.review_count} reviews)</span>
-                          {facility.price_usd && (
-                            <span className="font-semibold text-gold-600">
-                              ${facility.price_usd.toLocaleString()}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2">
-                          <button
-                            className="flex-1 bg-ocean-500 hover:bg-ocean-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                            onClick={() => setInput(`Add ${facility.name} to my shortlist`)}
-                          >
-                            Add to Shortlist
-                          </button>
-                          <button
-                            className="flex-1 bg-white hover:bg-sage-50 text-ocean-600 border border-ocean-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                            onClick={() => navigate(`/facilities/${facility.id}`)}
-                          >
-                            View Details
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  message.isComparison ? (
+                    <InlineComparison facilities={message.facilities} />
+                  ) : (
+                    <div className="mt-4 space-y-3">
+                      {message.facilities.map((facility) => (
+                        <FacilityCard
+                          key={facility.id}
+                          facility={facility}
+                          onAddToShortlist={(name) => setInput(`Add ${name} to my shortlist`)}
+                        />
+                      ))}
+                    </div>
+                  )
                 )}
               </div>
             </motion.div>
