@@ -204,16 +204,16 @@ Answer their question:`;
       },
       {
         name: 'add_facility_to_shortlist',
-        description: 'Adds a facility to patient\'s shortlist. Use when user says "add [facility]".',
+        description: 'Adds a facility to patient\'s shortlist. Use when user says "add [facility]". Use facility_name to look it up.',
         input_schema: {
           type: 'object',
           properties: {
-            facility_id: {
+            facility_name: {
               type: 'string',
-              description: 'Facility ID from search results'
+              description: 'Name of facility to add (e.g., "Hospital Angeles Tijuana")'
             }
           },
-          required: ['facility_id']
+          required: ['facility_name']
         }
       },
       {
@@ -222,12 +222,12 @@ Answer their question:`;
         input_schema: {
           type: 'object',
           properties: {
-            facility_id: {
+            facility_name: {
               type: 'string',
-              description: 'Facility ID to remove'
+              description: 'Name of facility to remove'
             }
           },
-          required: ['facility_id']
+          required: ['facility_name']
         }
       },
       {
@@ -463,19 +463,32 @@ Answer their question:`;
                 break;
               }
 
-              const { facility_id } = content.input as any;
+              const { facility_name } = content.input as any;
+
+              // Look up facility by name
+              const { data: facilityMatch, error: lookupError } = await supabase
+                .from('facilities')
+                .select('id, name')
+                .ilike('name', `%${facility_name}%`)
+                .limit(1)
+                .single();
+
+              if (lookupError || !facilityMatch) {
+                assistantMessage += `\n\nI couldn't find a facility named "${facility_name}". Please check the spelling or try a different one.`;
+                break;
+              }
 
               const { error } = await supabase
                 .from('journey_facilities')
                 .insert({
                   journey_id: context.journeyId,
-                  facility_id
+                  facility_id: facilityMatch.id
                 });
 
               if (!error) {
-                assistantMessage += '\n\n✅ Added to your shortlist!';
+                assistantMessage += `\n\n✅ Added **${facilityMatch.name}** to your shortlist!`;
               } else {
-                assistantMessage += '\n\nI had trouble adding that facility. It might already be in your list.';
+                assistantMessage += `\n\n**${facilityMatch.name}** is already in your shortlist.`;
               }
             }
             break;
@@ -487,18 +500,31 @@ Answer their question:`;
                 break;
               }
 
-              const { facility_id } = content.input as any;
+              const { facility_name } = content.input as any;
+
+              // Look up facility by name
+              const { data: facilityMatch, error: lookupError } = await supabase
+                .from('facilities')
+                .select('id, name')
+                .ilike('name', `%${facility_name}%`)
+                .limit(1)
+                .single();
+
+              if (lookupError || !facilityMatch) {
+                assistantMessage += `\n\nI couldn't find a facility named "${facility_name}".`;
+                break;
+              }
 
               const { error } = await supabase
                 .from('journey_facilities')
                 .delete()
                 .eq('journey_id', context.journeyId)
-                .eq('facility_id', facility_id);
+                .eq('facility_id', facilityMatch.id);
 
               if (!error) {
-                assistantMessage += '\n\n✅ Removed from your shortlist!';
+                assistantMessage += `\n\n✅ Removed **${facilityMatch.name}** from your shortlist!`;
               } else {
-                assistantMessage += '\n\nI couldn\'t find that facility in your shortlist.';
+                assistantMessage += `\n\n**${facilityMatch.name}** wasn't in your shortlist.`;
               }
             }
             break;
