@@ -19,6 +19,8 @@ import MyJourney from './pages/MyJourney';
 import Guide from './pages/Guide';
 import AIOnboarding from './pages/AIOnboarding';
 import ConversationalJourneyPage from './pages/ConversationalJourneyPage';
+import AcceptInvite from './pages/AcceptInvite';
+import SharedJourneyPage from './pages/SharedJourneyPage';
 
 // Admin pages
 import AdminLogin from './admin/pages/AdminLogin';
@@ -62,6 +64,8 @@ const AppRoutes: React.FC = () => {
       <Route path="/bounty" element={<BountyBoard />} />
       <Route path="/my-journey" element={<MyJourney />} />
       <Route path="/my-journey/chat" element={<ConversationalJourneyPage />} />
+      <Route path="/journey/accept-invite/:token" element={<AcceptInvite />} />
+      <Route path="/journey/shared/:journeyId" element={<SharedJourneyPage />} />
       <Route path="/guide" element={<Guide />} />
       <Route path="/help" element={<Navigate to="/guide" replace />} />
 
