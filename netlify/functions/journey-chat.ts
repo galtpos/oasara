@@ -78,9 +78,28 @@ You're not a chatbot. You're a trusted advisor who genuinely cares about helping
 - "You're taking an important step toward better health"
 - "There's no rush—take the time you need"
 
+**BUDGET HANDLING - EDUCATE FIRST:**
+DON'T ask users for budget numbers - they don't know what things cost!
+
+Instead, EDUCATE them first:
+1. When they mention a procedure, immediately tell them US costs:
+   - "In the US, [procedure] typically runs $X - $Y"
+   - "Going abroad, you can save 50-80%, paying $X - $Y instead"
+
+2. Give them context with examples:
+   - "Hip replacement: US $40k-80k → Thailand $12k-18k (70% savings)"
+   - "Dental implants: US $3k-5k per tooth → Mexico $800-1,500 (70% savings)"
+   - "Knee replacement: US $35k-65k → Costa Rica $15k-22k (60% savings)"
+
+3. Then ask QUALITATIVE preference:
+   - "Are you looking to save as much as possible, or is quality your top priority?"
+   - NOT "What's your budget?"
+
+4. Only if they volunteer a number, use it. Otherwise leave budget wide open.
+
 **AVAILABLE TOOLS:**
 You have 12 tools to help users manage their medical tourism journey:
-1. create_journey - Creates initial journey (procedure, budget, timeline)
+1. create_journey - Creates initial journey (procedure, timeline, optional budget)
 2. search_facilities - Find hospitals matching criteria
 3. add_facility_to_shortlist - Add facility to comparison list
 4. remove_facility_from_shortlist - Remove facility from list
@@ -126,7 +145,7 @@ Answer their question:`;
     const tools: Anthropic.Tool[] = [
       {
         name: 'create_journey',
-        description: 'Creates a new patient journey when you have procedure, budget range, and timeline from conversation',
+        description: 'Creates a new patient journey. Only needs procedure and timeline. Budget is OPTIONAL - only include if user explicitly mentions a number.',
         input_schema: {
           type: 'object',
           properties: {
@@ -136,11 +155,16 @@ Answer their question:`;
             },
             budgetMin: {
               type: 'number',
-              description: 'Minimum budget in USD'
+              description: 'OPTIONAL: Minimum budget in USD. Only set if user explicitly gave a number.'
             },
             budgetMax: {
               type: 'number',
-              description: 'Maximum budget in USD'
+              description: 'OPTIONAL: Maximum budget in USD. Only set if user explicitly gave a number.'
+            },
+            budgetPreference: {
+              type: 'string',
+              enum: ['save_most', 'balanced', 'quality_first', 'no_preference'],
+              description: 'User preference: save_most (cheapest), balanced (value), quality_first (best regardless of cost), no_preference (show all)'
             },
             timeline: {
               type: 'string',
@@ -148,7 +172,7 @@ Answer their question:`;
               description: 'Urgency: urgent (<2 weeks), soon (1-3 months), flexible (3+ months)'
             }
           },
-          required: ['procedure', 'budgetMin', 'budgetMax', 'timeline']
+          required: ['procedure', 'timeline']
         }
       },
       {
@@ -345,26 +369,33 @@ Answer their question:`;
         switch (content.name) {
           case 'create_journey':
             {
-              const { procedure, budgetMin, budgetMax, timeline } = content.input as any;
+              const { procedure, budgetMin, budgetMax, budgetPreference, timeline } = content.input as any;
 
-              // Validate inputs
-              if (budgetMin < 0 || budgetMax < 0 || budgetMin > budgetMax) {
-                assistantMessage += "\n\nI noticed something off with the budget. Let's verify those numbers.";
-                break;
+              // Budget is now optional - only validate if provided
+              if (budgetMin !== undefined && budgetMax !== undefined) {
+                if (budgetMin < 0 || budgetMax < 0 || budgetMin > budgetMax) {
+                  assistantMessage += "\n\nI noticed something off with the budget. Let's verify those numbers.";
+                  break;
+                }
               }
 
               // Create journey in database (requires userId)
               if (context.userId) {
+                const journeyData: any = {
+                  user_id: context.userId,
+                  procedure_type: procedure,
+                  timeline,
+                  status: 'researching'
+                };
+
+                // Only add budget if explicitly provided
+                if (budgetMin !== undefined) journeyData.budget_min = budgetMin;
+                if (budgetMax !== undefined) journeyData.budget_max = budgetMax;
+                if (budgetPreference) journeyData.budget_preference = budgetPreference;
+
                 const { data, error } = await supabase
                   .from('patient_journeys')
-                  .insert({
-                    user_id: context.userId,
-                    procedure_type: procedure,
-                    budget_min: budgetMin,
-                    budget_max: budgetMax,
-                    timeline,
-                    status: 'researching'
-                  })
+                  .insert(journeyData)
                   .select()
                   .single();
 

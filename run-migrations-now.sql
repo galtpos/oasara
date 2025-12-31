@@ -141,4 +141,25 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON journey_collaborators TO authenticated;
 GRANT SELECT, INSERT ON journey_access_log TO authenticated;
 GRANT EXECUTE ON FUNCTION has_journey_access(UUID, UUID) TO authenticated;
 
+-- ============================================
+-- MIGRATION 3: Budget Preference (Optional Budget)
+-- ============================================
+
+-- Add budget_preference column for qualitative selection
+ALTER TABLE patient_journeys
+ADD COLUMN IF NOT EXISTS budget_preference text;
+
+-- Make budget columns nullable (allow journeys without explicit budget)
+DO $$
+BEGIN
+  ALTER TABLE patient_journeys ALTER COLUMN budget_min DROP NOT NULL;
+EXCEPTION WHEN others THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  ALTER TABLE patient_journeys ALTER COLUMN budget_max DROP NOT NULL;
+EXCEPTION WHEN others THEN NULL;
+END $$;
+
 -- Done! Refresh oasara.com and all features will appear.
