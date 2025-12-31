@@ -1,0 +1,21 @@
+OASARA
+Your Healthcare Journey Companion
+
+===================================
+
+Welcome! Let's Get You Started
+
+Click the link below to sign in to your account. This link will work for the next 1 hour.
+
+{{ .ConfirmationURL }}
+
+===================================
+
+Didn't request this?
+
+You can safely ignore this email. This link will expire in 1 hour.
+
+===================================
+
+This email was sent by Oasara
+Helping you exit the healthcare system and keep your sovereignty

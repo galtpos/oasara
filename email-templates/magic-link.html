@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in to Oasara</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f0;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f0f4f0; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 32px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 36px; font-weight: 700; letter-spacing: -0.5px;">OASARA</h1>
+                            <p style="margin: 8px 0 0; color: rgba(255, 255, 255, 0.9); font-size: 14px;">Your Healthcare Journey Companion</p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 32px; text-align: center;">
+                            <h2 style="margin: 0 0 16px; color: #0c4a6e; font-size: 24px; font-weight: 600;">Welcome! Let's Get You Started</h2>
+
+                            <p style="margin: 0 0 24px; color: #64748b; font-size: 16px; line-height: 1.6;">
+                                Click the button below to sign in to your account. This link will work for the next 1 hour.
+                            </p>
+
+                            <!-- Big Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td align="center" style="padding: 16px 0;">
+                                        <a href="{{ .ConfirmationURL }}" style="display: inline-block; background: linear-gradient(135deg, #EAB308 0%, #CA8A04 100%); color: #ffffff; text-decoration: none; font-size: 18px; font-weight: 600; padding: 16px 48px; border-radius: 12px; box-shadow: 0 4px 6px rgba(234, 179, 8, 0.3);">
+                            Sign In to Oasara
+                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin: 32px 0 0; color: #94a3b8; font-size: 14px; line-height: 1.6;">
+                                Or copy and paste this link into your browser:<br>
+                                <a href="{{ .ConfirmationURL }}" style="color: #10B981; word-break: break-all; text-decoration: none;">{{ .ConfirmationURL }}</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Security Note -->
+                    <tr>
+                        <td style="padding: 24px 32px; background-color: #f8fafc; border-top: 1px solid #e2e8f0;">
+                            <p style="margin: 0; color: #64748b; font-size: 13px; line-height: 1.5; text-align: center;">
+                                <strong style="color: #0c4a6e;">Didn't request this?</strong><br>
+                                You can safely ignore this email. This link will expire in 1 hour.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+                            <p style="margin: 0 0 8px; color: #94a3b8; font-size: 12px;">
+                                This email was sent by Oasara
+                            </p>
+                            <p style="margin: 0; color: #cbd5e1; font-size: 11px;">
+                                Helping you exit the healthcare system and keep your sovereignty
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

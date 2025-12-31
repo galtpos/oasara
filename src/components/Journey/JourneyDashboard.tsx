@@ -133,7 +133,7 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
   };
 
   const handleDeleteProcedure = async () => {
-    if (!confirm('Are you sure you want to clear your procedure? This will reset your journey.')) {
+    if (!window.confirm('Are you sure you want to clear your procedure? This will reset your journey.')) {
       return;
     }
 

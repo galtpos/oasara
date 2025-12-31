@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
+// import { BrowserTracing } from '@sentry/tracing'; // Commented out - version incompatibility
 
 export const initSentry = () => {
   const dsn = process.env.REACT_APP_SENTRY_DSN;
@@ -15,13 +15,12 @@ export const initSentry = () => {
     dsn,
     environment,
     integrations: [
-      new BrowserTracing(),
-      new Sentry.Replay({
-        // Capture 10% of all sessions
-        sessionSampleRate: 0.1,
-        // Capture 100% of sessions with errors
-        errorSampleRate: 1.0,
-      }),
+      // BrowserTracing and Replay commented out - version incompatibility
+      // new BrowserTracing(),
+      // new Sentry.Replay({
+      //   sessionSampleRate: 0.1,
+      //   errorSampleRate: 1.0,
+      // }),
     ],
 
     // Performance Monitoring

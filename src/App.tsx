@@ -8,13 +8,14 @@ import { AdBanner } from './components/AdBanner';
 function AppContent() {
   const location = useLocation();
   const isLandingPage = location.pathname === '/welcome';
+  const isChatPage = location.pathname === '/my-journey/chat';
 
   return (
     <>
       <AppRoutes />
-      {!isLandingPage && <ChatButton />}
-      {!isLandingPage && <FeedbackWidget projectName="oasara" primaryColor="#10B981" />}
-      {!isLandingPage && (
+      {!isLandingPage && !isChatPage && <ChatButton />}
+      {!isLandingPage && !isChatPage && <FeedbackWidget projectName="oasara" primaryColor="#10B981" />}
+      {!isLandingPage && !isChatPage && (
         <div style={{ position: 'fixed', bottom: '80px', left: '20px', right: '20px', maxWidth: '400px', zIndex: 40 }}>
           <AdBanner site="oasara" zone="FOOTER" />
         </div>

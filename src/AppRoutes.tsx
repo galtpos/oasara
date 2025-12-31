@@ -18,6 +18,7 @@ import BountyBoard from './pages/BountyBoard';
 import MyJourney from './pages/MyJourney';
 import Guide from './pages/Guide';
 import AIOnboarding from './pages/AIOnboarding';
+import ConversationalJourneyPage from './pages/ConversationalJourneyPage';
 
 // Admin pages
 import AdminLogin from './admin/pages/AdminLogin';
@@ -60,6 +61,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/medical-trusts" element={<MedicalTrusts />} />
       <Route path="/bounty" element={<BountyBoard />} />
       <Route path="/my-journey" element={<MyJourney />} />
+      <Route path="/my-journey/chat" element={<ConversationalJourneyPage />} />
       <Route path="/guide" element={<Guide />} />
       <Route path="/help" element={<Navigate to="/guide" replace />} />
 

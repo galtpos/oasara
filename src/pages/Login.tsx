@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 type Step = 'email' | 'sent';
 
 const Login: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [step, setStep] = useState<Step>('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,6 +14,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [showPasswordOption, setShowPasswordOption] = useState(false);
   const navigate = useNavigate();
+  const redirectTo = searchParams.get('redirect') || '/';
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +60,7 @@ const Login: React.FC = () => {
       });
 
       if (authError) throw authError;
-      navigate('/');
+      navigate(redirectTo);
     } catch (err: any) {
       setError(err.message || 'Invalid email or password');
     } finally {
@@ -107,8 +109,8 @@ const Login: React.FC = () => {
               className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-white/20"
             >
               <div className="text-center mb-8">
-                <h2 className="font-display text-3xl text-ocean-700 mb-2">Welcome Back</h2>
-                <p className="text-ocean-600/70">Sign in to access your account</p>
+                <h2 className="font-display text-3xl text-ocean-700 mb-2">Sign In</h2>
+                <p className="text-ocean-600/70">Access your account or create a new one</p>
               </div>
 
               <form onSubmit={handleMagicLink} className="space-y-5">

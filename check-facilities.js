@@ -1,34 +1,51 @@
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: '.env.local' });
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(
+  'https://whklrclzrtijneqdjmiy.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indoa2xyY2x6cnRpam5lcWRqbWl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3NjQyOTgsImV4cCI6MjA3NzM0MDI5OH0.WK4MHCmRWOchU4AKwnlvY1pkB62DkFoR5i9izMem_lA'
+);
 
-async function checkFacilities() {
-  const { data, error, count } = await supabase
-    .from('facilities')
-    .select('*', { count: 'exact' });
-  
-  if (error) {
-    console.error('Error:', error);
-    return;
+(async () => {
+  try {
+    // Get total count
+    const { count, error: countError } = await supabase
+      .from('facilities')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+      console.error('Count error:', countError);
+    } else {
+      console.log('Total facilities:', count);
+    }
+
+    // Get unique countries
+    const { data: countries, error: countriesError } = await supabase
+      .from('facilities')
+      .select('country')
+      .order('country');
+
+    if (countriesError) {
+      console.error('Countries error:', countriesError);
+    } else {
+      const uniqueCountries = [...new Set(countries.map(f => f.country))];
+      console.log('\nCountries with facilities:');
+      uniqueCountries.forEach(c => console.log('  -', c));
+    }
+
+    // Get sample facilities from each country
+    const { data: samples, error: samplesError } = await supabase
+      .from('facilities')
+      .select('name, city, country, google_rating')
+      .limit(10);
+
+    if (samplesError) {
+      console.error('Samples error:', samplesError);
+    } else {
+      console.log('\nSample facilities:');
+      samples.forEach(f => console.log(`  - ${f.name} (${f.city}, ${f.country}) - ${f.google_rating}★`));
+    }
+
+  } catch (error) {
+    console.error('Error:', error.message);
   }
-  
-  console.log(`\n📊 TOTAL FACILITIES IN DATABASE: ${count}\n`);
-  
-  // Count by country
-  const countryCounts = {};
-  data.forEach(f => {
-    countryCounts[f.country] = (countryCounts[f.country] || 0) + 1;
-  });
-  
-  console.log('By Country:');
-  Object.entries(countryCounts)
-    .sort((a, b) => b[1] - a[1])
-    .forEach(([country, count]) => {
-      console.log(`  ${country}: ${count}`);
-    });
-}
-
-checkFacilities();
+})();

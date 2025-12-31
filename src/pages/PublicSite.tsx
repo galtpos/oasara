@@ -248,23 +248,6 @@ const PublicSite: React.FC = () => {
     <div className="min-h-screen bg-white">
       <SiteHeader />
 
-      {/* Bounty Program Banner */}
-      <div className="bg-gradient-to-r from-gold-500 to-gold-600 text-white py-2">
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-center gap-4 text-sm">
-          <span className="font-semibold">Earn up to $50 fUSD!</span>
-          <span>Features, bugs, UX improvements - get paid for accepted contributions.</span>
-          <a
-            href="/bounty"
-            className="inline-flex items-center gap-1 px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full font-medium transition-colors"
-          >
-            View Bounty Board
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </a>
-        </div>
-      </div>
-
       {/* Hero Section - Savings Calculator */}
       <Suspense fallback={
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 py-20 text-center text-white">

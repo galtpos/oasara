@@ -47,7 +47,15 @@ const SiteHeader: React.FC = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
-              {/* US Prices Dropdown - THE PROBLEM */}
+              {/* My Journey - FIRST */}
+              <Link
+                to="/my-journey/chat"
+                className={`nav-link font-semibold ${isActive('/my-journey/chat') || location.pathname.startsWith('/my-journey') ? 'text-gold-500' : ''}`}
+              >
+                My Journey
+              </Link>
+
+              {/* US Prices Dropdown */}
               <div
                 className="relative"
                 onMouseEnter={() => setUsPricesOpen(true)}
@@ -58,16 +66,13 @@ const SiteHeader: React.FC = () => {
                   aria-expanded={usPricesOpen}
                   aria-haspopup="true"
                 >
-                  <span className="text-gold-600 font-semibold">US Prices</span>
+                  <span>US Prices</span>
                   <svg className={`w-4 h-4 transition-transform ${usPricesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
                 {usPricesOpen && (
                   <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-xl border-2 border-sage-200 py-2 z-50">
-                    <div className="px-4 py-2 border-b border-sage-100">
-                      <span className="text-xs font-bold text-gold-600 uppercase tracking-wide">The Problem</span>
-                    </div>
                     <Link
                       to="/price-comparison"
                       className="flex items-center gap-3 px-4 py-3 hover:bg-sage-50 transition-colors"
@@ -100,7 +105,7 @@ const SiteHeader: React.FC = () => {
                 )}
               </div>
 
-              {/* Facilities - THE SOLUTION */}
+              {/* Facilities */}
               <Link
                 to="/"
                 className={`nav-link ${isActive('/') ? 'text-gold-500' : ''}`}
@@ -138,12 +143,6 @@ const SiteHeader: React.FC = () => {
                 Bounty
                 <span className="text-xs bg-gradient-to-r from-gold-500 to-gold-600 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
               </Link>
-              <Link
-                to="/guide"
-                className={`nav-link ${isActive('/guide') ? 'text-gold-500' : ''}`}
-              >
-                Guide
-              </Link>
               <Link to="/signup" className="btn-gold">
                 Join
               </Link>
@@ -154,19 +153,20 @@ const SiteHeader: React.FC = () => {
           {mobileMenuOpen && (
             <nav className="md:hidden mt-4 pt-4 border-t border-sage-200" aria-label="Mobile navigation">
               <div className="flex flex-col space-y-3">
+                {/* My Journey - FIRST */}
                 <Link
-                  to="/"
+                  to="/my-journey/chat"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    isActive('/') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  className={`px-4 py-2 rounded-lg transition-colors font-semibold ${
+                    isActive('/my-journey/chat') || location.pathname.startsWith('/my-journey') ? 'bg-gold-100 text-gold-700' : 'text-ocean-700 hover:bg-sage-50'
                   }`}
                 >
-                  Facilities
+                  My Journey
                 </Link>
 
                 {/* US Prices Mobile */}
                 <div className="border-t border-sage-100 pt-2">
-                  <div className="px-4 py-1 text-xs font-bold text-gold-600 uppercase tracking-wide">
+                  <div className="px-4 py-1 text-xs font-bold text-ocean-600 uppercase tracking-wide">
                     US Prices
                   </div>
                   <Link
@@ -185,6 +185,15 @@ const SiteHeader: React.FC = () => {
                   </Link>
                 </div>
 
+                <Link
+                  to="/"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  }`}
+                >
+                  Facilities
+                </Link>
                 <Link
                   to="/why-zano"
                   onClick={() => setMobileMenuOpen(false)}
@@ -230,15 +239,6 @@ const SiteHeader: React.FC = () => {
                 >
                   <span>Bounty</span>
                   <span className="text-xs bg-gradient-to-r from-gold-500 to-gold-600 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
-                </Link>
-                <Link
-                  to="/guide"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    isActive('/guide') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
-                  }`}
-                >
-                  Guide
                 </Link>
                 <Link
                   to="/signup"
