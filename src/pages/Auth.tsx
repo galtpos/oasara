@@ -17,8 +17,9 @@ const Auth: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Get the intended destination from ProtectedRoute redirect or default to /start
-  const from = (location.state as any)?.from || '/start';
+  // Get the intended destination from ProtectedRoute redirect or default to /my-journey
+  // MyJourney handles redirect to /start if no journeys exist
+  const from = (location.state as any)?.from || '/my-journey';
 
   // If user is already logged in, redirect to intended destination
   useEffect(() => {

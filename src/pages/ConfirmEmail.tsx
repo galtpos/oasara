@@ -25,7 +25,8 @@ const ConfirmEmail: React.FC = () => {
       }
 
       // Get stored redirect destination (from signup flow)
-      const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/start';
+      // Default to /my-journey - it redirects to /start if no journeys exist
+      const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/my-journey';
 
       // Must have access token
       if (!accessToken) {
