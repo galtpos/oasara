@@ -244,14 +244,12 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ facilityId, facilityN
     toggleUpvote
   } = useComments({ facilityId });
 
-  // Check auth status
+  // Check auth status - use getSession (cached) not getUser (slow)
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
-      setCurrentUserId(user?.id);
-    };
-    checkAuth();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session?.user);
+      setCurrentUserId(session?.user?.id);
+    });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session?.user);

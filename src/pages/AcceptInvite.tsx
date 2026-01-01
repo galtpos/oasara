@@ -14,8 +14,9 @@ const AcceptInvite: React.FC = () => {
   useEffect(() => {
     const checkAuthAndInvitation = async () => {
       try {
-        // Check if user is authenticated
-        const { data: { user } } = await supabase.auth.getUser();
+        // Check if user is authenticated - use getSession (cached)
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
         setIsAuthenticated(!!user);
 
         if (!token) {
@@ -79,8 +80,9 @@ const AcceptInvite: React.FC = () => {
       // Use passed invite data or fall back to state
       const invite = inviteData || invitation;
 
-      const { data: { user } } = await supabase.auth.getUser();
-      const effectiveUserId = userId || user?.id;
+      // Use getSession (cached) not getUser (slow)
+      const { data: { session } } = await supabase.auth.getSession();
+      const effectiveUserId = userId || session?.user?.id;
 
       if (!effectiveUserId) {
         // Redirect to sign up with email pre-filled

@@ -23,21 +23,19 @@ const SharedJourneyView: React.FC<SharedJourneyViewProps> = ({ journeyId }) => {
   const [activeTab, setActiveTab] = useState<'facilities' | 'notes'>('facilities');
   const [userRole, setUserRole] = useState<string | null>(null);
 
-  // Check user's role for this journey
+  // Check user's role for this journey - use getSession (cached)
   useEffect(() => {
-    const checkRole = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user) return;
 
-      const { data, error } = await supabase
-        .rpc('get_journey_role', { p_journey_id: journeyId, p_user_id: user.id });
-
-      if (!error && data) {
-        setUserRole(data);
-      }
-    };
-
-    checkRole();
+      supabase
+        .rpc('get_journey_role', { p_journey_id: journeyId, p_user_id: session.user.id })
+        .then(({ data, error }) => {
+          if (!error && data) {
+            setUserRole(data);
+          }
+        });
+    });
   }, [journeyId]);
 
   // Fetch journey details
@@ -52,12 +50,12 @@ const SharedJourneyView: React.FC<SharedJourneyViewProps> = ({ journeyId }) => {
 
       if (error) throw error;
 
-      // Log view access
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      // Log view access - use getSession (cached)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         await supabase.rpc('log_journey_access', {
           p_journey_id: journeyId,
-          p_user_id: user.id,
+          p_user_id: session.user.id,
           p_action: 'view'
         });
       }

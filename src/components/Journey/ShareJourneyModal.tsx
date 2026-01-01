@@ -83,9 +83,10 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
         throw new Error('This person already has access to your journey');
       }
 
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('You must be logged in to share');
+      // Get current user - use getSession (cached) not getUser (slow)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) throw new Error('You must be logged in to share');
+      const user = session.user;
 
       // Check if there's an existing revoked/declined record to update
       const existingRevoked = collaborators?.find(c => c.email.toLowerCase() === normalizedEmail && (c.status === 'revoked' || c.status === 'declined'));
@@ -188,12 +189,12 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
 
       if (error) throw error;
 
-      // Log the revocation
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      // Log the revocation - use getSession (cached)
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         await supabase.rpc('log_journey_access', {
           p_journey_id: journeyId,
-          p_user_id: user.id,
+          p_user_id: session.user.id,
           p_action: 'access_revoked',
           p_details: { revoked_email: collaboratorEmail }
         });

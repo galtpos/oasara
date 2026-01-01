@@ -96,13 +96,15 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
     setIsSubmitting(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Use getSession (cached) not getUser (slow)
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!user) {
-        // Redirect to login
+      if (!session?.user) {
         navigate('/login?redirect=/my-journey');
         return;
       }
+
+      const user = session.user;
 
       // Create journey in database
       const { data, error } = await supabase

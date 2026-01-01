@@ -84,14 +84,16 @@ export function useComments({ facilityId }: UseCommentsOptions) {
     fetchComments();
   }, [fetchComments]);
 
-  // Add a comment
+  // Add a comment - use getSession (cached) not getUser (slow)
   const addComment = useCallback(async (content: string, parentId?: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (!session?.user) {
         throw new Error('You must be logged in to comment');
       }
+
+      const user = session.user;
 
       const { data, error: insertError } = await supabase
         .from('facility_comments')
@@ -156,14 +158,16 @@ export function useComments({ facilityId }: UseCommentsOptions) {
     }
   }, [fetchComments]);
 
-  // Toggle upvote
+  // Toggle upvote - use getSession (cached) not getUser (slow)
   const toggleUpvote = useCallback(async (commentId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (!session?.user) {
         throw new Error('You must be logged in to upvote');
       }
+
+      const user = session.user;
 
       // Check if already upvoted
       const { data: existing } = await supabase
