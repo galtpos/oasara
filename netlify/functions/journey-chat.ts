@@ -451,11 +451,16 @@ Answer their question:`;
 
           case 'search_facilities':
             {
-              const { procedure, country, limit = 5 } = content.input as any;
+              // Use procedure from input, or fall back to journey's procedure from context
+              const inputProcedure = (content.input as any).procedure;
+              const procedure = inputProcedure || context.procedure;
+              const { country, limit = 5 } = content.input as any;
+
+              console.log('[search_facilities] Searching for procedure:', procedure, 'country:', country);
 
               let query = supabase
                 .from('facilities')
-                .select('id, name, city, country, jci_accredited, google_rating, review_count, popular_procedures')
+                .select('id, name, city, country, jci_accredited, google_rating, review_count, popular_procedures, specialties')
                 .order('google_rating', { ascending: false })
                 .limit(Math.min(limit, 10));
 
@@ -466,23 +471,43 @@ Answer their question:`;
               const { data, error } = await query;
 
               if (!error && data) {
+                // Filter by procedure - ALWAYS use journey's procedure type
+                const procedureToSearch = procedure || '';
+                const procedureLower = procedureToSearch.toLowerCase();
+
                 facilities = data.filter(facility => {
-                  if (!procedure) return true;
-                  const procedureLower = procedure.toLowerCase();
-                  return facility.popular_procedures?.some((p: any) =>
-                    p.name.toLowerCase().includes(procedureLower) || procedureLower.includes(p.name.toLowerCase())
-                  );
+                  if (!procedureLower) return true;
+
+                  // Check if procedure matches any of the facility's popular procedures
+                  const hasMatchingProcedure = facility.popular_procedures?.some((p: any) => {
+                    const procName = p.name?.toLowerCase() || '';
+                    // Match if procedure contains the search term or vice versa
+                    return procName.includes(procedureLower) || procedureLower.includes(procName);
+                  });
+
+                  // Also check facility specialties if available
+                  const matchesSpecialty = facility.specialties?.toLowerCase().includes(procedureLower);
+
+                  return hasMatchingProcedure || matchesSpecialty;
                 }).slice(0, limit);
 
+                // Smart messaging for search results - DON'T fall back to random facilities
                 if (facilities.length === 0) {
-                  facilities = data.slice(0, limit);
-                }
-
-                // Smart messaging for search results
-                if (facilities.length === 0) {
-                  assistantMessage += '\n\n**Unfortunately, I couldn\'t find facilities in that specific location right now.** Our database is growing daily! Let me try:\n\n- Searching nearby countries\n- Showing top-rated facilities in popular destinations\n- Or you can tell me a different location to search.';
+                  assistantMessage += `\n\n**I couldn't find facilities offering ${procedure || 'that procedure'} in our database yet.**\n\nOur network is growing! In the meantime:\n- Try a different location\n- Ask about a related procedure\n- Or browse our [full facility list](/facilities) to see all options.`;
                 } else {
-                  assistantMessage += `\n\n**I found ${facilities.length} excellent ${facilities.length === 1 ? 'option' : 'options'} for you.** Check them out below:`;
+                  // Add procedure-specific pricing to displayed facilities
+                  facilities = facilities.map(facility => {
+                    const matchingProc = facility.popular_procedures?.find((p: any) =>
+                      p.name?.toLowerCase().includes(procedureLower) || procedureLower.includes(p.name?.toLowerCase() || '')
+                    );
+                    return {
+                      ...facility,
+                      matched_procedure: matchingProc || null,
+                      procedure_price: matchingProc?.price_range || null
+                    };
+                  });
+
+                  assistantMessage += `\n\n**I found ${facilities.length} excellent ${facilities.length === 1 ? 'option' : 'options'} for ${procedure || 'you'}:**`;
                 }
               }
             }
