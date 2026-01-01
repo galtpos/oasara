@@ -10,14 +10,12 @@ const ChatButton: React.FC = () => {
   const [isChecking, setIsChecking] = useState(true);
   const navigate = useNavigate();
 
-  // Check if user is authenticated
+  // Check if user is authenticated - use getSession (cached) not getUser (network)
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session?.user);
       setIsChecking(false);
-    };
-    checkAuth();
+    });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {

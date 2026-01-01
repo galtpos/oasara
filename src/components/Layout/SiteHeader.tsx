@@ -11,14 +11,12 @@ const SiteHeader: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Check auth state
+  // Check auth state - use getSession (cached) not getUser (network call)
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
       setLoading(false);
-    };
-    checkUser();
+    });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {

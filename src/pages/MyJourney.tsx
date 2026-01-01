@@ -21,38 +21,27 @@ const MyJourney: React.FC = () => {
   // Load user and journeys
   const loadData = useCallback(async () => {
     try {
-      console.log('MyJourney: Loading data...');
       setLoading(true);
       setError(null);
 
-      // Get user
-      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
-      console.log('MyJourney: Auth result:', { user: authUser?.email, error: authError?.message });
+      // Use getSession (cached, instant) not getUser (network call)
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (authError) {
-        setError('Authentication error: ' + authError.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!authUser) {
-        console.log('MyJourney: No user, redirecting to auth');
+      if (!session?.user) {
         navigate('/auth', { replace: true });
         return;
       }
 
+      const authUser = session.user;
       setUser(authUser);
 
       // Get journeys
-      console.log('MyJourney: Fetching journeys for user:', authUser.id);
       const { data: journeys, error: journeyError } = await supabase
         .from('patient_journeys')
         .select('*')
         .eq('user_id', authUser.id)
         .in('status', ['researching', 'comparing', 'decided'])
         .order('created_at', { ascending: false });
-
-      console.log('MyJourney: Journeys result:', { count: journeys?.length, error: journeyError?.message });
 
       if (journeyError) {
         setError('Failed to load journeys: ' + journeyError.message);
@@ -62,7 +51,6 @@ const MyJourney: React.FC = () => {
 
       // If no journeys, redirect to start
       if (!journeys || journeys.length === 0) {
-        console.log('MyJourney: No journeys found, redirecting to /start');
         navigate('/start', { replace: true });
         return;
       }
@@ -70,7 +58,7 @@ const MyJourney: React.FC = () => {
       setAllJourneys(journeys);
       setLoading(false);
     } catch (err: any) {
-      console.error('MyJourney: Unexpected error:', err);
+      console.error('MyJourney error:', err);
       setError('Unexpected error: ' + (err.message || 'Unknown'));
       setLoading(false);
     }
