@@ -1,10 +1,17 @@
 import { Handler, HandlerEvent } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '' // Service role for updates
-);
+// Use anon key for reads (facilities is public), service role for updates if available
+const supabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+// Create client with anon key for public reads
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create admin client for updates if service role key is available
+const supabaseAdmin = supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : null;
 
 interface ContactRequest {
   contactRequestId: string;
@@ -132,19 +139,73 @@ const handler: Handler = async (event: HandlerEvent) => {
       `
     };
 
-    console.log('Email would be sent:', emailContent);
+    // Send email via Resend
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    let emailSent = false;
+    let emailError = '';
 
-    // TODO: Integrate actual email service
-    // Example with SendGrid:
-    // await sendgrid.send({
-    //   to: emailContent.to,
-    //   from: 'noreply@oasara.com',
-    //   subject: emailContent.subject,
-    //   html: emailContent.html
-    // });
+    console.log('[contact-facility] Starting email send...');
+    console.log('[contact-facility] RESEND_API_KEY configured:', !!RESEND_API_KEY);
+    console.log('[contact-facility] Sending to:', emailContent.to, 'CC:', user.email);
 
-    // Update contact request status to 'contacted'
-    const { error: updateError } = await supabase
+    if (RESEND_API_KEY) {
+      try {
+        const emailResponse = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${RESEND_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: 'Oasara <noreply@oasara.com>',
+            to: [emailContent.to],
+            cc: [user.email], // CC the patient so they have a copy
+            subject: emailContent.subject,
+            html: emailContent.html
+          })
+        });
+
+        const responseText = await emailResponse.text();
+        console.log('[contact-facility] Resend response status:', emailResponse.status);
+        console.log('[contact-facility] Resend response:', responseText);
+
+        if (emailResponse.ok) {
+          const result = JSON.parse(responseText);
+          console.log(`[contact-facility] Email sent to ${emailContent.to}, ID: ${result.id}`);
+          emailSent = true;
+        } else {
+          try {
+            const errorData = JSON.parse(responseText);
+            emailError = errorData.message || errorData.error || 'Unknown Resend error';
+            console.error('[contact-facility] Resend API error:', errorData);
+          } catch {
+            emailError = responseText || 'Unknown Resend error';
+          }
+        }
+      } catch (emailErr) {
+        emailError = emailErr instanceof Error ? emailErr.message : 'Email sending failed';
+        console.error('[contact-facility] Email sending failed:', emailErr);
+      }
+    } else {
+      emailError = 'RESEND_API_KEY not configured';
+      console.error('[contact-facility] RESEND_API_KEY not configured');
+    }
+
+    // If email failed, return error so user knows
+    if (!emailSent && emailError) {
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          error: 'Failed to send email',
+          details: emailError
+        })
+      };
+    }
+
+    // Update contact request status to 'contacted' (use admin client if available)
+    const updateClient = supabaseAdmin || supabase;
+    const { error: updateError } = await updateClient
       .from('contact_requests')
       .update({
         status: 'contacted',
@@ -154,16 +215,16 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     if (updateError) {
       console.error('Error updating contact request:', updateError);
+      // Don't fail the request if update fails - email was already sent
     }
 
-    // For now, simulate email sending success
-    // In production, this would be based on the actual email service response
     return {
       statusCode: 200,
       headers,
       body: JSON.stringify({
         success: true,
-        message: 'Contact request sent successfully',
+        emailSent,
+        message: emailSent ? 'Contact request sent successfully' : 'Contact request recorded (email delivery pending)',
         contactRequestId
       })
     };

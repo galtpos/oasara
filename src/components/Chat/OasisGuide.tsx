@@ -295,8 +295,8 @@ const OasisGuide: React.FC<OasisGuideProps> = ({ isOpen, onClose }) => {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-white font-semibold">Oasis Guide</h2>
-                  <p className="text-ocean-100 text-xs">Ask about facilities, trusts, or medical tourism</p>
+                  <h2 className="text-white font-semibold">Quick Q&A</h2>
+                  <p className="text-ocean-100 text-xs">Search facilities, trusts & info</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -325,20 +325,31 @@ const OasisGuide: React.FC<OasisGuideProps> = ({ isOpen, onClose }) => {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {messages.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-lg">
-                    <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                <div className="text-center py-6">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center shadow-lg">
+                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-ocean-700 font-semibold mb-2">Welcome to the Oasis</h3>
-                  <p className="text-ocean-600/70 text-sm mb-6 max-w-xs mx-auto">
-                    I can help you find medical facilities, understand trust laws, and plan your healthcare journey.
+                  <h3 className="text-ocean-700 font-semibold mb-1">Quick Q&A</h3>
+                  <p className="text-ocean-600/70 text-sm mb-4 max-w-xs mx-auto">
+                    Search facilities, trust laws, and get quick answers.
                   </p>
+
+                  {/* Link to Journey Builder */}
+                  <a
+                    href="/start"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 mb-5 rounded-xl bg-ocean-600 text-white text-sm font-medium hover:bg-ocean-700 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    Plan My Journey Instead →
+                  </a>
 
                   {/* Suggested Questions */}
                   <div className="space-y-2">
-                    <p className="text-xs text-ocean-500 font-medium">Try asking:</p>
+                    <p className="text-xs text-ocean-500 font-medium">Or ask a quick question:</p>
                     {suggestedQuestions.map((q, i) => (
                       <button
                         key={i}
@@ -402,7 +413,7 @@ const OasisGuide: React.FC<OasisGuideProps> = ({ isOpen, onClose }) => {
                 </button>
               </div>
               <p className="text-xs text-ocean-400 mt-2 text-center">
-                Powered by OASARA • 518 facilities • 50 state laws
+                Quick search • For guided journey planning, use <a href="/start" className="text-ocean-600 underline">Journey Builder</a>
               </p>
             </form>
           </motion.div>

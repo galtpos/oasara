@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect, Suspense, lazy } from 'react';
+import { useState, useMemo, useEffect, Suspense, lazy } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion'; // Still needed for How It Works section
 import SiteHeader from '../components/Layout/SiteHeader';
+import ChatHero from '../components/Chat/ChatHero';
 import FacilityCard from '../components/Cards/FacilityCard';
 import ProcedureSearch from '../components/Search/ProcedureSearch';
 import CountryFilter from '../components/Filters/CountryFilter';
@@ -36,7 +36,6 @@ const PublicSite: React.FC = () => {
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [showZanoOnly, setShowZanoOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('rating');
-  const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [pledgeCounts, setPledgeCounts] = useState<PledgeCounts>({
     medical_trust: 0,
     cancel_insurance: 0,
@@ -248,137 +247,10 @@ const PublicSite: React.FC = () => {
     <div className="min-h-screen bg-white">
       <SiteHeader />
 
-      {/* Hero Section - Savings Calculator */}
-      <Suspense fallback={
-        <div className="bg-gradient-to-r from-green-500 to-emerald-600 py-20 text-center text-white">
-          <p>Loading calculator...</p>
-        </div>
-      }>
-        <SavingsCalculator />
-      </Suspense>
+      {/* Hero Section - Chatbot First */}
+      <ChatHero />
 
-      {/* AI-First CTA - Primary Action */}
-      <div className="bg-gradient-to-r from-ocean-600 to-ocean-700 py-12">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-display text-white mb-4">
-            Ready to Find Your Perfect Care?
-          </h2>
-          <p className="text-xl text-white/90 mb-8">
-            Skip the forms. Just tell us what you're looking for - our AI will handle the rest.
-          </p>
-          <a
-            href="/start"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-white text-ocean-700 rounded-xl font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            Start a Conversation
-          </a>
-          <p className="text-sm text-white/70 mt-4">No account needed • Takes 2 minutes</p>
-        </div>
-      </div>
-
-      {/* How It Works Button */}
-      <div className="bg-white py-4 text-center border-b border-sage-200">
-        <button
-          onClick={() => setShowHowItWorks(!showHowItWorks)}
-          className="inline-flex items-center gap-2 px-6 py-2 bg-ocean-600 hover:bg-ocean-700 text-white rounded-lg font-semibold transition-all"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          How It Works
-        </button>
-      </div>
-
-      {/* How It Works - Expandable */}
-      <AnimatePresence>
-        {showHowItWorks && (
-          <motion.section
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="bg-sage-50 border-b-2 border-sage-200 overflow-hidden"
-          >
-            <div className="max-w-7xl mx-auto px-6 py-10">
-              <div className="flex items-center justify-between mb-8">
-                <h3 className="font-display text-2xl text-ocean-700">How Medical Tourism Works</h3>
-                <button
-                  onClick={() => setShowHowItWorks(false)}
-                  className="text-sage-500 hover:text-ocean-600 transition-colors"
-                  aria-label="Close how it works"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-ocean-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="font-display text-2xl text-ocean-600">1</span>
-                  </div>
-                  <h4 className="font-display text-lg text-ocean-700 mb-2">Search</h4>
-                  <p className="text-sage-600 text-sm">
-                    Find accredited facilities for your procedure. Filter by country, specialty, or ratings.
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-ocean-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="font-display text-2xl text-ocean-600">2</span>
-                  </div>
-                  <h4 className="font-display text-lg text-ocean-700 mb-2">Compare</h4>
-                  <p className="text-sage-600 text-sm">
-                    See transparent pricing, real reviews, and facility credentials. No hidden fees.
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-ocean-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="font-display text-2xl text-ocean-600">3</span>
-                  </div>
-                  <h4 className="font-display text-lg text-ocean-700 mb-2">Connect</h4>
-                  <p className="text-sage-600 text-sm">
-                    Contact facilities directly. No middleman taking a cut. Ask about Zano payments.
-                  </p>
-                </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-gold-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <span className="font-display text-2xl text-gold-600">4</span>
-                  </div>
-                  <h4 className="font-display text-lg text-ocean-700 mb-2">Save 60-80%</h4>
-                  <p className="text-sage-600 text-sm">
-                    Get world-class care at a fraction of US prices. Same quality, real savings.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-8 p-6 bg-gold-50 border-2 border-gold-200 rounded-xl">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-gold-200 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-gold-700 font-bold text-lg">Z</span>
-                  </div>
-                  <div>
-                    <h4 className="font-display text-lg text-ocean-700 mb-1">What is Zano?</h4>
-                    <p className="text-sage-600 text-sm leading-relaxed">
-                      Zano is a privacy-preserving cryptocurrency that protects your financial sovereignty.
-                      When you contact a facility, ask if they accept Zano or Freedom Dollar.
-                      Your request helps educate providers about alternative payment methods that keep your medical finances private.
-                    </p>
-                    <a href="/why-zano" className="inline-flex items-center gap-1 text-gold-600 hover:text-gold-700 text-sm font-semibold mt-2">
-                      Learn more about payment privacy
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
-
-      {/* Stats Bar - Ocean Teal */}
+      {/* Stats Bar - Simplified Social Proof */}
       <div className="bg-ocean-600 border-t-4 border-gold-500 py-4 px-6">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-6 justify-center md:justify-start">
           <div className="flex flex-col items-center px-4">
@@ -534,6 +406,15 @@ const PublicSite: React.FC = () => {
         </div>
       </main>
 
+      {/* Savings Calculator - Moved from hero, now below facilities */}
+      <Suspense fallback={
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 py-20 text-center text-white">
+          <p>Loading calculator...</p>
+        </div>
+      }>
+        <SavingsCalculator />
+      </Suspense>
+
       {/* US Healthcare Crisis - LAZY LOADED - DESKTOP ONLY for performance */}
       {!isMobile && (
         <Suspense fallback={<div className="py-12 bg-red-50/50 text-center"><p className="text-ocean-600">Loading videos...</p></div>}>
@@ -563,15 +444,105 @@ const PublicSite: React.FC = () => {
         <ZanoTutorials />
       </Suspense>
 
-      {/* Footer */}
-      <footer className="mt-16 py-12 border-t border-sage-200 bg-sage-50">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-sage-500 text-base italic max-w-3xl mx-auto leading-relaxed">
-            "In the desert of captured healthcare, Oasara is your oasis — a sanctuary where medical sovereignty flows freely, choices bloom abundantly, and every seeker finds their path to healing."
-          </p>
-          <p className="text-sage-400 text-sm mt-6">
-            Privacy-preserving medical marketplace. Your sovereignty. Your choice.
-          </p>
+      {/* Footer - Comprehensive with moved nav links */}
+      <footer className="mt-16 py-16 border-t border-sage-200 bg-sage-50">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Footer Navigation Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+            {/* Resources */}
+            <div>
+              <h4 className="font-display text-ocean-700 text-lg mb-4">Resources</h4>
+              <ul className="space-y-2">
+                <li>
+                  <a href="/hub" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    Medical Tourism Guide
+                  </a>
+                </li>
+                <li>
+                  <a href="/medical-trusts" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    Medical Trust Laws
+                  </a>
+                </li>
+                <li>
+                  <a href="/price-comparison" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    US Price Comparison
+                  </a>
+                </li>
+                <li>
+                  <a href="/us-prices" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    Compare US Hospitals
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Take Action */}
+            <div>
+              <h4 className="font-display text-ocean-700 text-lg mb-4">Take Action</h4>
+              <ul className="space-y-2">
+                <li>
+                  <a href="/action" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    Join the Movement
+                  </a>
+                </li>
+                <li>
+                  <a href="/bounty" className="text-sage-600 hover:text-ocean-600 transition-colors flex items-center gap-1">
+                    Referral Bounty
+                    <span className="text-xs bg-gold-500 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="/auth" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    Create Account
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Payment Privacy */}
+            <div>
+              <h4 className="font-display text-ocean-700 text-lg mb-4">Payment Privacy</h4>
+              <ul className="space-y-2">
+                <li>
+                  <a href="/why-zano" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    Why Zano?
+                  </a>
+                </li>
+                <li>
+                  <a href="https://zano.org" target="_blank" rel="noopener noreferrer" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    Get Zano Wallet
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* About */}
+            <div>
+              <h4 className="font-display text-ocean-700 text-lg mb-4">About Oasara</h4>
+              <ul className="space-y-2">
+                <li>
+                  <a href="/start" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    Talk to Our Guide
+                  </a>
+                </li>
+                <li>
+                  <a href="/" className="text-sage-600 hover:text-ocean-600 transition-colors">
+                    Browse Facilities
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Tagline */}
+          <div className="text-center pt-8 border-t border-sage-200">
+            <p className="text-sage-500 text-base italic max-w-3xl mx-auto leading-relaxed">
+              "In the desert of captured healthcare, Oasara is your oasis — a sanctuary where medical sovereignty flows freely, choices bloom abundantly, and every seeker finds their path to healing."
+            </p>
+            <p className="text-sage-400 text-sm mt-6">
+              Privacy-preserving medical marketplace. Your sovereignty. Your choice.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

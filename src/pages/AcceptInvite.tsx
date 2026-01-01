@@ -58,7 +58,7 @@ const AcceptInvite: React.FC = () => {
 
         // If user is authenticated and email matches, auto-accept
         if (user && user.email === inviteData.email) {
-          await handleAccept(user.id);
+          await handleAccept(user.id, inviteData);
         }
 
       } catch (err) {
@@ -72,16 +72,19 @@ const AcceptInvite: React.FC = () => {
     checkAuthAndInvitation();
   }, [token]);
 
-  const handleAccept = async (userId?: string) => {
+  const handleAccept = async (userId?: string, inviteData?: any) => {
     try {
       setLoading(true);
+
+      // Use passed invite data or fall back to state
+      const invite = inviteData || invitation;
 
       const { data: { user } } = await supabase.auth.getUser();
       const effectiveUserId = userId || user?.id;
 
       if (!effectiveUserId) {
         // Redirect to sign up with email pre-filled
-        navigate(`/signup?email=${encodeURIComponent(invitation.email)}&return=/journey/accept-invite/${token}`);
+        navigate(`/signup?email=${encodeURIComponent(invite.email)}&return=/journey/accept-invite/${token}`);
         return;
       }
 
@@ -99,13 +102,13 @@ const AcceptInvite: React.FC = () => {
 
       // Log acceptance
       await supabase.rpc('log_journey_access', {
-        p_journey_id: invitation.journey_id,
+        p_journey_id: invite.journey_id,
         p_user_id: effectiveUserId,
         p_action: 'invite_accepted'
       });
 
       // Redirect to shared journey view
-      navigate(`/journey/shared/${invitation.journey_id}`);
+      navigate(`/journey/shared/${invite.journey_id}`);
 
     } catch (err) {
       console.error('Accept invitation error:', err);
@@ -259,12 +262,14 @@ const AcceptInvite: React.FC = () => {
             </svg>
             {isAuthenticated ? 'Accept Invitation' : 'Sign In to Accept'}
           </button>
-          <button
-            onClick={handleDecline}
-            className="px-6 py-3 bg-white border-2 border-sage-300 text-ocean-700 rounded-lg hover:bg-sage-50 transition-colors font-medium"
-          >
-            Decline
-          </button>
+          {isAuthenticated && (
+            <button
+              onClick={handleDecline}
+              className="px-6 py-3 bg-white border-2 border-sage-300 text-ocean-700 rounded-lg hover:bg-sage-50 transition-colors font-medium"
+            >
+              Decline
+            </button>
+          )}
         </div>
 
         {/* Privacy Note */}

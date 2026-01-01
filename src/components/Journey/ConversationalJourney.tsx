@@ -43,9 +43,156 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [shortlistLoading, setShortlistLoading] = useState<string | null>(null);
+  const [shortlistedIds, setShortlistedIds] = useState<string[]>([]);
+  const [selectedForBatch, setSelectedForBatch] = useState<Set<string>>(new Set());
+  const [batchAddLoading, setBatchAddLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
   const navigate = useNavigate();
+
+  // Toggle facility selection for batch add
+  const handleToggleBatchSelect = (facilityId: string) => {
+    setSelectedForBatch(prev => {
+      const next = new Set(prev);
+      if (next.has(facilityId)) {
+        next.delete(facilityId);
+      } else {
+        next.add(facilityId);
+      }
+      return next;
+    });
+  };
+
+  // Handle batch add of selected facilities
+  const handleBatchAdd = async (facilities: Array<{ id: string; name: string }>) => {
+    if (!currentJourneyId) {
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'I\'d love to save those for you! Let me first get a few details about your healthcare needs so I can create your personal journey. What type of procedure are you exploring?',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
+
+    const toAdd = facilities.filter(f => selectedForBatch.has(f.id) && !shortlistedIds.includes(f.id));
+    if (toAdd.length === 0) return;
+
+    setBatchAddLoading(true);
+    try {
+      const { error } = await supabase
+        .from('journey_facilities')
+        .insert(toAdd.map(f => ({
+          journey_id: currentJourneyId,
+          facility_id: f.id
+        })));
+
+      if (error) throw error;
+
+      // Update local state
+      setShortlistedIds(prev => [...prev, ...toAdd.map(f => f.id)]);
+      setSelectedForBatch(new Set());
+
+      // Add success message
+      const names = toAdd.map(f => f.name).join(', ');
+      const successMessage: Message = {
+        role: 'assistant',
+        content: `Excellent! I've added **${toAdd.length} ${toAdd.length === 1 ? 'facility' : 'facilities'}** to your shortlist: ${names}. You're making great progress on your research!`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, successMessage]);
+    } catch (error) {
+      console.error('Error batch adding:', error);
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'I ran into a hiccup saving those facilities. Can you try again in a moment?',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setBatchAddLoading(false);
+    }
+  };
+
+  // Load shortlisted facility IDs
+  useEffect(() => {
+    const loadShortlist = async () => {
+      if (!currentJourneyId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('journey_facilities')
+          .select('facility_id')
+          .eq('journey_id', currentJourneyId);
+
+        if (error) throw error;
+        setShortlistedIds(data?.map(d => d.facility_id) || []);
+      } catch (error) {
+        console.error('Error loading shortlist:', error);
+      }
+    };
+
+    loadShortlist();
+  }, [currentJourneyId]);
+
+  // Handle adding facility to shortlist directly
+  const handleAddToShortlist = async (facilityId: string, facilityName: string) => {
+    if (!currentJourneyId) {
+      // Show message to complete onboarding first
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'I\'d love to save that for you! Let me first get a few details about your healthcare needs so I can create your personal journey. What type of procedure are you exploring?',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      return;
+    }
+
+    setShortlistLoading(facilityId);
+    try {
+      const { error } = await supabase
+        .from('journey_facilities')
+        .insert({
+          journey_id: currentJourneyId,
+          facility_id: facilityId
+        });
+
+      if (error) {
+        if (error.code === '23505') { // Unique constraint violation
+          const alreadyMessage: Message = {
+            role: 'assistant',
+            content: `${facilityName} is already in your shortlist! You're on top of things.`,
+            timestamp: new Date()
+          };
+          setMessages(prev => [...prev, alreadyMessage]);
+        } else {
+          throw error;
+        }
+      } else {
+        // Update local shortlist state
+        setShortlistedIds(prev => [...prev, facilityId]);
+
+        // Add success message
+        const successMessage: Message = {
+          role: 'assistant',
+          content: `Great choice! I've added **${facilityName}** to your shortlist. You're building a solid set of options—you can compare them side-by-side on your dashboard whenever you're ready.`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, successMessage]);
+      }
+    } catch (error) {
+      console.error('Error adding to shortlist:', error);
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: 'I ran into a hiccup saving that facility. Can you try again in a moment?',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setShortlistLoading(null);
+    }
+  };
 
   // Update currentJourneyId if prop changes
   useEffect(() => {
@@ -308,11 +455,79 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
                     <InlineComparison facilities={message.facilities} />
                   ) : (
                     <div className="mt-4 space-y-3">
+                      {/* Select All / Batch Add Header */}
+                      {message.facilities.filter(f => !shortlistedIds.includes(f.id)).length > 1 && (
+                        <div className="flex items-center justify-between bg-sage-50 rounded-lg px-4 py-2">
+                          <label className="flex items-center gap-2 text-sm text-ocean-700 cursor-pointer">
+                            <button
+                              onClick={() => {
+                                const unshortlisted = message.facilities!.filter(f => !shortlistedIds.includes(f.id));
+                                const allSelected = unshortlisted.every(f => selectedForBatch.has(f.id));
+                                if (allSelected) {
+                                  // Deselect all
+                                  setSelectedForBatch(prev => {
+                                    const next = new Set(prev);
+                                    unshortlisted.forEach(f => next.delete(f.id));
+                                    return next;
+                                  });
+                                } else {
+                                  // Select all
+                                  setSelectedForBatch(prev => {
+                                    const next = new Set(prev);
+                                    unshortlisted.forEach(f => next.add(f.id));
+                                    return next;
+                                  });
+                                }
+                              }}
+                              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                                message.facilities!.filter(f => !shortlistedIds.includes(f.id)).every(f => selectedForBatch.has(f.id))
+                                  ? 'bg-ocean-500 border-ocean-500 text-white'
+                                  : 'border-sage-400 hover:border-ocean-400'
+                              }`}
+                            >
+                              {message.facilities!.filter(f => !shortlistedIds.includes(f.id)).every(f => selectedForBatch.has(f.id)) && (
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </button>
+                            Select all ({message.facilities!.filter(f => !shortlistedIds.includes(f.id)).length} available)
+                          </label>
+                          {selectedForBatch.size > 0 && (
+                            <button
+                              onClick={() => handleBatchAdd(message.facilities!)}
+                              disabled={batchAddLoading}
+                              className="px-4 py-1.5 bg-ocean-500 hover:bg-ocean-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                            >
+                              {batchAddLoading ? (
+                                <>
+                                  <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                  </svg>
+                                  Adding...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                  </svg>
+                                  Add {selectedForBatch.size} to Shortlist
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      )}
                       {message.facilities.map((facility) => (
                         <FacilityCard
                           key={facility.id}
                           facility={facility}
-                          onAddToShortlist={(name) => setInput(`Add ${name} to my shortlist`)}
+                          isInShortlist={shortlistedIds.includes(facility.id)}
+                          isLoading={shortlistLoading === facility.id}
+                          onAddToShortlist={() => handleAddToShortlist(facility.id, facility.name)}
+                          showCheckbox={message.facilities!.filter(f => !shortlistedIds.includes(f.id)).length > 1}
+                          isSelected={selectedForBatch.has(facility.id)}
+                          onToggleSelect={() => handleToggleBatchSelect(facility.id)}
                         />
                       ))}
                     </div>

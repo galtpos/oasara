@@ -1,27 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
+import { useAuthState } from '../../hooks/useAuth';
 
 interface ContactFacilityModalProps {
   isOpen: boolean;
   onClose: () => void;
-  facility: {
+  // Support both prop styles for flexibility:
+  facility?: {        // Journey context (full object)
     id: string;
     name: string;
     city: string;
     country: string;
   };
-  journeyId: string;
-  procedureType: string;
+  facilityId?: string;    // Standalone context (individual props)
+  facilityName?: string;
+  journeyId?: string;     // Optional - null for standalone inquiries
+  procedureType?: string; // Optional - shown if provided
 }
 
 const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
   isOpen,
   onClose,
   facility,
+  facilityId,
+  facilityName,
   journeyId,
   procedureType
 }) => {
+  // Derive facility info from either prop style
+  const id = facility?.id || facilityId || '';
+  const name = facility?.name || facilityName || '';
+  const city = facility?.city || '';
+  const country = facility?.country || '';
+
+  // Get authenticated user's info for pre-fill
+  const { user, profile } = useAuthState();
+
+  // Generate default message with Zano pitch
+  const generateDefaultMessage = (procedure?: string) => {
+    const procedureText = procedure
+      ? `I am interested in learning more about ${procedure} at your facility.`
+      : 'I am interested in learning more about your medical services.';
+
+    return `Hello,
+
+${procedureText}
+
+I would appreciate information about:
+• Pricing and package options
+• Estimated timeline for treatment
+• Required medical history or documentation
+• Accommodation recommendations nearby
+
+I discovered your facility through OASARA, a privacy-preserving medical tourism marketplace. For secure, private transactions, I encourage you to explore accepting Zano or Freedom Dollar (fUSD) – a stable cryptocurrency that protects both patients and providers from chargebacks, bank freezes, and surveillance. Learn more: https://oasara.com/why-zano
+
+Thank you for your time. I look forward to your response.`;
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -29,6 +65,23 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Pre-fill form when modal opens or user data becomes available
+  useEffect(() => {
+    if (isOpen) {
+      const userName = profile?.name
+        || user?.user_metadata?.name
+        || user?.user_metadata?.full_name
+        || user?.email?.split('@')[0]
+        || '';
+      setFormData({
+        name: userName,
+        email: user?.email || '',
+        phone: '',
+        message: generateDefaultMessage(procedureType)
+      });
+    }
+  }, [isOpen, user, profile, procedureType]);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
@@ -42,13 +95,13 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
       const { data: contactRequest, error: dbError } = await supabase
         .from('contact_requests')
         .insert({
-          journey_id: journeyId,
-          facility_id: facility.id,
+          journey_id: journeyId || null,  // Allow null for standalone inquiries
+          facility_id: id,
           user_name: formData.name,
           user_email: formData.email,
           user_phone: formData.phone || null,
           message: formData.message || null,
-          procedure_type: procedureType,
+          procedure_type: procedureType || 'General Inquiry',
           status: 'pending'
         })
         .select()
@@ -56,7 +109,8 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
 
       if (dbError) {
         console.error('Database error:', dbError);
-        throw new Error('Failed to save contact request');
+        console.error('Insert data:', { journey_id: journeyId || null, facility_id: id, user_name: formData.name, user_email: formData.email });
+        throw new Error(`Database error: ${dbError.message || dbError.code || 'Unknown'}`);
       }
 
       // Then, send the email via Netlify function
@@ -66,17 +120,17 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
         body: JSON.stringify({
           contactRequestId: contactRequest.id,
           facility: {
-            id: facility.id,
-            name: facility.name,
-            city: facility.city,
-            country: facility.country
+            id,
+            name,
+            city,
+            country
           },
           user: {
             name: formData.name,
             email: formData.email,
             phone: formData.phone
           },
-          procedureType,
+          procedureType: procedureType || 'General Inquiry',
           message: formData.message
         })
       });
@@ -131,7 +185,7 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden"
+          className="relative w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-ocean-600 to-ocean-700 px-6 py-5 text-white">
@@ -139,7 +193,7 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
               <div>
                 <h2 className="text-2xl font-display font-bold">Request Quote</h2>
                 <p className="text-ocean-100 text-sm mt-1">
-                  {facility.name} - {facility.city}, {facility.country}
+                  {name}{city && country ? ` - ${city}, ${country}` : ''}
                 </p>
               </div>
               <button
@@ -169,20 +223,22 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
                 </div>
                 <h3 className="text-xl font-semibold text-ocean-800 mb-2">Request Sent!</h3>
                 <p className="text-ocean-600">
-                  {facility.name} will receive your request and contact you soon.
+                  {name} will receive your request and contact you soon.
                 </p>
               </motion.div>
             ) : (
               <>
-                {/* Procedure Type (Read-only) */}
-                <div>
-                  <label className="block text-sm font-medium text-ocean-700 mb-1">
-                    Procedure
-                  </label>
-                  <div className="px-4 py-3 bg-sage-50 rounded-lg text-ocean-800 font-medium">
-                    {procedureType}
+                {/* Procedure Type (Read-only) - only show if provided */}
+                {procedureType && (
+                  <div>
+                    <label className="block text-sm font-medium text-ocean-700 mb-1">
+                      Procedure
+                    </label>
+                    <div className="px-4 py-3 bg-sage-50 rounded-lg text-ocean-800 font-medium">
+                      {procedureType}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Name */}
                 <div>
@@ -234,15 +290,15 @@ const ContactFacilityModal: React.FC<ContactFacilityModalProps> = ({
                 {/* Message */}
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-ocean-700 mb-1">
-                    Message <span className="text-sage-500 text-xs">(optional)</span>
+                    Message <span className="text-sage-500 text-xs">(feel free to edit)</span>
                   </label>
                   <textarea
                     id="message"
-                    rows={4}
+                    rows={8}
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    placeholder="Tell the facility about your specific needs, timeline, or any questions you have..."
-                    className="w-full px-4 py-2.5 border-2 border-sage-300 rounded-lg focus:border-ocean-600 focus:ring-2 focus:ring-ocean-600/20 focus:outline-none transition-all resize-none"
+                    placeholder="Tell the facility about your specific needs..."
+                    className="w-full px-4 py-2.5 border-2 border-sage-300 rounded-lg focus:border-ocean-600 focus:ring-2 focus:ring-ocean-600/20 focus:outline-none transition-all resize-y text-sm"
                   />
                 </div>
 

@@ -375,7 +375,7 @@ Answer their question:`;
 
     // Call Claude API with function calling
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
+      model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
       system: [
         {
@@ -395,6 +395,7 @@ Answer their question:`;
     let facilities: any[] = [];
     let journeyId: string | null = context.journeyId || null;
     let isComparison = false;
+    let shortlistChanged = false; // Track if AI modified the shortlist
 
     // Process response content and handle tool calls
     for (const content of response.content) {
@@ -520,6 +521,7 @@ Answer their question:`;
 
               if (!error) {
                 assistantMessage += `\n\n✅ Added **${facilityMatch.name}** to your shortlist!`;
+                shortlistChanged = true; // Signal frontend to refresh
               } else {
                 console.error('[AddFacility] Insert error:', error);
                 // Check specific error codes
@@ -566,6 +568,7 @@ Answer their question:`;
 
               if (!error) {
                 assistantMessage += `\n\n✅ Removed **${facilityMatch.name}** from your shortlist!`;
+                shortlistChanged = true; // Signal frontend to refresh
               } else {
                 assistantMessage += `\n\n**${facilityMatch.name}** wasn't in your shortlist.`;
               }
@@ -1350,7 +1353,8 @@ Once you have 2+ facilities on your shortlist, I can create a detailed compariso
         message: assistantMessage,
         facilities: facilities.length > 0 ? facilities : undefined,
         journeyId: journeyId || undefined,
-        isComparison: isComparison || undefined
+        isComparison: isComparison || undefined,
+        shortlistChanged: shortlistChanged || undefined
       })
     };
 

@@ -22,9 +22,14 @@ interface FacilityCardProps {
     accepts_zano?: boolean;
   };
   procedureType?: string;
-  onAddToShortlist?: (facilityName: string) => void;
+  onAddToShortlist?: () => void;
   isInShortlist?: boolean;
+  isLoading?: boolean;
   compact?: boolean;
+  // Batch selection props
+  showCheckbox?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 /**
@@ -36,7 +41,11 @@ const FacilityCard: React.FC<FacilityCardProps> = ({
   procedureType,
   onAddToShortlist,
   isInShortlist = false,
-  compact = false
+  isLoading = false,
+  compact = false,
+  showCheckbox = false,
+  isSelected = false,
+  onToggleSelect
 }) => {
   // Find matching procedure for price display
   const matchingProcedure = facility.popular_procedures?.find(p =>
@@ -52,24 +61,51 @@ const FacilityCard: React.FC<FacilityCardProps> = ({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`bg-white rounded-xl border-2 border-sage-200 hover:border-ocean-300 transition-all ${
+      className={`bg-white rounded-xl border-2 transition-all ${
         compact ? 'p-3' : 'p-4'
-      }`}
+      } ${isSelected ? 'border-ocean-500 bg-ocean-50/30' : 'border-sage-200 hover:border-ocean-300'}`}
     >
       {/* Header: Name + Location */}
       <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <Link
-            to={`/facilities/${facility.id}`}
-            className="text-lg font-semibold text-ocean-800 hover:text-ocean-600 transition-colors"
-          >
-            {facility.name}
-          </Link>
-          <div className="flex items-center gap-2 mt-1 text-sm text-ocean-600">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            </svg>
-            {facility.city}, {facility.country}
+        <div className="flex items-start gap-3 flex-1">
+          {/* Checkbox for batch selection */}
+          {showCheckbox && !isInShortlist && (
+            <button
+              onClick={onToggleSelect}
+              className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all flex-shrink-0 ${
+                isSelected
+                  ? 'bg-ocean-500 border-ocean-500 text-white'
+                  : 'border-sage-400 hover:border-ocean-400'
+              }`}
+            >
+              {isSelected && (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </button>
+          )}
+          {/* In Shortlist indicator when in checkbox mode */}
+          {showCheckbox && isInShortlist && (
+            <div className="mt-1 w-5 h-5 rounded bg-green-100 flex items-center justify-center flex-shrink-0">
+              <svg className="w-3 h-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          )}
+          <div className="flex-1">
+            <Link
+              to={`/facilities/${facility.id}`}
+              className="text-lg font-semibold text-ocean-800 hover:text-ocean-600 transition-colors"
+            >
+              {facility.name}
+            </Link>
+            <div className="flex items-center gap-2 mt-1 text-sm text-ocean-600">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              </svg>
+              {facility.city}, {facility.country}
+            </div>
           </div>
         </div>
 
@@ -138,12 +174,14 @@ const FacilityCard: React.FC<FacilityCardProps> = ({
       <div className="flex gap-2">
         {onAddToShortlist && (
           <button
-            onClick={() => onAddToShortlist(facility.name)}
-            disabled={isInShortlist}
+            onClick={onAddToShortlist}
+            disabled={isInShortlist || isLoading}
             className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
               isInShortlist
                 ? 'bg-green-100 text-green-700 cursor-default'
-                : 'bg-ocean-500 hover:bg-ocean-600 text-white'
+                : isLoading
+                  ? 'bg-ocean-400 text-white cursor-wait'
+                  : 'bg-ocean-500 hover:bg-ocean-600 text-white'
             }`}
           >
             {isInShortlist ? (
@@ -152,6 +190,13 @@ const FacilityCard: React.FC<FacilityCardProps> = ({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 In Shortlist
+              </>
+            ) : isLoading ? (
+              <>
+                <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                Adding...
               </>
             ) : (
               <>

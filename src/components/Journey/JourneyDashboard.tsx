@@ -32,7 +32,7 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
   const [isEditingProcedure, setIsEditingProcedure] = useState(false);
   const [editedProcedure, setEditedProcedure] = useState(journey.procedure_type);
 
-  // Fetch shortlisted facilities
+  // Fetch shortlisted facilities - always refetch on mount to get latest from chat
   const { data: shortlistedFacilities, isLoading: facilitiesLoading, refetch: refetchShortlist } = useQuery({
     queryKey: ['journey-facilities', journey.id],
     queryFn: async () => {
@@ -55,7 +55,9 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
 
       if (error) throw error;
       return data;
-    }
+    },
+    refetchOnMount: 'always',
+    staleTime: 0
   });
 
   // Fetch journey notes
@@ -464,6 +466,7 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
         shortlistedFacilities={shortlistedFacilities || []}
         isOpen={isChatbotOpen}
         setIsOpen={setIsChatbotOpen}
+        onShortlistUpdate={refetchShortlist}
       />
 
       {/* Share Journey Modal */}

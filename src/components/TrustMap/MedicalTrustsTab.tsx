@@ -15,7 +15,7 @@ const MedicalTrustsTab: React.FC = () => {
   return (
     <div className="bg-gradient-to-br from-slate-50 via-teal-50/30 to-slate-100 min-h-[calc(100vh-200px)]">
       {/* Hero Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-ocean-600 via-ocean-700 to-slate-800 py-10">
+      <div className="relative overflow-hidden bg-gradient-to-r from-ocean-600 via-ocean-700 to-slate-800 py-8">
         <div className="absolute inset-0 opacity-10">
           <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
@@ -26,45 +26,65 @@ const MedicalTrustsTab: React.FC = () => {
             <rect width="100" height="100" fill="url(#grid)" />
           </svg>
         </div>
-        
+
         <div className="relative max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex items-center justify-between"
           >
-            <div>
-              <span className="inline-flex items-center gap-2 text-teal-200 text-sm font-medium mb-2">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                Medical Trust Planning
-              </span>
-              <h2 className="text-3xl font-bold text-white mb-2">
-                State-by-State Trust Law Guide
-              </h2>
-              <p className="text-teal-100/80 max-w-xl">
-                Compare asset protection, tax treatment, and healthcare provisions across all 50 states 
-                to find the optimal jurisdiction for your medical trust.
-              </p>
+            {/* Main Title */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <span className="inline-flex items-center gap-2 text-teal-200 text-sm font-medium mb-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  Protect Your Assets
+                </span>
+                <h2 className="text-3xl font-bold text-white mb-2">
+                  Don't Let Medical Bills Take Everything
+                </h2>
+              </div>
+
+              {/* Top States Quick Access */}
+              <div className="hidden lg:flex items-center gap-2">
+                <span className="text-white/60 text-xs uppercase tracking-wide mr-2">Top Rated:</span>
+                {topStates.slice(0, 3).map((state, index) => (
+                  <button
+                    key={state.stateCode}
+                    onClick={() => setSelectedState(state)}
+                    className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full transition-colors"
+                  >
+                    <span className="w-5 h-5 rounded-full bg-gold-400 text-ocean-900 text-xs font-bold flex items-center justify-center">
+                      {index + 1}
+                    </span>
+                    <span className="text-white text-sm font-medium">{state.stateCode}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Top States Quick Access */}
-            <div className="hidden lg:flex items-center gap-2">
-              <span className="text-white/60 text-xs uppercase tracking-wide mr-2">Top Rated:</span>
-              {topStates.slice(0, 3).map((state, index) => (
-                <button
-                  key={state.stateCode}
-                  onClick={() => setSelectedState(state)}
-                  className="flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 px-3 py-1.5 rounded-full transition-colors"
-                >
-                  <span className="w-5 h-5 rounded-full bg-gold-400 text-ocean-900 text-xs font-bold flex items-center justify-center">
-                    {index + 1}
-                  </span>
-                  <span className="text-white text-sm font-medium">{state.stateCode}</span>
-                </button>
-              ))}
+            {/* Explanation Cards */}
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <div className="text-gold-400 font-bold text-lg mb-1">The Problem</div>
+                <p className="text-white/80 text-sm">
+                  Medical debt is the #1 cause of bankruptcy in America. One unexpected illness can wipe out your life savings.
+                </p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <div className="text-gold-400 font-bold text-lg mb-1">The Solution</div>
+                <p className="text-white/80 text-sm">
+                  A Medical Trust is a legal structure that shields your assets from creditors, including medical debt collectors.
+                </p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <div className="text-gold-400 font-bold text-lg mb-1">Why State Matters</div>
+                <p className="text-white/80 text-sm">
+                  Trust laws vary dramatically by state. Some states offer far better protection than others. Find your best option below.
+                </p>
+              </div>
             </div>
           </motion.div>
         </div>

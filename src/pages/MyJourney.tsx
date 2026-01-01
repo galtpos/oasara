@@ -1,111 +1,112 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { getGuestJourney, shouldPromptToSave, getGuestEngagementMetrics, clearGuestJourney } from '../lib/guestJourney';
 import JourneyDashboard from '../components/Journey/JourneyDashboard';
+import SiteHeader from '../components/Layout/SiteHeader';
 
 const MyJourney: React.FC = () => {
   const navigate = useNavigate();
-  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(null);
-  const [showSavePrompt, setShowSavePrompt] = useState(false);
-  const [isGuest, setIsGuest] = useState(false);
-  const [dismissedSavePrompt, setDismissedSavePrompt] = useState(false);
-  const [isCheckingJourney, setIsCheckingJourney] = useState(true);
+  const [user, setUser] = useState<any>(null);
+  const [allJourneys, setAllJourneys] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Check authentication
-  const { data: user, isLoading: authLoading } = useQuery({
-    queryKey: ['auth'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      return user;
-    }
-  });
+  // Track selected journey index
+  const [selectedJourneyIndex, setSelectedJourneyIndex] = useState(0);
 
-  // Fetch authenticated user's journey
-  const { data: authJourney, isLoading: journeyLoading, refetch: refetchJourney } = useQuery({
-    queryKey: ['active-journey', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
+  // Journey renaming state
+  const [isRenamingJourney, setIsRenamingJourney] = useState(false);
+  const [newJourneyName, setNewJourneyName] = useState('');
 
-      const { data, error } = await supabase
+  // Load user and journeys
+  const loadData = useCallback(async () => {
+    try {
+      console.log('MyJourney: Loading data...');
+      setLoading(true);
+      setError(null);
+
+      // Get user
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      console.log('MyJourney: Auth result:', { user: authUser?.email, error: authError?.message });
+
+      if (authError) {
+        setError('Authentication error: ' + authError.message);
+        setLoading(false);
+        return;
+      }
+
+      if (!authUser) {
+        console.log('MyJourney: No user, redirecting to auth');
+        navigate('/auth', { replace: true });
+        return;
+      }
+
+      setUser(authUser);
+
+      // Get journeys
+      console.log('MyJourney: Fetching journeys for user:', authUser.id);
+      const { data: journeys, error: journeyError } = await supabase
         .from('patient_journeys')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', authUser.id)
         .in('status', ['researching', 'comparing', 'decided'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching journey:', error);
-        return null;
+      console.log('MyJourney: Journeys result:', { count: journeys?.length, error: journeyError?.message });
+
+      if (journeyError) {
+        setError('Failed to load journeys: ' + journeyError.message);
+        setLoading(false);
+        return;
       }
 
-      return data;
-    },
-    enabled: !!user?.id
-  });
+      // If no journeys, redirect to start
+      if (!journeys || journeys.length === 0) {
+        console.log('MyJourney: No journeys found, redirecting to /start');
+        navigate('/start', { replace: true });
+        return;
+      }
 
-  // Get guest journey from localStorage
-  const guestJourney = getGuestJourney();
+      setAllJourneys(journeys);
+      setLoading(false);
+    } catch (err: any) {
+      console.error('MyJourney: Unexpected error:', err);
+      setError('Unexpected error: ' + (err.message || 'Unknown'));
+      setLoading(false);
+    }
+  }, [navigate]);
 
-  // Determine which journey to use or redirect to chat
   useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading) return;
+    loadData();
+  }, [loadData]);
 
-    // Check if user dismissed the prompt
-    const dismissed = localStorage.getItem('oasara-save-prompt-dismissed');
-    if (dismissed) {
-      setDismissedSavePrompt(true);
+  // Get currently selected journey
+  const journey = allJourneys?.[selectedJourneyIndex] || allJourneys?.[0] || null;
+
+  // Handle journey rename
+  const handleRenameJourney = async () => {
+    if (!journey || !newJourneyName.trim()) return;
+
+    const { error } = await supabase
+      .from('patient_journeys')
+      .update({ name: newJourneyName.trim() })
+      .eq('id', journey.id);
+
+    if (error) {
+      console.error('Error renaming journey:', error);
+      return;
     }
 
-    if (user && authJourney) {
-      // Authenticated user with journey - show dashboard
-      setActiveJourneyId(authJourney.id);
-      setIsGuest(false);
-      setIsCheckingJourney(false);
-    } else if (guestJourney) {
-      // Guest user with localStorage journey - show dashboard
-      setActiveJourneyId(guestJourney.id);
-      setIsGuest(true);
-      setIsCheckingJourney(false);
-
-      // Check if we should prompt to save (and haven't dismissed it)
-      if (shouldPromptToSave() && !user && !dismissed) {
-        setTimeout(() => setShowSavePrompt(true), 3000); // Show after 3 seconds
-      }
-    } else {
-      // No journey exists - redirect to conversational chat for onboarding
-      navigate('/my-journey/chat', { replace: true });
-    }
-  }, [user, authJourney, guestJourney, authLoading, navigate]);
+    setIsRenamingJourney(false);
+    loadData(); // Refresh
+  };
 
   const handleStartNewJourney = () => {
-    if (isGuest) {
-      clearGuestJourney();
-    }
-    // Redirect to chat for new journey onboarding
-    navigate('/my-journey/chat');
+    navigate('/my-journey/chat?new=true');
   };
 
-  const handleSaveJourney = async () => {
-    // Navigate to signup with return URL
-    window.location.href = '/signup?save-journey=true';
-  };
-
-  const handleDismissSavePrompt = (permanent: boolean = false) => {
-    setShowSavePrompt(false);
-    if (permanent) {
-      localStorage.setItem('oasara-save-prompt-dismissed', 'true');
-      setDismissedSavePrompt(true);
-    }
-  };
-
-  // Show loading while checking auth and journey
-  if (authLoading || isCheckingJourney) {
+  // Show loading
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50/30 flex items-center justify-center">
         <div className="text-center">
@@ -116,154 +117,144 @@ const MyJourney: React.FC = () => {
     );
   }
 
-  // Get the active journey for rendering
-  const journey = user ? authJourney : guestJourney;
-
-  // If no journey, the useEffect will redirect - show loading in the meantime
-  if (!journey) {
+  // Show error state
+  if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50/30 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-ocean-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-ocean-700 font-display">Starting your journey...</p>
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-display text-ocean-700 mb-2">Something went wrong</h2>
+          <p className="text-ocean-600 mb-4">{error}</p>
+          <button
+            onClick={() => loadData()}
+            className="px-6 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
 
+  // If no journey (shouldn't happen, but just in case)
+  if (!journey) {
+    navigate('/start', { replace: true });
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50/30">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-sage-200 sticky top-0 z-50">
+      {/* Site-wide Header */}
+      <SiteHeader />
+
+      {/* Journey Controls Sub-header */}
+      <div className="bg-white/80 backdrop-blur-md border-b border-sage-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-display text-ocean-700 flex items-center gap-2">
+              <h1 className="text-2xl font-display text-ocean-700">
                 My Journey
-                {isGuest && (
-                  <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full font-normal">
-                    Guest Mode
-                  </span>
-                )}
               </h1>
               <p className="text-sm text-ocean-600">
-                {isGuest ? 'You\'re in control—explore freely and save whenever you\'re ready' : 'Your personal healthcare companion'}
+                Your personal healthcare companion
               </p>
+              {/* Journey selector and rename */}
+              {allJourneys && allJourneys.length > 0 && (
+                <div className="mt-2 flex items-center gap-2 flex-wrap">
+                  {isRenamingJourney ? (
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={newJourneyName}
+                        onChange={(e) => setNewJourneyName(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleRenameJourney()}
+                        placeholder="Enter journey name..."
+                        autoFocus
+                        className="text-sm px-3 py-1.5 border border-ocean-400 rounded-lg bg-white text-ocean-700 focus:outline-none focus:ring-2 focus:ring-ocean-500 w-48"
+                      />
+                      <button
+                        onClick={handleRenameJourney}
+                        className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Save"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setIsRenamingJourney(false)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Cancel"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {allJourneys.length > 1 ? (
+                        <>
+                          <label className="text-xs text-ocean-500">Journey:</label>
+                          <select
+                            value={selectedJourneyIndex}
+                            onChange={(e) => setSelectedJourneyIndex(Number(e.target.value))}
+                            className="text-sm px-3 py-1.5 border border-sage-300 rounded-lg bg-white text-ocean-700 focus:outline-none focus:ring-2 focus:ring-ocean-500 focus:border-ocean-500"
+                          >
+                            {allJourneys.map((j, idx) => (
+                              <option key={j.id} value={idx}>
+                                {j.name || j.procedure_category || 'Healthcare Journey'} ({new Date(j.created_at).toLocaleDateString()})
+                              </option>
+                            ))}
+                          </select>
+                        </>
+                      ) : (
+                        <span className="text-sm text-ocean-600 font-medium">
+                          {journey?.name || journey?.procedure_category || 'Healthcare Journey'}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => {
+                          setNewJourneyName(journey?.name || journey?.procedure_category || '');
+                          setIsRenamingJourney(true);
+                        }}
+                        className="p-1.5 text-ocean-500 hover:bg-sage-100 rounded-lg transition-colors"
+                        title="Rename journey"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                      {allJourneys.length > 1 && (
+                        <span className="text-xs text-ocean-400">
+                          ({allJourneys.length} journeys)
+                        </span>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-3">
-              <Link
-                to="/guide"
+              <button
+                onClick={handleStartNewJourney}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ocean-600 hover:bg-sage-50 rounded-lg transition-colors border-2 border-sage-200 hover:border-ocean-300"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                View Guide
-              </Link>
-              {isGuest && (
-                <button
-                  onClick={handleSaveJourney}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-ocean-600 hover:bg-ocean-700 rounded-lg transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                  </svg>
-                  Save Journey
-                </button>
-              )}
-              {journey && (
-                <button
-                  onClick={handleStartNewJourney}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ocean-600 hover:bg-sage-50 rounded-lg transition-colors border-2 border-sage-200 hover:border-ocean-300"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                  </svg>
-                  New Journey
-                </button>
-              )}
-              <Link
-                to="/"
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-ocean-600 hover:bg-sage-50 rounded-lg transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Home
-              </Link>
+                New Journey
+              </button>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Save Journey Prompt */}
-      <AnimatePresence>
-        {showSavePrompt && isGuest && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 right-4 z-50 w-96 bg-white rounded-xl shadow-2xl border-2 border-ocean-200 p-6"
-          >
-            <button
-              onClick={() => handleDismissSavePrompt(false)}
-              className="absolute top-2 right-2 p-1 text-ocean-400 hover:text-ocean-600 rounded-lg transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-ocean-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <svg className="w-6 h-6 text-ocean-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-ocean-800 mb-1">
-                  You're making great progress!
-                </h3>
-                <p className="text-sm text-ocean-600 mb-4">
-                  Create a free account to save your research and pick up right where you left off—from any device.
-                </p>
-                {getGuestEngagementMetrics() && (
-                  <div className="bg-sage-50 rounded-lg p-3 mb-4">
-                    <div className="text-xs text-ocean-700 space-y-1">
-                      <div>✓ {getGuestEngagementMetrics()!.facilitiesCount} facilities saved</div>
-                      <div>✓ {getGuestEngagementMetrics()!.notesCount} notes created</div>
-                    </div>
-                  </div>
-                )}
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleSaveJourney}
-                      className="flex-1 px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors font-medium text-sm"
-                    >
-                      Save My Journey
-                    </button>
-                    <button
-                      onClick={() => handleDismissSavePrompt(false)}
-                      className="px-4 py-2 text-ocean-600 hover:bg-sage-50 rounded-lg transition-colors text-sm"
-                    >
-                      Maybe Later
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => handleDismissSavePrompt(true)}
-                    className="w-full text-xs text-ocean-400 hover:text-ocean-600 transition-colors"
-                  >
-                    Don't show this again
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Content - Always show dashboard since redirect handles no-journey case */}
+      {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <JourneyDashboard journey={journey} />
       </div>

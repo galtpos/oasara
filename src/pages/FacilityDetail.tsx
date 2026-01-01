@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { CommentsSection } from '../components/Comments';
 import { ActivityWidget } from '../components/Activity';
-import ContactFacilityModal from '../components/Contact/ContactFacilityModal';
+import ContactFacilityModal from '../components/Journey/ContactFacilityModal';
+import ContactOptionsMenu from '../components/Contact/ContactOptionsMenu';
 import USPriceWidget from '../components/Pricing/USPriceWidget';
 import RequestZanoButton from '../components/Outreach/RequestZanoButton';
 
@@ -213,15 +214,13 @@ const FacilityDetail: React.FC = () => {
                     </a>
                   )}
                   {facility.phone && (
-                    <a
-                      href={`tel:${facility.phone}`}
-                      className="flex items-center gap-2 px-4 py-2 bg-sage-100 text-sage-700 rounded-lg hover:bg-sage-200 transition-colors"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      {facility.phone}
-                    </a>
+                    <div className="w-48">
+                      <ContactOptionsMenu
+                        phone={facility.phone}
+                        facilityName={facility.name}
+                        email={facility.contact_email}
+                      />
+                    </div>
                   )}
                 </div>
               </div>
@@ -356,17 +355,12 @@ const FacilityDetail: React.FC = () => {
         </div>
       </main>
 
-      {/* Contact Modal */}
+      {/* Contact Modal - Unified modal for all contact contexts */}
       <ContactFacilityModal
         isOpen={showContactModal}
         onClose={() => setShowContactModal(false)}
         facilityId={facility.id}
         facilityName={facility.name}
-        facilityEmail={facility.contact_email}
-        procedures={[
-          ...facility.specialties,
-          ...(facility.popular_procedures?.map(p => p.name) || [])
-        ]}
       />
     </div>
   );

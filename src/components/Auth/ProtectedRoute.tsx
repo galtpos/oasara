@@ -58,9 +58,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  // Redirect to landing gate if not authenticated
+  // Redirect to unified auth page if not authenticated
   if (!user && !session) {
-    return <Navigate to="/welcome" state={{ from: location.pathname }} replace />;
+    return <Navigate to="/auth" state={{ from: location.pathname }} replace />;
   }
 
   return <>{children}</>;

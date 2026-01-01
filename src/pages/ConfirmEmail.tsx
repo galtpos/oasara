@@ -24,13 +24,17 @@ const ConfirmEmail: React.FC = () => {
         return;
       }
 
+      // Get stored redirect destination (from signup flow)
+      const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/start';
+
       // Must have access token
       if (!accessToken) {
         // Maybe already logged in?
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           setStatus('success');
-          window.location.replace('/');
+          localStorage.removeItem('oasara-auth-redirect');
+          window.location.replace(redirectTo);
           return;
         }
         setError('No access token found. Please request a new magic link.');
@@ -53,10 +57,11 @@ const ConfirmEmail: React.FC = () => {
 
         if (data?.session) {
           setStatus('success');
-          // Clear hash and redirect
+          // Clear hash and redirect to stored destination
           window.history.replaceState(null, '', window.location.pathname);
+          localStorage.removeItem('oasara-auth-redirect');
           setTimeout(() => {
-            window.location.replace('/');
+            window.location.replace(redirectTo);
           }, 1500);
         } else {
           setError('Failed to establish session. Please try again.');
@@ -132,7 +137,7 @@ const ConfirmEmail: React.FC = () => {
               <h2 className="font-display text-2xl text-ocean-700 mb-2">Verification Failed</h2>
               <p className="text-ocean-600/70 mb-6">{error}</p>
               <Link
-                to="/signup"
+                to="/auth"
                 className="inline-block px-6 py-3 rounded-md bg-gradient-to-b from-gold-500 to-gold-700 text-white font-medium shadow-[0_4px_0_#8B6914] hover:translate-y-[-2px] transition-all"
               >
                 Request New Link

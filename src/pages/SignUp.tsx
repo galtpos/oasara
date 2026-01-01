@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthState } from '../hooks/useAuth';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const SignUp: React.FC = () => {
@@ -14,13 +14,24 @@ const SignUp: React.FC = () => {
   const [showPasswordOption, setShowPasswordOption] = useState(false);
   const { user } = useAuthState();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // If user is already logged in, redirect to main site
+  // Get the intended destination from ProtectedRoute redirect
+  const from = (location.state as any)?.from || '/start';
+
+  // If user is already logged in, redirect to intended destination
   useEffect(() => {
     if (user) {
-      navigate('/');
+      navigate(from);
     }
-  }, [user, navigate]);
+  }, [user, navigate, from]);
+
+  // Store intended destination for magic link flow
+  useEffect(() => {
+    if (from) {
+      localStorage.setItem('oasara-auth-redirect', from);
+    }
+  }, [from]);
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();

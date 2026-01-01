@@ -12,12 +12,22 @@ const ConversationalJourneyPage: React.FC = () => {
   useEffect(() => {
     const checkJourney = async () => {
       try {
+        // Check if user wants to start a NEW journey (don't load existing)
+        const isNewJourney = searchParams.get('new') === 'true';
+
         // Get journey ID from URL params first
         const paramJourneyId = searchParams.get('id');
 
         if (paramJourneyId) {
           console.log('[Journey] Using journey from URL:', paramJourneyId);
           setJourneyId(paramJourneyId);
+          setLoading(false);
+          return;
+        }
+
+        // If starting a new journey, skip loading existing
+        if (isNewJourney) {
+          console.log('[Journey] Starting fresh journey (new=true)');
           setLoading(false);
           return;
         }

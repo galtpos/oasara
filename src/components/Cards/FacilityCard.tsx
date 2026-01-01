@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Facility } from '../../lib/supabase';
 import RequestZanoButton from '../Outreach/RequestZanoButton';
 import ContactOptionsMenu from '../Contact/ContactOptionsMenu';
-import ContactFacilityModal from '../Contact/ContactFacilityModal';
+import ContactFacilityModal from '../Journey/ContactFacilityModal';
 import USPriceWidget from '../Pricing/USPriceWidget';
 import AccreditationBadge from '../Trust/AccreditationBadge';
 
@@ -22,10 +22,6 @@ const FacilityCard: React.FC<FacilityCardProps> = memo(({ facility, onClick }) =
   const displayDoctors = useMemo(() => facility.doctors?.slice(0, 5) || [], [facility.doctors]);
   const displayPricing = useMemo(() => facility.procedure_pricing?.slice(0, 5) || [], [facility.procedure_pricing]);
   const displayTestimonials = useMemo(() => facility.testimonials?.slice(0, 3) || [], [facility.testimonials]);
-  const contactProcedures = useMemo(() => [
-    ...facility.specialties,
-    ...(facility.popular_procedures?.map(p => p.name) || [])
-  ], [facility.specialties, facility.popular_procedures]);
 
   const hasEnrichedData =
     (facility.doctors?.length || 0) > 0 ||
@@ -377,15 +373,13 @@ const FacilityCard: React.FC<FacilityCardProps> = memo(({ facility, onClick }) =
         )}
       </div>
 
-      {/* Contact Modal - Only mount when open to avoid 500+ useAuthState hooks */}
+      {/* Contact Modal - Unified modal for all contact contexts */}
       {showContactModal && (
         <ContactFacilityModal
           isOpen={showContactModal}
           onClose={() => setShowContactModal(false)}
           facilityId={facility.id}
           facilityName={facility.name}
-          facilityEmail={facility.contact_email}
-          procedures={contactProcedures}
         />
       )}
     </div>

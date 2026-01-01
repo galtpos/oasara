@@ -1,8 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
-import { createGuestJourney } from '../../lib/guestJourney';
+
+// Simple markdown renderer for chat messages (matches JourneyChatbot pattern)
+const renderMarkdown = (text: string): string => {
+  let html = text;
+  // Bold: **text**
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  // Bullet points: - item or * item
+  html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
+  // Wrap consecutive list items in ul
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul class="list-disc list-inside my-2 space-y-1">$&</ul>');
+  // Line breaks
+  html = html.replace(/\n/g, '<br/>');
+  return html;
+};
 
 interface Message {
   role: 'user' | 'assistant';
@@ -15,7 +27,6 @@ interface OnboardingChatbotProps {
 }
 
 const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated }) => {
-  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
@@ -129,42 +140,27 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
   };
 
   const handleJourneyCreation = async (journeyData: any) => {
+    // Get authenticated user (route is protected, so user must be logged in)
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error('User not authenticated:', authError);
+      // Redirect to auth if somehow not authenticated
+      window.location.href = '/auth';
+      return;
+    }
+
+    // Save journey to Supabase for authenticated user
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        // Create guest journey in localStorage
-        const guestJourney = createGuestJourney({
-          procedure: journeyData.procedure,
-          budgetMin: journeyData.budgetMin,
-          budgetMax: journeyData.budgetMax,
-          timeline: journeyData.timeline
-        });
-
-        setJourneyCreated(true);
-
-        if (onJourneyCreated) {
-          onJourneyCreated(guestJourney.id);
-        }
-
-        // Auto-navigate to dashboard after 2 seconds
-        setTimeout(() => {
-          navigate('/my-journey');
-        }, 4000);
-
-        return;
-      }
-
-      // Authenticated user - save to Supabase
       const { data: journey, error } = await supabase
-        .from('journeys')
+        .from('patient_journeys')
         .insert({
           user_id: user.id,
           procedure_type: journeyData.procedure,
           budget_min: journeyData.budgetMin,
           budget_max: journeyData.budgetMax,
           timeline: journeyData.timeline,
-          status: 'active'
+          status: 'researching'
         })
         .select()
         .single();
@@ -177,13 +173,19 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
         onJourneyCreated(journey.id);
       }
 
-      // Auto-navigate to dashboard after 2 seconds
+      // Redirect to journey dashboard
       setTimeout(() => {
-        navigate('/my-journey');
-      }, 4000);
-
-    } catch (error) {
-      console.error('Error creating journey:', error);
+        window.location.href = '/my-journey';
+      }, 2000);
+    } catch (dbError) {
+      console.error('Journey creation failed:', dbError);
+      // Show error to user
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: "I'm sorry, there was an error saving your journey. Please try again.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
     }
   };
 
@@ -233,7 +235,10 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
                   : 'bg-sage-100 text-ocean-800 rounded-bl-none'
               }`}
             >
-              <div className="text-base whitespace-pre-wrap">{message.content}</div>
+              <div
+                className="text-base prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+              />
               <div className={`text-xs mt-2 opacity-70 ${message.role === 'user' ? 'text-right' : ''}`}>
                 {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </div>

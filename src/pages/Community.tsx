@@ -124,13 +124,13 @@ const Community: React.FC = () => {
               </p>
               <div className="space-y-2">
                 <Link
-                  to="/signup"
+                  to="/auth"
                   className="block w-full py-2 bg-gold-500 hover:bg-gold-600 text-white text-center rounded-lg font-medium transition-colors"
                 >
                   Sign Up Free
                 </Link>
                 <Link
-                  to="/login"
+                  to="/auth"
                   className="block w-full py-2 bg-white/10 hover:bg-white/20 text-white text-center rounded-lg font-medium transition-colors"
                 >
                   Already a Seeker? Log In

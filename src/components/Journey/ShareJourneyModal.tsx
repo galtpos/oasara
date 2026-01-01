@@ -64,13 +64,21 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
         throw new Error('Please enter a valid email address');
       }
 
+      // Normalize email for comparison
+      const normalizedEmail = email.toLowerCase().trim();
+
       // Check if already has active invitation
-      const existingActive = collaborators?.find(c => c.email === email && c.status === 'pending');
+      const existingActive = collaborators?.find(c => c.email.toLowerCase() === normalizedEmail && c.status === 'pending');
       if (existingActive) {
-        throw new Error('This email already has a pending invitation');
+        // Show the existing link instead of erroring
+        const existingLink = `${window.location.origin}/journey/accept-invite/${existingActive.invitation_token}`;
+        setInviteLink(existingLink);
+        setSuccessMessage(`This email already has a pending invitation. Share this link:`);
+        setIsSubmitting(false);
+        return;
       }
 
-      const existingAccepted = collaborators?.find(c => c.email === email && c.status === 'accepted');
+      const existingAccepted = collaborators?.find(c => c.email.toLowerCase() === normalizedEmail && c.status === 'accepted');
       if (existingAccepted) {
         throw new Error('This person already has access to your journey');
       }
@@ -80,7 +88,7 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
       if (!user) throw new Error('You must be logged in to share');
 
       // Check if there's an existing revoked/declined record to update
-      const existingRevoked = collaborators?.find(c => c.email === email && (c.status === 'revoked' || c.status === 'declined'));
+      const existingRevoked = collaborators?.find(c => c.email.toLowerCase() === normalizedEmail && (c.status === 'revoked' || c.status === 'declined'));
 
       let invitation;
 
@@ -108,7 +116,7 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
           .from('journey_collaborators')
           .insert({
             journey_id: journeyId,
-            email: email.toLowerCase(),
+            email: normalizedEmail,
             role: role,
             invited_by: user.id
           })

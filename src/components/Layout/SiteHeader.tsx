@@ -1,13 +1,37 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 
 const SiteHeader: React.FC = () => {
   const location = useLocation();
-  const [usPricesOpen, setUsPricesOpen] = useState(false);
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
-  const isUSPricesActive = location.pathname.startsWith('/us-') || location.pathname === '/price-comparison';
+
+  // Check auth state
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      setLoading(false);
+    };
+    checkUser();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   return (
     <>
@@ -46,64 +70,14 @@ const SiteHeader: React.FC = () => {
             </button>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-8" aria-label="Main navigation">
-              {/* Dashboard - FIRST */}
+            <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
+              {/* My Journey / Dashboard */}
               <Link
                 to="/my-journey"
                 className={`nav-link font-semibold ${location.pathname.startsWith('/my-journey') ? 'text-gold-500' : ''}`}
               >
-                Dashboard
+                My Journey
               </Link>
-
-              {/* US Prices Dropdown */}
-              <div
-                className="relative"
-                onMouseEnter={() => setUsPricesOpen(true)}
-                onMouseLeave={() => setUsPricesOpen(false)}
-              >
-                <button
-                  className={`nav-link flex items-center gap-1 ${isUSPricesActive ? 'text-gold-500' : ''}`}
-                  aria-expanded={usPricesOpen}
-                  aria-haspopup="true"
-                >
-                  <span>US Prices</span>
-                  <svg className={`w-4 h-4 transition-transform ${usPricesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {usPricesOpen && (
-                  <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-xl border-2 border-sage-200 py-2 z-50">
-                    <Link
-                      to="/price-comparison"
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-sage-50 transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-ocean-800">Price Comparison</div>
-                        <div className="text-xs text-sage-600">See how much you could save</div>
-                      </div>
-                    </Link>
-                    <Link
-                      to="/us-prices"
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-sage-50 transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-gold-100 flex items-center justify-center">
-                        <svg className="w-4 h-4 text-gold-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-ocean-800">Compare US Prices</div>
-                        <div className="text-xs text-sage-600">Search procedure costs by hospital</div>
-                      </div>
-                    </Link>
-                  </div>
-                )}
-              </div>
 
               {/* Facilities */}
               <Link
@@ -112,40 +86,49 @@ const SiteHeader: React.FC = () => {
               >
                 Facilities
               </Link>
+
+              {/* Protect Your Assets */}
               <Link
-                to="/why-zano"
-                className={`nav-link ${isActive('/why-zano') ? 'text-gold-500' : ''}`}
+                to="/medical-trusts"
+                className={`nav-link ${isActive('/medical-trusts') ? 'text-gold-500' : ''}`}
               >
-                Why Zano?
+                Protect Assets
               </Link>
+
+              {/* Take Action - 3 Pledges */}
               <Link
                 to="/action"
                 className={`nav-link ${isActive('/action') ? 'text-gold-500' : ''}`}
               >
                 Take Action
               </Link>
+
+              {/* Learn */}
               <Link
                 to="/hub"
                 className={`nav-link ${isActive('/hub') ? 'text-gold-500' : ''}`}
               >
-                Guide
+                Learn
               </Link>
-              <Link
-                to="/medical-trusts"
-                className={`nav-link ${isActive('/medical-trusts') ? 'text-gold-500' : ''}`}
-              >
-                Trust Laws
-              </Link>
-              <Link
-                to="/bounty"
-                className={`nav-link flex items-center gap-1 ${isActive('/bounty') ? 'text-gold-500' : ''}`}
-              >
-                Bounty
-                <span className="text-xs bg-gradient-to-r from-gold-500 to-gold-600 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
-              </Link>
-              <Link to="/signup" className="btn-gold">
-                Join
-              </Link>
+
+              {/* Auth buttons */}
+              {!loading && (
+                user ? (
+                  <div className="flex items-center gap-4">
+                    <span className="text-ocean-600 text-sm">{user.email?.split('@')[0]}</span>
+                    <button
+                      onClick={handleLogout}
+                      className="text-sm text-ocean-500 hover:text-ocean-700 transition-colors"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                ) : (
+                  <Link to="/auth" className="btn-gold">
+                    Join
+                  </Link>
+                )
+              )}
             </nav>
           </div>
 
@@ -153,7 +136,7 @@ const SiteHeader: React.FC = () => {
           {mobileMenuOpen && (
             <nav className="md:hidden mt-4 pt-4 border-t border-sage-200" aria-label="Mobile navigation">
               <div className="flex flex-col space-y-3">
-                {/* Dashboard - FIRST */}
+                {/* My Journey */}
                 <Link
                   to="/my-journey"
                   onClick={() => setMobileMenuOpen(false)}
@@ -161,30 +144,10 @@ const SiteHeader: React.FC = () => {
                     location.pathname.startsWith('/my-journey') ? 'bg-gold-100 text-gold-700' : 'text-ocean-700 hover:bg-sage-50'
                   }`}
                 >
-                  Dashboard
+                  My Journey
                 </Link>
 
-                {/* US Prices Mobile */}
-                <div className="border-t border-sage-100 pt-2">
-                  <div className="px-4 py-1 text-xs font-bold text-ocean-600 uppercase tracking-wide">
-                    US Prices
-                  </div>
-                  <Link
-                    to="/price-comparison"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-2 text-ocean-700 hover:bg-sage-50 rounded-lg transition-colors ml-2"
-                  >
-                    Price Comparison
-                  </Link>
-                  <Link
-                    to="/us-prices"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-2 text-ocean-700 hover:bg-sage-50 rounded-lg transition-colors ml-2"
-                  >
-                    Compare Prices
-                  </Link>
-                </div>
-
+                {/* Facilities */}
                 <Link
                   to="/"
                   onClick={() => setMobileMenuOpen(false)}
@@ -194,15 +157,19 @@ const SiteHeader: React.FC = () => {
                 >
                   Facilities
                 </Link>
+
+                {/* Protect Your Assets */}
                 <Link
-                  to="/why-zano"
+                  to="/medical-trusts"
                   onClick={() => setMobileMenuOpen(false)}
                   className={`px-4 py-2 rounded-lg transition-colors ${
-                    isActive('/why-zano') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                    isActive('/medical-trusts') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
                   }`}
                 >
-                  Why Zano?
+                  Protect Assets
                 </Link>
+
+                {/* Take Action */}
                 <Link
                   to="/action"
                   onClick={() => setMobileMenuOpen(false)}
@@ -212,6 +179,8 @@ const SiteHeader: React.FC = () => {
                 >
                   Take Action
                 </Link>
+
+                {/* Learn */}
                 <Link
                   to="/hub"
                   onClick={() => setMobileMenuOpen(false)}
@@ -219,34 +188,34 @@ const SiteHeader: React.FC = () => {
                     isActive('/hub') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
                   }`}
                 >
-                  Guide
+                  Learn
                 </Link>
-                <Link
-                  to="/medical-trusts"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-2 rounded-lg transition-colors ${
-                    isActive('/medical-trusts') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
-                  }`}
-                >
-                  Trust Laws
-                </Link>
-                <Link
-                  to="/bounty"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                    isActive('/bounty') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
-                  }`}
-                >
-                  <span>Bounty</span>
-                  <span className="text-xs bg-gradient-to-r from-gold-500 to-gold-600 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
-                </Link>
-                <Link
-                  to="/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="mx-4 mt-2 btn-gold text-center"
-                >
-                  Join
-                </Link>
+
+                {/* Auth buttons */}
+                {!loading && (
+                  user ? (
+                    <div className="mx-4 mt-2 flex items-center justify-between p-3 bg-sage-50 rounded-lg">
+                      <span className="text-ocean-600 text-sm">{user.email?.split('@')[0]}</span>
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setMobileMenuOpen(false);
+                        }}
+                        className="text-sm text-ocean-500 hover:text-ocean-700 transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  ) : (
+                    <Link
+                      to="/auth"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="mx-4 mt-2 btn-gold text-center"
+                    >
+                      Join
+                    </Link>
+                  )
+                )}
               </div>
             </nav>
           )}

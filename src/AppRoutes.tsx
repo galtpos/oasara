@@ -2,9 +2,9 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Auth pages
-import Login from './pages/Login';
-import SignUp from './pages/SignUp';
+import Auth from './pages/Auth';
 import ConfirmEmail from './pages/ConfirmEmail';
+import ProtectedRoute from './components/Auth/ProtectedRoute';
 
 // Main pages
 import PublicSite from './pages/PublicSite';
@@ -54,7 +54,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<PublicSite />} />
       <Route path="/app" element={<PublicSite />} />
       <Route path="/welcome" element={<PublicSite />} />
-      <Route path="/start" element={<AIOnboarding />} />
+      <Route path="/start" element={<ProtectedRoute><AIOnboarding /></ProtectedRoute>} />
       <Route path="/hub" element={<MedicalTourismHub />} />
       <Route path="/facilities/:id" element={<FacilityDetail />} />
       <Route path="/why-zano" element={<WhyZano />} />
@@ -62,8 +62,8 @@ const AppRoutes: React.FC = () => {
       <Route path="/feedback" element={<Feedback />} />
       <Route path="/medical-trusts" element={<MedicalTrusts />} />
       <Route path="/bounty" element={<BountyBoard />} />
-      <Route path="/my-journey" element={<MyJourney />} />
-      <Route path="/my-journey/chat" element={<ConversationalJourneyPage />} />
+      <Route path="/my-journey" element={<ProtectedRoute><MyJourney /></ProtectedRoute>} />
+      <Route path="/my-journey/chat" element={<ProtectedRoute><ConversationalJourneyPage /></ProtectedRoute>} />
       <Route path="/journey/accept-invite/:token" element={<AcceptInvite />} />
       <Route path="/journey/shared/:journeyId" element={<SharedJourneyPage />} />
       <Route path="/guide" element={<Guide />} />
@@ -75,11 +75,12 @@ const AppRoutes: React.FC = () => {
       <Route path="/us-prices" element={<Suspense fallback={<PageLoader />}><USPrices /></Suspense>} />
       <Route path="/price-comparison" element={<Suspense fallback={<PageLoader />}><PriceComparison /></Suspense>} />
 
-      {/* Auth routes */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<SignUp />} />
+      {/* Auth routes - Unified auth page */}
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/login" element={<Navigate to="/auth" replace />} />
+      <Route path="/signup" element={<Navigate to="/auth" replace />} />
       <Route path="/auth/confirm" element={<ConfirmEmail />} />
-      <Route path="/early-access" element={<Navigate to="/signup" replace />} />
+      <Route path="/early-access" element={<Navigate to="/auth" replace />} />
 
       {/* Admin Login */}
       <Route path="/admin/login" element={<AdminLogin />} />

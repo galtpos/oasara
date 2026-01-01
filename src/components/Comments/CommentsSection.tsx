@@ -293,16 +293,10 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ facilityId, facilityN
             <p className="text-ocean-700 mb-2">Join the conversation!</p>
             <div className="flex gap-3 justify-center">
               <Link
-                to="/login"
-                className="px-4 py-2 bg-ocean-600 text-white rounded-lg text-sm font-medium hover:bg-ocean-700 transition-colors"
-              >
-                Log In
-              </Link>
-              <Link
-                to="/signup"
+                to="/auth"
                 className="px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-600 text-white rounded-lg text-sm font-medium hover:from-gold-600 hover:to-gold-700 transition-colors"
               >
-                Sign Up
+                Sign In
               </Link>
             </div>
           </div>

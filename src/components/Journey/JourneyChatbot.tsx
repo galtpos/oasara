@@ -36,9 +36,10 @@ interface JourneyChatbotProps {
   }>;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  onShortlistUpdate?: () => void;
 }
 
-const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFacilities, isOpen, setIsOpen }) => {
+const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFacilities, isOpen, setIsOpen, onShortlistUpdate }) => {
   // Load persisted messages from localStorage
   const loadMessages = (): Message[] => {
     try {
@@ -191,8 +192,10 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
         };
         setMessages(prev => [...prev, successMessage]);
 
-        // Force re-render to update "Saved" status
-        // Parent will fetch updated shortlist on next page load
+        // Notify parent to refresh shortlist data
+        if (onShortlistUpdate) {
+          onShortlistUpdate();
+        }
       }
     } catch (error) {
       console.error('Error adding to shortlist:', error);
@@ -264,6 +267,11 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // If AI modified the shortlist via tool use, refresh the parent's data
+      if (data.shortlistChanged && onShortlistUpdate) {
+        onShortlistUpdate();
+      }
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage: Message = {
@@ -351,6 +359,11 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // If AI modified the shortlist via tool use, refresh the parent's data
+      if (data.shortlistChanged && onShortlistUpdate) {
+        onShortlistUpdate();
+      }
     } catch (error) {
       console.error('Chat error:', error);
       const errorMessage: Message = {
