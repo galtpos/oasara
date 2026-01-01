@@ -109,6 +109,15 @@ const SiteHeader: React.FC = () => {
                 Learn
               </Link>
 
+              {/* Bounty Board */}
+              <Link
+                to="/bounty"
+                className={`nav-link flex items-center gap-1 ${isActive('/bounty') ? 'text-gold-500' : ''}`}
+              >
+                <span className="text-gold-500 font-bold">$</span>
+                Bounty
+              </Link>
+
               {/* Auth buttons */}
               {!loading && (
                 user ? (
@@ -187,6 +196,18 @@ const SiteHeader: React.FC = () => {
                   }`}
                 >
                   Learn
+                </Link>
+
+                {/* Bounty Board */}
+                <Link
+                  to="/bounty"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                    isActive('/bounty') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  }`}
+                >
+                  <span className="text-gold-500 font-bold">$</span>
+                  Bounty Board
                 </Link>
 
                 {/* Auth buttons */}

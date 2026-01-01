@@ -6,7 +6,6 @@ import SiteHeader from '../components/Layout/SiteHeader';
 
 const MyJourney: React.FC = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
   const [allJourneys, setAllJourneys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +32,6 @@ const MyJourney: React.FC = () => {
       }
 
       const authUser = session.user;
-      setUser(authUser);
 
       // Get journeys
       const { data: journeys, error: journeyError } = await supabase
@@ -91,6 +89,49 @@ const MyJourney: React.FC = () => {
 
   const handleStartNewJourney = () => {
     navigate('/my-journey/chat?new=true');
+  };
+
+  // Handle journey deletion
+  const handleDeleteJourney = async () => {
+    if (!journey) return;
+
+    const journeyName = journey.name || journey.procedure_type || 'this journey';
+
+    if (!window.confirm(`Are you sure you want to delete "${journeyName}"?\n\nThis will permanently remove:\n• All shortlisted facilities\n• All personal notes\n• All journey data\n\nThis action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      // Delete related data first (cascade might not be set up)
+      await supabase.from('journey_facilities').delete().eq('journey_id', journey.id);
+      await supabase.from('journey_notes').delete().eq('journey_id', journey.id);
+      await supabase.from('journey_collaborators').delete().eq('journey_id', journey.id);
+
+      // Delete the journey itself
+      const { error } = await supabase
+        .from('patient_journeys')
+        .delete()
+        .eq('id', journey.id);
+
+      if (error) {
+        console.error('Error deleting journey:', error);
+        alert('Failed to delete journey: ' + error.message);
+        return;
+      }
+
+      // If this was the last journey, redirect to start
+      if (allJourneys.length === 1) {
+        navigate('/start', { replace: true });
+        return;
+      }
+
+      // Reset to first journey and reload
+      setSelectedJourneyIndex(0);
+      loadData();
+    } catch (err: any) {
+      console.error('Delete journey error:', err);
+      alert('Failed to delete journey: ' + (err.message || 'Unknown error'));
+    }
   };
 
   // Show loading
@@ -215,6 +256,15 @@ const MyJourney: React.FC = () => {
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={handleDeleteJourney}
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete journey"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                         </svg>
                       </button>
                       {allJourneys.length > 1 && (
