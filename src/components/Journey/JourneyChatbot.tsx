@@ -163,9 +163,10 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
   const handleAddToShortlist = async (facilityId: string) => {
     setShortlistLoading(facilityId);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Use getSession (cached) not getUser (slow network call)
+      const { data: { session } } = await supabase.auth.getSession();
 
-      if (!user) {
+      if (!session?.user) {
         alert('Please sign up to save facilities to your shortlist');
         return;
       }
@@ -219,14 +220,13 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
     setIsLoading(true);
 
     try {
-      // Get current user and session for context
-      const { data: { user } } = await supabase.auth.getUser();
+      // Get session (cached, instant) - user is available from session
       const { data: { session } } = await supabase.auth.getSession();
 
       // Build context for the AI - include journeyId and userId for tool access
       const context = {
         journeyId: journey.id,
-        userId: user?.id || null,
+        userId: session?.user?.id || null,
         procedure: journey.procedure_type,
         budget: journey.budget_min && journey.budget_max
           ? `$${journey.budget_min.toLocaleString()} - $${journey.budget_max.toLocaleString()}`
@@ -311,14 +311,13 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
     setIsLoading(true);
 
     try {
-      // Get current user and session for context
-      const { data: { user } } = await supabase.auth.getUser();
+      // Get session (cached, instant) - user is available from session
       const { data: { session } } = await supabase.auth.getSession();
 
       // Build context for the AI - include journeyId and userId for tool access
       const context = {
         journeyId: journey.id,
-        userId: user?.id || null,
+        userId: session?.user?.id || null,
         procedure: journey.procedure_type,
         budget: journey.budget_min && journey.budget_max
           ? `$${journey.budget_min.toLocaleString()} - $${journey.budget_max.toLocaleString()}`

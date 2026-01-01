@@ -201,13 +201,18 @@ const ConversationalJourney: React.FC<ConversationalJourneyProps> = ({ journeyId
     }
   }, [initialJourneyId]);
 
-  // Get current user
+  // Get current user - use getSession (cached) not getUser (slow network call)
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
-    getUser();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Load conversation history on mount

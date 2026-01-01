@@ -140,15 +140,16 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
   };
 
   const handleJourneyCreation = async (journeyData: any) => {
-    // Get authenticated user (route is protected, so user must be logged in)
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    // Get authenticated user - use getSession (cached) not getUser (slow network call)
+    const { data: { session } } = await supabase.auth.getSession();
 
-    if (authError || !user) {
-      console.error('User not authenticated:', authError);
-      // Redirect to auth if somehow not authenticated
+    if (!session?.user) {
+      console.error('User not authenticated');
       window.location.href = '/auth';
       return;
     }
+
+    const user = session.user;
 
     // Save journey to Supabase for authenticated user
     try {
@@ -165,24 +166,27 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw error;
+      }
 
       setJourneyCreated(true);
 
-      if (onJourneyCreated) {
+      if (onJourneyCreated && journey) {
         onJourneyCreated(journey.id);
       }
 
       // Redirect to journey dashboard
       setTimeout(() => {
         window.location.href = '/my-journey';
-      }, 2000);
-    } catch (dbError) {
+      }, 1500);
+    } catch (dbError: any) {
       console.error('Journey creation failed:', dbError);
-      // Show error to user
+      // Show specific error to user
       const errorMessage: Message = {
         role: 'assistant',
-        content: "I'm sorry, there was an error saving your journey. Please try again.",
+        content: `I'm sorry, there was an error saving your journey: ${dbError?.message || 'Unknown error'}. Please try again.`,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
