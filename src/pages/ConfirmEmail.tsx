@@ -8,96 +8,54 @@ const ConfirmEmail: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const processAuth = async () => {
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
+    // Check for error in URL hash (Supabase puts errors there)
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const errorParam = params.get('error');
+    const errorDescription = params.get('error_description');
 
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-      const errorParam = params.get('error');
-      const errorDescription = params.get('error_description');
+    if (errorParam) {
+      setError(errorDescription || errorParam);
+      setStatus('error');
+      return;
+    }
 
-      // Check for errors first
-      if (errorParam) {
-        setError(errorDescription || errorParam);
-        setStatus('error');
-        return;
+    // Get redirect destination
+    const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/my-journey';
+
+    // Check if already logged in (Supabase auto-detects URL token)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setStatus('success');
+        localStorage.removeItem('oasara-auth-redirect');
+        window.history.replaceState(null, '', window.location.pathname);
+        window.location.replace(redirectTo);
       }
+    });
 
-      // Get stored redirect destination (from signup flow)
-      // Default to /my-journey - it redirects to /start if no journeys exist
-      const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/my-journey';
-
-      // Must have access token
-      if (!accessToken) {
-        // Maybe already logged in?
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setStatus('success');
-          localStorage.removeItem('oasara-auth-redirect');
-          window.location.replace(redirectTo);
-          return;
-        }
-        setError('No access token found. Please request a new magic link.');
-        setStatus('error');
-        return;
+    // Listen for auth state change (triggered when Supabase processes URL token)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setStatus('success');
+        localStorage.removeItem('oasara-auth-redirect');
+        window.history.replaceState(null, '', window.location.pathname);
+        window.location.replace(redirectTo);
       }
+    });
 
-      // Check if token is expired before even trying
-      try {
-        const payload = JSON.parse(atob(accessToken.split('.')[1]));
-        if (payload.exp && Date.now() > payload.exp * 1000) {
-          setError('This magic link has expired. Please request a new one.');
-          setStatus('error');
-          return;
-        }
-      } catch {
-        // If we can't parse, continue anyway
-      }
-
-      // Set the session with 5s timeout (setSession can hang on bad tokens)
-      try {
-        const timeout = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('timeout')), 5000)
-        );
-
-        const result = await Promise.race([
-          supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken || ''
-          }),
-          timeout
-        ]);
-
-        const { data, error: sessionError } = result as any;
-
-        if (sessionError) {
-          setError(sessionError.message);
-          setStatus('error');
-          return;
-        }
-
-        if (data?.session) {
-          setStatus('success');
-          window.history.replaceState(null, '', window.location.pathname);
-          localStorage.removeItem('oasara-auth-redirect');
-          window.location.replace(redirectTo);
-        } else {
-          setError('Failed to establish session. Please try again.');
-          setStatus('error');
-        }
-      } catch (err: any) {
-        if (err.message === 'timeout') {
-          setError('Link expired or invalid. Please request a new magic link.');
-        } else {
-          setError(err.message || 'Authentication failed');
-        }
+    // Timeout after 10 seconds
+    const timeout = setTimeout(() => {
+      if (status === 'verifying') {
+        setError('Sign-in timed out. Please request a new magic link.');
         setStatus('error');
       }
+    }, 10000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
     };
-
-    processAuth();
-  }, []);
+  }, [status]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
