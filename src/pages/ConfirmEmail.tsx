@@ -43,12 +43,33 @@ const ConfirmEmail: React.FC = () => {
         return;
       }
 
-      // Set the session manually
+      // Check if token is expired before even trying
       try {
-        const { data, error: sessionError } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken || ''
-        });
+        const payload = JSON.parse(atob(accessToken.split('.')[1]));
+        if (payload.exp && Date.now() > payload.exp * 1000) {
+          setError('This magic link has expired. Please request a new one.');
+          setStatus('error');
+          return;
+        }
+      } catch {
+        // If we can't parse, continue anyway
+      }
+
+      // Set the session with 5s timeout (setSession can hang on bad tokens)
+      try {
+        const timeout = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('timeout')), 5000)
+        );
+
+        const result = await Promise.race([
+          supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || ''
+          }),
+          timeout
+        ]);
+
+        const { data, error: sessionError } = result as any;
 
         if (sessionError) {
           setError(sessionError.message);
@@ -58,18 +79,19 @@ const ConfirmEmail: React.FC = () => {
 
         if (data?.session) {
           setStatus('success');
-          // Clear hash and redirect to stored destination
           window.history.replaceState(null, '', window.location.pathname);
           localStorage.removeItem('oasara-auth-redirect');
-          setTimeout(() => {
-            window.location.replace(redirectTo);
-          }, 1500);
+          window.location.replace(redirectTo);
         } else {
           setError('Failed to establish session. Please try again.');
           setStatus('error');
         }
       } catch (err: any) {
-        setError(err.message || 'Authentication failed');
+        if (err.message === 'timeout') {
+          setError('Link expired or invalid. Please request a new magic link.');
+        } else {
+          setError(err.message || 'Authentication failed');
+        }
         setStatus('error');
       }
     };
