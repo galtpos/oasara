@@ -115,9 +115,11 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
       setEmail('');
       refetchCollaborators();
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Invitation error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to send invitation');
+      // Show detailed error for debugging
+      const errorMessage = err?.message || err?.error_description || JSON.stringify(err) || 'Failed to send invitation';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
