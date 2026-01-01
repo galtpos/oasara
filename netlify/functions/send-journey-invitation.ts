@@ -52,7 +52,7 @@ const handler: Handler = async (event: HandlerEvent) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Oasara <noreply@oasara.com>',
+        from: 'Oasara <onboarding@resend.dev>',
         to: [to],
         subject: `You've been invited to view a medical journey on Oasara`,
         html: `

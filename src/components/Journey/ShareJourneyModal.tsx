@@ -32,6 +32,7 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
 
   // Fetch existing collaborators
   const { data: collaborators, refetch: refetchCollaborators } = useQuery({
@@ -53,6 +54,7 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
+    setInviteLink(null);
     setIsSubmitting(true);
 
     try {
@@ -117,22 +119,26 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
         invitation = data;
       }
 
-      // Send invitation email via Netlify function
-      const response = await fetch('/.netlify/functions/send-journey-invitation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: email,
-          inviterEmail: user.email,
-          procedureType,
-          invitationToken: invitation.invitation_token,
-          role: role
-        })
-      });
+      // Generate the invite link
+      const inviteLink = `${window.location.origin}/journey/accept-invite/${invitation.invitation_token}`;
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to send invitation email');
+      // Try to send email, but don't fail if it doesn't work
+      let emailSent = false;
+      try {
+        const response = await fetch('/.netlify/functions/send-journey-invitation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: email,
+            inviterEmail: user.email,
+            procedureType,
+            invitationToken: invitation.invitation_token,
+            role: role
+          })
+        });
+        emailSent = response.ok;
+      } catch (emailErr) {
+        console.log('Email sending failed, but invitation was created:', emailErr);
       }
 
       // Log the invitation
@@ -143,7 +149,13 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
         p_details: { invited_email: email, role: role }
       });
 
-      setSuccessMessage(`Invitation sent to ${email}!`);
+      // Show success with the link - user can copy it
+      if (emailSent) {
+        setSuccessMessage(`Invitation sent to ${email}! They can also use this link:`);
+      } else {
+        setSuccessMessage(`Invitation created for ${email}! Share this link with them:`);
+      }
+      setInviteLink(inviteLink);
       setEmail('');
       refetchCollaborators();
 
@@ -283,11 +295,36 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
                 )}
 
                 {successMessage && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-start gap-2">
-                    <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <p className="text-sm text-green-700">{successMessage}</p>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2 mb-2">
+                      <svg className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm text-green-700">{successMessage}</p>
+                    </div>
+                    {inviteLink && (
+                      <div className="mt-2">
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            readOnly
+                            value={inviteLink}
+                            className="flex-1 px-3 py-2 text-xs bg-white border border-green-300 rounded-lg text-ocean-700 font-mono"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(inviteLink);
+                              setCopiedToken('link');
+                              setTimeout(() => setCopiedToken(null), 2000);
+                            }}
+                            className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium whitespace-nowrap"
+                          >
+                            {copiedToken === 'link' ? 'Copied!' : 'Copy Link'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
