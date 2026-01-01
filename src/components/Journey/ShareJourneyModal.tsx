@@ -62,28 +62,60 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
         throw new Error('Please enter a valid email address');
       }
 
-      // Check if already invited
-      if (collaborators?.some(c => c.email === email && c.status !== 'declined')) {
-        throw new Error('This email has already been invited');
+      // Check if already has active invitation
+      const existingActive = collaborators?.find(c => c.email === email && c.status === 'pending');
+      if (existingActive) {
+        throw new Error('This email already has a pending invitation');
+      }
+
+      const existingAccepted = collaborators?.find(c => c.email === email && c.status === 'accepted');
+      if (existingAccepted) {
+        throw new Error('This person already has access to your journey');
       }
 
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('You must be logged in to share');
 
-      // Create invitation
-      const { data: invitation, error: inviteError } = await supabase
-        .from('journey_collaborators')
-        .insert({
-          journey_id: journeyId,
-          email: email.toLowerCase(),
-          role: role,
-          invited_by: user.id
-        })
-        .select()
-        .single();
+      // Check if there's an existing revoked/declined record to update
+      const existingRevoked = collaborators?.find(c => c.email === email && (c.status === 'revoked' || c.status === 'declined'));
 
-      if (inviteError) throw inviteError;
+      let invitation;
+
+      if (existingRevoked) {
+        // Update existing record - reset it to pending with new token
+        const { data, error: updateError } = await supabase
+          .from('journey_collaborators')
+          .update({
+            status: 'pending',
+            invitation_token: crypto.randomUUID(),
+            token_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            invited_at: new Date().toISOString(),
+            accepted_at: null,
+            user_id: null
+          })
+          .eq('id', existingRevoked.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        invitation = data;
+      } else {
+        // Create new invitation
+        const { data, error: inviteError } = await supabase
+          .from('journey_collaborators')
+          .insert({
+            journey_id: journeyId,
+            email: email.toLowerCase(),
+            role: role,
+            invited_by: user.id
+          })
+          .select()
+          .single();
+
+        if (inviteError) throw inviteError;
+        invitation = data;
+      }
 
       // Send invitation email via Netlify function
       const response = await fetch('/.netlify/functions/send-journey-invitation', {
