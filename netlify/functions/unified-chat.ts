@@ -446,7 +446,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
 
                 if (!error && data) {
                   journeyId = data.id;
-                  assistantMessage += `\n\n✅ Perfect! I've created your ${procedure} journey. Let's find some excellent options for you.`;
+                  assistantMessage += `\n\nPerfect! I've created your ${procedure} journey. Let's find some excellent options for you.`;
                 } else {
                   console.error('Error creating journey:', error);
                   assistantMessage += `\n\nI had trouble creating your journey. Error: ${error?.message || 'Unknown error'}`;
@@ -592,7 +592,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
                 });
 
               if (!error) {
-                assistantMessage += `\n\n✅ Added **${facilityMatch.name}** to your shortlist!`;
+                assistantMessage += `\n\nAdded **${facilityMatch.name}** to your shortlist.`;
                 shortlistChanged = true;
               } else if (error.code === '23505') {
                 assistantMessage += `\n\n**${facilityMatch.name}** is already in your shortlist.`;
@@ -630,7 +630,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
                 .eq('facility_id', facilityMatch.id);
 
               if (!error) {
-                assistantMessage += `\n\n✅ Removed **${facilityMatch.name}** from your shortlist!`;
+                assistantMessage += `\n\nRemoved **${facilityMatch.name}** from your shortlist.`;
                 shortlistChanged = true;
               }
             }
@@ -663,7 +663,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
 
               facilities = comparisonFacilities;
               isComparison = true;
-              assistantMessage += `\n\n📊 **Here's your side-by-side comparison of ${comparisonFacilities.length} facilities:**`;
+              assistantMessage += `\n\n**Here's your side-by-side comparison of ${comparisonFacilities.length} facilities:**`;
             }
             break;
 
@@ -689,7 +689,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
 
               assistantMessage += `\n\n🏥 **${facility.name}**\n\n`;
               assistantMessage += `📍 **Location:** ${facility.city}, ${facility.country}\n`;
-              assistantMessage += `${facility.jci_accredited ? '✅ JCI Accredited' : '❌ Not JCI Accredited'}\n`;
+              assistantMessage += `${facility.jci_accredited ? 'JCI Accredited' : 'Not JCI Accredited'}\n`;
               if (facility.google_rating) {
                 assistantMessage += `⭐ ${facility.google_rating}/5 (${facility.review_count || 0} reviews)\n`;
               }
@@ -719,7 +719,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
 
               const shortlistCount = context.shortlist?.length || 0;
 
-              assistantMessage += '\n\n📋 **Your Journey Summary**\n\n';
+              assistantMessage += '\n\n**Your Journey Summary**\n\n';
               assistantMessage += `**Procedure:** ${journeyData.procedure_type}\n`;
               assistantMessage += `**Timeline:** ${journeyData.timeline}\n`;
               assistantMessage += `**Shortlist:** ${shortlistCount} facilities\n`;
@@ -739,55 +739,54 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
           // === MEDICAL TRUST TOOLS ===
           case 'explain_medical_trust':
             {
-              assistantMessage += `\n\n## 🛡️ What is a Medical Trust?\n\n`;
-              assistantMessage += `A **Medical Trust** is a legal structure that protects your assets from medical debt—the #1 cause of bankruptcy in America.\n\n`;
+              assistantMessage += `\n\n**What is a Medical Trust?**\n\n`;
+              assistantMessage += `A Medical Trust is a legal structure that protects your assets from medical debt—the #1 cause of bankruptcy in America.\n\n`;
               assistantMessage += `**How it works:**\n`;
-              assistantMessage += `1. You transfer assets (home, savings, investments) into a trust\n`;
-              assistantMessage += `2. The trust owns the assets, not you personally\n`;
-              assistantMessage += `3. Medical creditors can't seize trust assets to pay your bills\n`;
-              assistantMessage += `4. You still control and benefit from the assets\n\n`;
+              assistantMessage += `• You transfer assets (home, savings, investments) into a trust\n`;
+              assistantMessage += `• The trust owns the assets, not you personally\n`;
+              assistantMessage += `• Medical creditors can't seize trust assets to pay your bills\n`;
+              assistantMessage += `• You still control and benefit from the assets\n\n`;
               assistantMessage += `**Why it matters:**\n`;
-              assistantMessage += `- 66.5% of bankruptcies are medical-related\n`;
-              assistantMessage += `- Even people WITH insurance go bankrupt from medical bills\n`;
-              assistantMessage += `- A trust is like a firewall between your wealth and the healthcare system\n\n`;
-              assistantMessage += `[Learn more about Medical Trusts →](/medical-trusts)\n`;
-              assistantMessage += `[Take the Medical Trust Pledge →](/action)`;
+              assistantMessage += `• 66.5% of bankruptcies are medical-related\n`;
+              assistantMessage += `• Even people WITH insurance go bankrupt from medical bills\n`;
+              assistantMessage += `• A trust is like a firewall between your wealth and the healthcare system\n\n`;
+              assistantMessage += `[Learn more about Medical Trusts](/medical-trusts) | [Take the Pledge](/action)`;
             }
             break;
 
           case 'get_trust_resources':
             {
-              assistantMessage += `\n\n## 📚 Medical Trust Resources\n\n`;
+              assistantMessage += `\n\n**Medical Trust Resources**\n\n`;
               assistantMessage += `**On Oasara:**\n`;
-              assistantMessage += `- [Medical Trust Guide](/medical-trusts) - Full explanation\n`;
-              assistantMessage += `- [Take the Pledge](/action) - Commit to protecting yourself\n\n`;
+              assistantMessage += `• [Medical Trust Guide](/medical-trusts) - Full explanation\n`;
+              assistantMessage += `• [Take the Pledge](/action) - Commit to protecting yourself\n\n`;
               assistantMessage += `**External Resources:**\n`;
-              assistantMessage += `- Asset protection attorneys in your state\n`;
-              assistantMessage += `- Irrevocable trust vs. revocable trust considerations\n`;
-              assistantMessage += `- Timing requirements (must be set up BEFORE medical debt occurs)\n\n`;
-              assistantMessage += `*Note: We're building partnerships with legal services to help you actually form a trust. Want to be notified when that launches?*`;
+              assistantMessage += `• Asset protection attorneys in your state\n`;
+              assistantMessage += `• Irrevocable trust vs. revocable trust considerations\n`;
+              assistantMessage += `• Timing requirements (must be set up BEFORE medical debt occurs)\n\n`;
+              assistantMessage += `We're building partnerships with legal services to help you actually form a trust. Want to be notified when that launches?`;
             }
             break;
 
           // === INSURANCE EXIT TOOLS ===
           case 'explain_insurance_exit':
             {
-              assistantMessage += `\n\n## 💸 Alternatives to Traditional Insurance\n\n`;
+              assistantMessage += `\n\n**Alternatives to Traditional Insurance**\n\n`;
               assistantMessage += `The average family pays **$24,000/year** in premiums + a **$3,000 deductible**—and still gets **18% of claims denied**.\n\n`;
               assistantMessage += `**Your alternatives:**\n\n`;
-              assistantMessage += `### 1. Health Shares\n`;
-              assistantMessage += `- Members share medical costs directly\n`;
-              assistantMessage += `- $200-500/month vs $2,000/month insurance\n`;
-              assistantMessage += `- Examples: Sedera, Knew Health, Zion Health\n\n`;
-              assistantMessage += `### 2. Direct Primary Care (DPC)\n`;
-              assistantMessage += `- $50-150/month for unlimited doctor visits\n`;
-              assistantMessage += `- No co-pays, no insurance hassle\n`;
-              assistantMessage += `- Combined with catastrophic coverage\n\n`;
-              assistantMessage += `### 3. Self-Pay + Medical Tourism\n`;
-              assistantMessage += `- Pay cash for routine care (often cheaper than co-pays)\n`;
-              assistantMessage += `- Go abroad for major procedures (60-90% savings)\n`;
-              assistantMessage += `- Keep a medical emergency fund instead of paying premiums\n\n`;
-              assistantMessage += `*We're building a full Insurance Exit Assessment tool. [Join the waitlist →](/action)*`;
+              assistantMessage += `**Health Shares**\n`;
+              assistantMessage += `• Members share medical costs directly\n`;
+              assistantMessage += `• $200-500/month vs $2,000/month insurance\n`;
+              assistantMessage += `• Examples: Sedera, Knew Health, Zion Health\n\n`;
+              assistantMessage += `**Direct Primary Care (DPC)**\n`;
+              assistantMessage += `• $50-150/month for unlimited doctor visits\n`;
+              assistantMessage += `• No co-pays, no insurance hassle\n`;
+              assistantMessage += `• Combined with catastrophic coverage\n\n`;
+              assistantMessage += `**Self-Pay + Medical Tourism**\n`;
+              assistantMessage += `• Pay cash for routine care (often cheaper than co-pays)\n`;
+              assistantMessage += `• Go abroad for major procedures (60-90% savings)\n`;
+              assistantMessage += `• Keep a medical emergency fund instead of paying premiums\n\n`;
+              assistantMessage += `We're building a full Insurance Exit Assessment tool. [Join the waitlist](/action)`;
             }
             break;
 
@@ -815,7 +814,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
                 console.log('Waitlist insert error (may not exist yet):', error);
               }
 
-              assistantMessage += `\n\n✅ **You're on the Insurance Exit waitlist!**\n\n`;
+              assistantMessage += `\n\n**You're on the Insurance Exit waitlist.**\n\n`;
               assistantMessage += `We'll email you at **${email}** when our full Insurance Exit Assessment tool launches. `;
               assistantMessage += `You'll get:\n`;
               assistantMessage += `- Personalized alternatives for your state\n`;
@@ -846,15 +845,15 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
 
               const pledgeCount = [hasMedicalTrust, hasCancelInsurance, hasMedicalTourism].filter(Boolean).length;
 
-              assistantMessage += '\n\n🛡️ **Your Healthcare Sovereignty Pledges**\n\n';
+              assistantMessage += '\n\n**Your Healthcare Sovereignty Pledges**\n\n';
 
               if (pledgeCount === 3) {
                 assistantMessage += '🎉 **All three pledges taken!** You\'re leading the revolution.\n\n';
               }
 
-              assistantMessage += `${hasMedicalTrust ? '✅' : '⬜'} **Medical Trust** - Protect assets\n`;
-              assistantMessage += `${hasCancelInsurance ? '✅' : '⬜'} **Cancel Insurance** - Exit the trap\n`;
-              assistantMessage += `${hasMedicalTourism ? '✅' : '⬜'} **Medical Tourism** - Use global healthcare\n\n`;
+              assistantMessage += `${hasMedicalTrust ? '[x]' : '[ ]'} **Medical Trust** - Protect assets\n`;
+              assistantMessage += `${hasCancelInsurance ? '[x]' : '[ ]'} **Cancel Insurance** - Exit the trap\n`;
+              assistantMessage += `${hasMedicalTourism ? '[x]' : '[ ]'} **Medical Tourism** - Use global healthcare\n\n`;
 
               if (pledgeCount < 3) {
                 assistantMessage += `[Take the pledge →](/action)`;
@@ -883,7 +882,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
 
               const pledge = pledgeInfo[pledge_type] || pledgeInfo.try_medical_tourism;
 
-              assistantMessage += `\n\n💡 **Have you considered the ${pledge.title} pledge?**\n\n`;
+              assistantMessage += `\n\n**Have you considered the ${pledge.title} pledge?**\n\n`;
               assistantMessage += `${pledge.why}\n\n`;
               assistantMessage += `[Learn more & take the pledge →](/action)`;
             }
