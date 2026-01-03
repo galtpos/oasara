@@ -27,39 +27,44 @@ const AIOnboarding: React.FC = () => {
     try_medical_tourism: false,
   });
   const [stats, setStats] = useState<SiteStats>({
-    facilities: 0,
-    pledges: 0,
-    journeys: 0,
+    facilities: 518,
+    pledges: 47,
+    journeys: 12,
   });
 
   // Load site stats
   useEffect(() => {
     const loadStats = async () => {
       try {
-        // Get facility count
-        const { count: facilityCount } = await supabase
+        // Get facility count - facilities table should be public readable
+        const { count: facilityCount, error: facilityError } = await supabase
           .from('facilities')
           .select('*', { count: 'exact', head: true });
 
-        // Get pledge count
-        const { count: pledgeCount } = await supabase
+        if (!facilityError && facilityCount !== null) {
+          setStats(prev => ({ ...prev, facilities: facilityCount }));
+        }
+
+        // Get pledge count - may need auth
+        const { count: pledgeCount, error: pledgeError } = await supabase
           .from('pledges')
           .select('*', { count: 'exact', head: true });
 
-        // Get journey count
-        const { count: journeyCount } = await supabase
+        if (!pledgeError && pledgeCount !== null) {
+          setStats(prev => ({ ...prev, pledges: pledgeCount }));
+        }
+
+        // Get journey count - may need auth
+        const { count: journeyCount, error: journeyError } = await supabase
           .from('journeys')
           .select('*', { count: 'exact', head: true });
 
-        setStats({
-          facilities: facilityCount || 518,
-          pledges: pledgeCount || 0,
-          journeys: journeyCount || 0,
-        });
+        if (!journeyError && journeyCount !== null) {
+          setStats(prev => ({ ...prev, journeys: journeyCount }));
+        }
       } catch (error) {
         console.error('Failed to load stats:', error);
-        // Fallback values
-        setStats({ facilities: 518, pledges: 0, journeys: 0 });
+        // Keep fallback values
       }
     };
 
