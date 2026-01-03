@@ -1,10 +1,80 @@
 import { Handler, HandlerEvent } from '@netlify/functions';
 import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
+import { HfInference } from '@huggingface/inference';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY || ''
 });
+
+// Qdrant config for trust law data
+const QDRANT_URL = process.env.QDRANT_URL || '';
+const QDRANT_API_KEY = process.env.QDRANT_API_KEY || '';
+const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || '';
+const COLLECTION_NAME = 'oasara_medical';
+const EMBEDDING_MODEL = 'sentence-transformers/all-MiniLM-L6-v2';
+
+const hf = new HfInference(HUGGINGFACE_API_KEY);
+
+interface QdrantSearchResult {
+  id: number;
+  score: number;
+  payload: {
+    text: string;
+    type: string;
+    name?: string;
+    state?: string;
+    title?: string;
+  };
+}
+
+/**
+ * Generate embedding using HuggingFace
+ */
+async function getEmbedding(text: string): Promise<number[]> {
+  const result = await hf.featureExtraction({
+    model: EMBEDDING_MODEL,
+    inputs: text,
+  });
+  if (Array.isArray(result) && typeof result[0] === 'number') {
+    return result as number[];
+  } else if (Array.isArray(result) && Array.isArray(result[0])) {
+    return result[0] as number[];
+  }
+  throw new Error('Unexpected embedding format');
+}
+
+/**
+ * Search Qdrant for trust law and medical tourism knowledge
+ */
+async function searchQdrant(query: string, k: number = 5): Promise<QdrantSearchResult[]> {
+  try {
+    const vector = await getEmbedding(query);
+    const response = await fetch(`${QDRANT_URL}/collections/${COLLECTION_NAME}/points/search`, {
+      method: 'POST',
+      headers: {
+        'api-key': QDRANT_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        vector,
+        limit: k,
+        with_payload: true
+      })
+    });
+
+    if (!response.ok) {
+      console.error('Qdrant search error:', await response.text());
+      return [];
+    }
+
+    const data = await response.json();
+    return data.result || [];
+  } catch (error) {
+    console.error('Qdrant search error:', error);
+    return [];
+  }
+}
 
 interface ChatRequest {
   messages: Array<{ role: string; content: string }>;
@@ -138,7 +208,8 @@ Instead, EDUCATE them first:
 - get_journey_summary - Get overview of current journey
 
 **MEDICAL TRUST (Pillar 1)**
-- explain_medical_trust - Explain what a medical trust is and its benefits
+- search_trust_laws - ALWAYS USE THIS for trust law questions! Searches our knowledge base for state-by-state trust laws, asset protection rankings, DAPT info, etc.
+- explain_medical_trust - Use for basic "what is a medical trust" questions
 - get_trust_resources - Get links to medical trust information
 
 **INSURANCE EXIT (Pillar 2)**  
@@ -154,9 +225,17 @@ Instead, EDUCATE them first:
 🚨 **AFTER CREATING A JOURNEY, IMMEDIATELY SEARCH** 🚨
 When you call create_journey, you MUST ALSO call search_facilities in the SAME response.
 
-🚨 **USE TOOLS, NOT TRAINING DATA** 🚨
-When user asks about facilities, procedures, or locations - ALWAYS call search_facilities first. 
-DO NOT give generic answers from your training.
+🚨 **FACILITIES = search_facilities, TRUST LAWS = search_trust_laws** 🚨
+- For questions about FACILITIES, PROCEDURES, or SPECIFIC HOSPITALS → call search_facilities
+- For questions about TRUST LAWS, BEST STATES, ASSET PROTECTION → call search_trust_laws FIRST
+- search_trust_laws queries our knowledge base of 50 state trust laws
+
+🚨 **ALWAYS SEARCH BEFORE ANSWERING TRUST QUESTIONS** 🚨
+When user asks about:
+- "best state for a medical trust" → search_trust_laws("best states for asset protection trusts")
+- "Nevada trust laws" → search_trust_laws("Nevada asset protection trust laws")
+- "how to protect assets" → search_trust_laws("asset protection trusts creditor protection")
+DO NOT give generic answers - USE THE TOOL to get real data!
 
 🚨 **PLEDGES ARE GENTLE** 🚨
 Never be pushy about pledges. They're personal commitments. Use prompt_pledge at most ONCE.`;
@@ -338,8 +417,22 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
       },
       // === MEDICAL TRUST TOOLS ===
       {
+        name: 'search_trust_laws',
+        description: 'Searches the knowledge base for trust law information by state. Use this when user asks about specific states, best states for trusts, asset protection laws, or any trust-related legal question.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            query: { 
+              type: 'string', 
+              description: 'Search query about trust laws, e.g. "best states for asset protection trusts" or "Nevada trust laws"' 
+            }
+          },
+          required: ['query']
+        }
+      },
+      {
         name: 'explain_medical_trust',
-        description: 'Explains what a medical trust is and how it protects assets from medical debt',
+        description: 'Explains what a medical trust is and how it protects assets from medical debt. Use for general "what is a medical trust" questions.',
         input_schema: { type: 'object', properties: {}, required: [] }
       },
       {
@@ -737,6 +830,58 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
             break;
 
           // === MEDICAL TRUST TOOLS ===
+          case 'search_trust_laws':
+            {
+              const query = toolInput.query || 'best states for asset protection trusts';
+              const qdrantResults = await searchQdrant(query, 8);
+              
+              if (qdrantResults.length > 0) {
+                assistantMessage += `\n\n**Trust Law Information**\n\n`;
+                
+                // Group by state if available
+                const byState = new Map<string, string[]>();
+                const general: string[] = [];
+                
+                for (const result of qdrantResults) {
+                  const text = result.payload.text;
+                  const state = result.payload.state;
+                  
+                  if (state) {
+                    if (!byState.has(state)) {
+                      byState.set(state, []);
+                    }
+                    byState.get(state)!.push(text);
+                  } else {
+                    general.push(text);
+                  }
+                }
+                
+                // Output by state
+                for (const [state, texts] of byState) {
+                  assistantMessage += `**${state}**\n`;
+                  for (const text of texts.slice(0, 2)) {
+                    // Truncate long texts
+                    const truncated = text.length > 400 ? text.substring(0, 400) + '...' : text;
+                    assistantMessage += `${truncated}\n\n`;
+                  }
+                }
+                
+                // Output general info
+                if (general.length > 0 && byState.size === 0) {
+                  for (const text of general.slice(0, 3)) {
+                    const truncated = text.length > 400 ? text.substring(0, 400) + '...' : text;
+                    assistantMessage += `${truncated}\n\n`;
+                  }
+                }
+                
+                assistantMessage += `[Explore our Trust Law Map](/medical-trusts) for state-by-state details.`;
+              } else {
+                assistantMessage += `\n\nI couldn't find specific trust law data for that query. `;
+                assistantMessage += `Check our [Medical Trust Guide](/medical-trusts) for state-by-state analysis.`;
+              }
+            }
+            break;
+
           case 'explain_medical_trust':
             {
               assistantMessage += `\n\n**What is a Medical Trust?**\n\n`;
