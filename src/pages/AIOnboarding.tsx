@@ -1,46 +1,119 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import OnboardingChatbot from '../components/Onboarding/OnboardingChatbot';
+import { useNavigate } from 'react-router-dom';
+import UnifiedChatbot from '../components/Journey/UnifiedChatbot';
 import SiteHeader from '../components/Layout/SiteHeader';
+import { supabase } from '../lib/supabase';
+
+interface PledgeStatus {
+  medical_trust: boolean;
+  cancel_insurance: boolean;
+  try_medical_tourism: boolean;
+}
 
 const AIOnboarding: React.FC = () => {
+  const navigate = useNavigate();
+  const [chatOpen, setChatOpen] = useState(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [pledgeStatus, setPledgeStatus] = useState<PledgeStatus>({
+    medical_trust: false,
+    cancel_insurance: false,
+    try_medical_tourism: false,
+  });
+
+  // Load user info and pledges
+  useEffect(() => {
+    const loadUserInfo = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
+
+        // Get pledges
+        const { data: pledges } = await supabase
+          .from('pledges')
+          .select('pledge_type')
+          .eq('email', session.user.email.toLowerCase());
+
+        if (pledges) {
+          const status: PledgeStatus = {
+            medical_trust: false,
+            cancel_insurance: false,
+            try_medical_tourism: false,
+          };
+          pledges.forEach(p => {
+            if (p.pledge_type in status) {
+              status[p.pledge_type as keyof PledgeStatus] = true;
+            }
+          });
+          setPledgeStatus(status);
+        }
+      }
+    };
+
+    loadUserInfo();
+  }, []);
+
+  const handleJourneyCreated = (journeyId: string) => {
+    // Navigate to the journey dashboard
+    navigate('/my-journey');
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50">
       {/* Site Header for Navigation */}
       <SiteHeader />
 
-      {/* Main Content - Flexbox layout for proper scrolling */}
+      {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-auto">
-        {/* Hero Section - Compact */}
-        <div className="pt-6 pb-3 text-center flex-shrink-0">
+        {/* Hero Section */}
+        <div className="pt-8 pb-6 text-center flex-shrink-0">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-3xl md:text-4xl font-display text-ocean-800 mb-2">
-              Let's Talk About Your Care
+            <h1 className="text-3xl md:text-4xl font-display text-ocean-800 mb-3">
+              Take Control of Your Healthcare
             </h1>
             <p className="text-base text-ocean-600 max-w-2xl mx-auto px-4">
-              No forms. Just tell us what you're looking for.
+              Protect your assets, exit the insurance trap, or find world-class care abroad.
+              <br />
+              <span className="text-ocean-500 text-sm">Just tell me what's on your mind.</span>
             </p>
           </motion.div>
         </div>
 
-        {/* Chatbot Container - Takes remaining space */}
-        <div className="flex-1 max-w-4xl w-full mx-auto px-4 pb-4 min-h-0">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="h-full"
-          >
-            <OnboardingChatbot />
-          </motion.div>
-        </div>
+        {/* Three Pillars Preview */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="max-w-4xl w-full mx-auto px-4 pb-8"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white/70 rounded-xl p-4 border border-ocean-100 text-center">
+              <div className="text-2xl mb-2">🛡️</div>
+              <h3 className="font-semibold text-ocean-800">Medical Trust</h3>
+              <p className="text-xs text-ocean-600 mt-1">Protect assets from medical debt</p>
+              {pledgeStatus.medical_trust && <span className="text-xs text-green-600">✓ Pledged</span>}
+            </div>
+            <div className="bg-white/70 rounded-xl p-4 border border-ocean-100 text-center">
+              <div className="text-2xl mb-2">💸</div>
+              <h3 className="font-semibold text-ocean-800">Insurance Exit</h3>
+              <p className="text-xs text-ocean-600 mt-1">Find better alternatives</p>
+              {pledgeStatus.cancel_insurance && <span className="text-xs text-green-600">✓ Pledged</span>}
+            </div>
+            <div className="bg-white/70 rounded-xl p-4 border border-ocean-100 text-center">
+              <div className="text-2xl mb-2">✈️</div>
+              <h3 className="font-semibold text-ocean-800">Medical Tourism</h3>
+              <p className="text-xs text-ocean-600 mt-1">Save 60-90% on care</p>
+              {pledgeStatus.try_medical_tourism && <span className="text-xs text-green-600">✓ Pledged</span>}
+            </div>
+          </div>
+        </motion.div>
 
-        {/* Trust Indicators - Compact footer */}
-        <div className="flex-shrink-0 py-4 border-t border-sage-200 bg-white/50">
+        {/* Trust Indicators */}
+        <div className="flex-shrink-0 py-4 border-t border-sage-200 bg-white/50 mt-auto">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -68,6 +141,16 @@ const AIOnboarding: React.FC = () => {
           </motion.div>
         </div>
       </main>
+
+      {/* Unified Chatbot - Always visible on this page */}
+      <UnifiedChatbot
+        isNewUser={true}
+        userEmail={userEmail}
+        pledgeStatus={pledgeStatus}
+        isOpen={chatOpen}
+        setIsOpen={setChatOpen}
+        onJourneyCreated={handleJourneyCreated}
+      />
     </div>
   );
 };

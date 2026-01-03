@@ -1,0 +1,927 @@
+import { Handler, HandlerEvent } from '@netlify/functions';
+import Anthropic from '@anthropic-ai/sdk';
+import { createClient } from '@supabase/supabase-js';
+
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY || ''
+});
+
+interface ChatRequest {
+  messages: Array<{ role: string; content: string }>;
+  userMessage: string;
+  context: {
+    journeyId?: string | null;
+    userId?: string | null;
+    userEmail?: string | null;
+    procedure?: string;
+    shortlist?: Array<{
+      id: string;
+      name: string;
+      location: string;
+    }>;
+    isNewUser?: boolean; // true = no journey exists yet
+    pledgeStatus?: {
+      medical_trust: boolean;
+      cancel_insurance: boolean;
+      try_medical_tourism: boolean;
+    };
+  };
+}
+
+const handler: Handler = async (event: HandlerEvent) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json'
+  };
+
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers,
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
+
+  try {
+    const { messages, userMessage, context } = JSON.parse(event.body || '{}') as ChatRequest;
+
+    console.log('[unified-chat] Context:', JSON.stringify(context));
+
+    // Create Supabase client with user's auth token if provided
+    const authHeader = event.headers.authorization || event.headers.Authorization;
+    const supabase = createClient(
+      process.env.SUPABASE_URL || '',
+      process.env.SUPABASE_ANON_KEY || '',
+      authHeader ? {
+        global: {
+          headers: {
+            Authorization: authHeader
+          }
+        }
+      } : undefined
+    );
+
+    // Unified System Prompt - Healthcare Sovereignty Platform
+    const systemPrompt = `You are Oasara's Healthcare Sovereignty guide. You help people take control of their healthcare through THREE pillars:
+
+1. **Medical Trust** - Protect assets from medical debt
+2. **Insurance Exit** - Cancel or replace traditional insurance  
+3. **Medical Tourism** - Access global healthcare at 40-80% savings
+
+## YOUR OPENING (if no prior messages)
+"Hey! I'm here to help you take control of your healthcare. Whether you're looking to protect your savings, cut insurance costs, or explore care options abroad — just tell me what's on your mind."
+
+## STAGE 5 LANGUAGE - "WE" FRAMING
+- Use "we" framing: "Let's find facilities for your knee replacement"
+- Assume positive outcome: "You WILL find excellent care" (not "might")
+- Empathy & reassurance: "Medical decisions feel overwhelming—that's completely normal"
+- NO AI SLOP: Never say "Based on the context provided..." - get straight to the answer
+- Medical trust: Always mention JCI accreditation, show US cost savings, name surgeons with credentials
+
+## PILLAR DETECTION
+Listen for keywords and gently surface relevant pillars:
+
+**Medical Trust triggers:**
+- "worried about costs", "protect myself", "what if", "bankruptcy", "debt", "assets", "savings"
+→ "By the way, have you thought about protecting your assets with a Medical Trust? Medical debt is the #1 cause of bankruptcy—even for people WITH insurance."
+
+**Insurance Exit triggers:**
+- "insurance", "premiums", "deductible", "denied claim", "co-pay", "coverage"
+→ "A lot of people don't realize there are alternatives to traditional insurance. Want me to explain your options?"
+
+**Medical Tourism triggers:**
+- "procedure", "surgery", "treatment", "hospital", "too expensive", "can't afford"
+→ "Going abroad for care can save you 60-90%. Want me to search for facilities?"
+
+## CONVERSATION STYLE
+- Short, digestible paragraphs (2-4 sentences max)
+- Use "you" and "your"—this is deeply personal
+- Warmth over formality: "Hey, let me help you with that" not "I can assist you with"
+- If you sense hesitation, acknowledge it: "I get it, this is a big decision"
+- Celebrate progress: "You're taking control of your health—that takes courage"
+
+## BUDGET HANDLING - EDUCATE FIRST
+DON'T ask users for budget numbers - they don't know what things cost!
+
+Instead, EDUCATE them first:
+1. When they mention a procedure, tell them US costs:
+   - "In the US, [procedure] typically runs $X - $Y"
+   - "Going abroad, you can save 50-80%, paying $X - $Y instead"
+
+2. Give context with examples:
+   - "Hip replacement: US $40k-80k → Thailand $12k-18k (70% savings)"
+   - "Dental implants: US $3k-5k per tooth → Mexico $800-1,500 (70% savings)"
+
+3. Then ask QUALITATIVE preference:
+   - "Are you looking to save as much as possible, or is quality your top priority?"
+
+## AVAILABLE TOOLS
+
+**MEDICAL TOURISM (Core Journey)**
+- create_journey - Creates initial journey (procedure, timeline, optional budget)
+- search_facilities - Find hospitals matching criteria
+- add_facility_to_shortlist - Add facility to comparison list
+- remove_facility_from_shortlist - Remove facility from list
+- generate_comparison - Create side-by-side comparison
+- get_facility_details - Get detailed info about facility
+- add_journey_note - Add reminder/note to journey
+- share_journey - Share journey with family/friends
+- invite_collaborator - Invite someone to help decide
+- contact_facility - Request quote from facility
+- export_journey_pdf - Generate PDF report
+- get_journey_summary - Get overview of current journey
+
+**MEDICAL TRUST (Pillar 1)**
+- explain_medical_trust - Explain what a medical trust is and its benefits
+- get_trust_resources - Get links to medical trust information
+
+**INSURANCE EXIT (Pillar 2)**  
+- explain_insurance_exit - Explain alternatives to traditional insurance
+- join_insurance_waitlist - Add user to insurance exit waitlist
+
+**PLEDGES (Cross-pillar)**
+- check_pledge_status - Check which pledges user has taken
+- prompt_pledge - Gently suggest a specific pledge (MAX ONCE per conversation)
+
+## CRITICAL RULES
+
+🚨 **AFTER CREATING A JOURNEY, IMMEDIATELY SEARCH** 🚨
+When you call create_journey, you MUST ALSO call search_facilities in the SAME response.
+
+🚨 **USE TOOLS, NOT TRAINING DATA** 🚨
+When user asks about facilities, procedures, or locations - ALWAYS call search_facilities first. 
+DO NOT give generic answers from your training.
+
+🚨 **PLEDGES ARE GENTLE** 🚨
+Never be pushy about pledges. They're personal commitments. Use prompt_pledge at most ONCE.`;
+
+    // Build dynamic context
+    let userContext = '';
+    
+    if (context.isNewUser) {
+      userContext += `\n\n**NEW USER** - No journey yet. Guide them through exploring their options.`;
+    } else if (context.journeyId) {
+      userContext += `\n\n**RETURNING USER:**\n`;
+      userContext += `- Journey ID: ${context.journeyId}\n`;
+      userContext += `- Procedure: ${context.procedure || 'Not specified'}\n`;
+
+      if (context.shortlist && context.shortlist.length > 0) {
+        userContext += `\n**SHORTLIST (${context.shortlist.length} facilities):**\n`;
+        context.shortlist.forEach((f, i) => {
+          userContext += `${i + 1}. ${f.name} - ${f.location}\n`;
+        });
+        userContext += `\n**IMPORTANT:** When user asks to "compare", call generate_comparison immediately.`;
+      }
+    }
+
+    if (context.pledgeStatus) {
+      const { medical_trust, cancel_insurance, try_medical_tourism } = context.pledgeStatus;
+      const pledgeCount = [medical_trust, cancel_insurance, try_medical_tourism].filter(Boolean).length;
+      userContext += `\n**PLEDGE STATUS:** ${pledgeCount}/3 taken\n`;
+      if (!medical_trust) userContext += `- ❌ Medical Trust (not taken)\n`;
+      if (!cancel_insurance) userContext += `- ❌ Cancel Insurance (not taken)\n`;
+      if (!try_medical_tourism) userContext += `- ❌ Medical Tourism (not taken)\n`;
+    }
+
+    // Define ALL tools
+    const tools: Anthropic.Tool[] = [
+      // === MEDICAL TOURISM TOOLS ===
+      {
+        name: 'create_journey',
+        description: 'Creates a new patient journey. Only needs procedure and timeline. Budget is OPTIONAL.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            procedure: {
+              type: 'string',
+              description: 'Medical procedure (e.g., "Knee Replacement", "Dental Implants")'
+            },
+            budgetMin: {
+              type: 'number',
+              description: 'OPTIONAL: Minimum budget in USD'
+            },
+            budgetMax: {
+              type: 'number',
+              description: 'OPTIONAL: Maximum budget in USD'
+            },
+            budgetPreference: {
+              type: 'string',
+              enum: ['save_most', 'balanced', 'quality_first', 'no_preference'],
+              description: 'User preference for cost vs quality'
+            },
+            timeline: {
+              type: 'string',
+              enum: ['urgent', 'soon', 'flexible'],
+              description: 'Urgency: urgent (<2 weeks), soon (1-3 months), flexible (3+ months)'
+            }
+          },
+          required: ['procedure', 'timeline']
+        }
+      },
+      {
+        name: 'search_facilities',
+        description: 'Searches for medical facilities. ALWAYS use this for location/procedure questions.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            procedure: { type: 'string', description: 'Procedure type to filter by' },
+            country: { type: 'string', description: 'Country name (e.g., "Thailand", "Mexico")' },
+            limit: { type: 'number', description: 'Number of results (default: 5, max: 10)' }
+          },
+          required: []
+        }
+      },
+      {
+        name: 'add_facility_to_shortlist',
+        description: 'Adds a facility to shortlist by name',
+        input_schema: {
+          type: 'object',
+          properties: {
+            facility_name: { type: 'string', description: 'Name of facility to add' }
+          },
+          required: ['facility_name']
+        }
+      },
+      {
+        name: 'remove_facility_from_shortlist',
+        description: 'Removes facility from shortlist',
+        input_schema: {
+          type: 'object',
+          properties: {
+            facility_name: { type: 'string', description: 'Name of facility to remove' }
+          },
+          required: ['facility_name']
+        }
+      },
+      {
+        name: 'generate_comparison',
+        description: 'Generates side-by-side comparison of shortlisted facilities',
+        input_schema: { type: 'object', properties: {}, required: [] }
+      },
+      {
+        name: 'get_facility_details',
+        description: 'Gets detailed info about a facility',
+        input_schema: {
+          type: 'object',
+          properties: {
+            facility_id: { type: 'string', description: 'Facility ID or name' }
+          },
+          required: ['facility_id']
+        }
+      },
+      {
+        name: 'add_journey_note',
+        description: 'Adds a note to the journey',
+        input_schema: {
+          type: 'object',
+          properties: {
+            note_text: { type: 'string', description: 'Note content' },
+            note_type: { 
+              type: 'string', 
+              enum: ['general', 'question', 'concern', 'todo', 'research'],
+              description: 'Type of note'
+            }
+          },
+          required: ['note_text']
+        }
+      },
+      {
+        name: 'share_journey',
+        description: 'Shares journey via email',
+        input_schema: {
+          type: 'object',
+          properties: {
+            email: { type: 'string', description: 'Email to share with' },
+            role: { type: 'string', enum: ['viewer', 'editor'], description: 'Permission level' }
+          },
+          required: ['email', 'role']
+        }
+      },
+      {
+        name: 'invite_collaborator',
+        description: 'Invites someone to collaborate on decisions',
+        input_schema: {
+          type: 'object',
+          properties: {
+            email: { type: 'string', description: 'Email to invite' }
+          },
+          required: ['email']
+        }
+      },
+      {
+        name: 'contact_facility',
+        description: 'Sends quote request to facility',
+        input_schema: {
+          type: 'object',
+          properties: {
+            facility_id: { type: 'string', description: 'Facility ID' },
+            message: { type: 'string', description: 'Optional custom message' }
+          },
+          required: ['facility_id']
+        }
+      },
+      {
+        name: 'export_journey_pdf',
+        description: 'Generates PDF export of journey',
+        input_schema: { type: 'object', properties: {}, required: [] }
+      },
+      {
+        name: 'get_journey_summary',
+        description: 'Gets overview of current journey',
+        input_schema: { type: 'object', properties: {}, required: [] }
+      },
+      // === MEDICAL TRUST TOOLS ===
+      {
+        name: 'explain_medical_trust',
+        description: 'Explains what a medical trust is and how it protects assets from medical debt',
+        input_schema: { type: 'object', properties: {}, required: [] }
+      },
+      {
+        name: 'get_trust_resources',
+        description: 'Returns links and resources about medical trusts',
+        input_schema: { type: 'object', properties: {}, required: [] }
+      },
+      // === INSURANCE EXIT TOOLS ===
+      {
+        name: 'explain_insurance_exit',
+        description: 'Explains alternatives to traditional insurance (health shares, DPC, self-pay + medical tourism)',
+        input_schema: { type: 'object', properties: {}, required: [] }
+      },
+      {
+        name: 'join_insurance_waitlist',
+        description: 'Adds user to the Insurance Exit waitlist for when full tools launch',
+        input_schema: {
+          type: 'object',
+          properties: {
+            email: { type: 'string', description: 'User email' },
+            current_insurance_type: { type: 'string', description: 'Current insurance (employer, marketplace, none, etc.)' },
+            state: { type: 'string', description: 'US state of residence' }
+          },
+          required: ['email']
+        }
+      },
+      // === PLEDGE TOOLS ===
+      {
+        name: 'check_pledge_status',
+        description: 'Checks which Healthcare Sovereignty pledges the user has taken',
+        input_schema: { type: 'object', properties: {}, required: [] }
+      },
+      {
+        name: 'prompt_pledge',
+        description: 'Gently suggests user take a pledge. Use MAX ONCE per conversation.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            pledge_type: {
+              type: 'string',
+              enum: ['medical_trust', 'cancel_insurance', 'try_medical_tourism'],
+              description: 'Which pledge to suggest'
+            }
+          },
+          required: ['pledge_type']
+        }
+      }
+    ];
+
+    // Call Claude API
+    const response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1024,
+      system: [
+        {
+          type: 'text',
+          text: systemPrompt + userContext,
+          cache_control: { type: 'ephemeral' }
+        }
+      ],
+      tools,
+      messages: [
+        ...messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content })),
+        { role: 'user', content: userMessage }
+      ]
+    });
+
+    let assistantMessage = '';
+    let facilities: any[] = [];
+    let journeyId: string | null = context.journeyId || null;
+    let isComparison = false;
+    let shortlistChanged = false;
+
+    // Process response
+    for (const content of response.content) {
+      if (content.type === 'text') {
+        assistantMessage += content.text;
+      } else if (content.type === 'tool_use') {
+        const toolInput = content.input as any;
+        
+        switch (content.name) {
+          // === MEDICAL TOURISM TOOLS ===
+          case 'create_journey':
+            {
+              const { procedure, budgetMin, budgetMax, budgetPreference, timeline } = toolInput;
+
+              if (context.userId) {
+                const journeyData: any = {
+                  user_id: context.userId,
+                  procedure_type: procedure,
+                  timeline,
+                  status: 'researching'
+                };
+
+                if (budgetMin !== undefined) journeyData.budget_min = budgetMin;
+                if (budgetMax !== undefined) journeyData.budget_max = budgetMax;
+                if (budgetPreference) journeyData.budget_preference = budgetPreference;
+
+                const { data, error } = await supabase
+                  .from('patient_journeys')
+                  .insert(journeyData)
+                  .select()
+                  .single();
+
+                if (!error && data) {
+                  journeyId = data.id;
+                  assistantMessage += `\n\n✅ Perfect! I've created your ${procedure} journey. Let's find some excellent options for you.`;
+                } else {
+                  console.error('Error creating journey:', error);
+                  assistantMessage += `\n\nI had trouble creating your journey. Error: ${error?.message || 'Unknown error'}`;
+                }
+              } else {
+                assistantMessage += '\n\n**To save your journey, please [log in](/auth).** I can still help you explore options!';
+              }
+            }
+            break;
+
+          case 'search_facilities':
+            {
+              const procedure = toolInput.procedure || context.procedure;
+              const { country, limit = 5 } = toolInput;
+
+              if (!procedure) {
+                assistantMessage += `\n\n**To find facilities, I need to know what procedure you're looking for.**\n\nWhat medical procedure are you researching?`;
+                break;
+              }
+
+              const procedureLower = procedure.toLowerCase().trim();
+
+              // Build procedure synonyms
+              const procedureSynonyms: Record<string, string[]> = {
+                'breast augmentation': ['cosmetic surgery', 'plastic surgery', 'breast'],
+                'hip replacement': ['orthopedics', 'joint replacement', 'hip'],
+                'knee replacement': ['orthopedics', 'joint replacement', 'knee'],
+                'dental implants': ['dental', 'implants', 'tooth'],
+                'gastric bypass': ['bariatric surgery', 'weight loss'],
+                'gastric sleeve': ['bariatric surgery', 'weight loss'],
+                'lasik': ['eye surgery', 'ophthalmology'],
+                'ivf': ['fertility', 'reproductive'],
+                'hair transplant': ['cosmetic', 'hair restoration']
+              };
+
+              const synonyms = Object.entries(procedureSynonyms).find(([key]) =>
+                procedureLower.includes(key) || key.includes(procedureLower)
+              )?.[1] || [];
+
+              let query = supabase
+                .from('facilities')
+                .select('id, name, city, country, jci_accredited, google_rating, review_count, popular_procedures, specialties')
+                .order('google_rating', { ascending: false })
+                .limit(500);
+
+              if (country) {
+                query = query.ilike('country', `%${country}%`);
+              }
+
+              const { data, error } = await query;
+
+              if (!error && data) {
+                // Filter by procedure
+                facilities = data.filter(facility => {
+                  const hasMatchingProcedure = facility.popular_procedures?.some((p: any) => {
+                    const procName = (p.name || '').toLowerCase();
+                    return procName.includes(procedureLower) || procedureLower.includes(procName) ||
+                      synonyms.some(syn => procName.includes(syn));
+                  });
+
+                  const specialtiesArray: string[] = Array.isArray(facility.specialties) ? facility.specialties : [];
+                  const matchesSpecialty = specialtiesArray.some((spec: string) => {
+                    const specLower = (spec || '').toLowerCase();
+                    return specLower.includes(procedureLower) || procedureLower.includes(specLower) ||
+                      synonyms.some(syn => specLower.includes(syn));
+                  });
+
+                  return hasMatchingProcedure || matchesSpecialty;
+                }).slice(0, limit);
+
+                if (facilities.length === 0) {
+                  assistantMessage += `\n\n**I couldn't find facilities offering "${procedure}" ${country ? `in ${country} ` : ''}in our current database.**`;
+                } else {
+                  // Get doctor counts
+                  const facilityIds = facilities.map(f => f.id);
+                  const { data: doctorsData } = await supabase
+                    .from('doctors')
+                    .select('facility_id, name, specialty, years_experience')
+                    .in('facility_id', facilityIds);
+
+                  const doctorsByFacility: Record<string, any[]> = {};
+                  doctorsData?.forEach(doc => {
+                    if (!doctorsByFacility[doc.facility_id]) {
+                      doctorsByFacility[doc.facility_id] = [];
+                    }
+                    doctorsByFacility[doc.facility_id].push(doc);
+                  });
+
+                  facilities = facilities.map(facility => {
+                    const matchingProc = facility.popular_procedures?.find((p: any) => {
+                      const procName = (p.name || '').toLowerCase();
+                      return procName.includes(procedureLower) || procedureLower.includes(procName);
+                    });
+                    
+                    const facilityDoctors = doctorsByFacility[facility.id] || [];
+                    const featuredDoctor = facilityDoctors[0];
+
+                    return {
+                      ...facility,
+                      matched_procedure: matchingProc || null,
+                      procedure_price: matchingProc?.price_range || null,
+                      doctor_count: facilityDoctors.length,
+                      featured_doctor: featuredDoctor ? {
+                        name: featuredDoctor.name,
+                        specialty: featuredDoctor.specialty,
+                        years_experience: featuredDoctor.years_experience
+                      } : null
+                    };
+                  });
+
+                  assistantMessage += `\n\n**I found ${facilities.length} excellent ${facilities.length === 1 ? 'option' : 'options'} for ${procedure}:**`;
+                }
+              }
+            }
+            break;
+
+          case 'add_facility_to_shortlist':
+            {
+              if (!context.journeyId || !context.userId) {
+                assistantMessage += '\n\n**To add facilities, please [log in](/auth) first.**';
+                break;
+              }
+
+              const { facility_name } = toolInput;
+
+              const { data: facilityMatch } = await supabase
+                .from('facilities')
+                .select('id, name')
+                .ilike('name', `%${facility_name}%`)
+                .limit(1)
+                .single();
+
+              if (!facilityMatch) {
+                assistantMessage += `\n\nI couldn't find a facility named "${facility_name}".`;
+                break;
+              }
+
+              const { error } = await supabase
+                .from('journey_facilities')
+                .insert({
+                  journey_id: context.journeyId,
+                  facility_id: facilityMatch.id
+                });
+
+              if (!error) {
+                assistantMessage += `\n\n✅ Added **${facilityMatch.name}** to your shortlist!`;
+                shortlistChanged = true;
+              } else if (error.code === '23505') {
+                assistantMessage += `\n\n**${facilityMatch.name}** is already in your shortlist.`;
+              } else {
+                assistantMessage += `\n\n**Couldn't add ${facilityMatch.name}** - ${error.message}`;
+              }
+            }
+            break;
+
+          case 'remove_facility_from_shortlist':
+            {
+              if (!context.journeyId || !context.userId) {
+                assistantMessage += '\n\n**To remove facilities, please [log in](/auth) first.**';
+                break;
+              }
+
+              const { facility_name } = toolInput;
+
+              const { data: facilityMatch } = await supabase
+                .from('facilities')
+                .select('id, name')
+                .ilike('name', `%${facility_name}%`)
+                .limit(1)
+                .single();
+
+              if (!facilityMatch) {
+                assistantMessage += `\n\nI couldn't find a facility named "${facility_name}".`;
+                break;
+              }
+
+              const { error } = await supabase
+                .from('journey_facilities')
+                .delete()
+                .eq('journey_id', context.journeyId)
+                .eq('facility_id', facilityMatch.id);
+
+              if (!error) {
+                assistantMessage += `\n\n✅ Removed **${facilityMatch.name}** from your shortlist!`;
+                shortlistChanged = true;
+              }
+            }
+            break;
+
+          case 'generate_comparison':
+            {
+              if (!context.journeyId || !context.userId) {
+                assistantMessage += '\n\n**To generate comparisons, please [log in](/auth) first.**';
+                break;
+              }
+
+              const shortlistFromContext = context.shortlist || [];
+
+              if (shortlistFromContext.length === 0) {
+                assistantMessage += `\n\n**Your shortlist is empty!** Search for facilities and add some to compare.`;
+                break;
+              }
+
+              const facilityIds = shortlistFromContext.map(s => s.id);
+              const { data: comparisonFacilities } = await supabase
+                .from('facilities')
+                .select('*')
+                .in('id', facilityIds);
+
+              if (!comparisonFacilities || comparisonFacilities.length === 0) {
+                assistantMessage += '\n\n**I had trouble loading your shortlisted facilities.**';
+                break;
+              }
+
+              facilities = comparisonFacilities;
+              isComparison = true;
+              assistantMessage += `\n\n📊 **Here's your side-by-side comparison of ${comparisonFacilities.length} facilities:**`;
+            }
+            break;
+
+          case 'get_facility_details':
+            {
+              const { facility_id } = toolInput;
+
+              let facilityQuery = supabase.from('facilities').select('*');
+              const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(facility_id);
+
+              if (isUUID) {
+                facilityQuery = facilityQuery.eq('id', facility_id);
+              } else {
+                facilityQuery = facilityQuery.ilike('name', `%${facility_id}%`);
+              }
+
+              const { data: facility } = await facilityQuery.limit(1).single();
+
+              if (!facility) {
+                assistantMessage += `\n\n**I couldn't find a facility matching "${facility_id}".**`;
+                break;
+              }
+
+              assistantMessage += `\n\n🏥 **${facility.name}**\n\n`;
+              assistantMessage += `📍 **Location:** ${facility.city}, ${facility.country}\n`;
+              assistantMessage += `${facility.jci_accredited ? '✅ JCI Accredited' : '❌ Not JCI Accredited'}\n`;
+              if (facility.google_rating) {
+                assistantMessage += `⭐ ${facility.google_rating}/5 (${facility.review_count || 0} reviews)\n`;
+              }
+              if (facility.website) {
+                assistantMessage += `🌐 [Visit Website](${facility.website})\n`;
+              }
+            }
+            break;
+
+          case 'get_journey_summary':
+            {
+              if (!context.journeyId) {
+                assistantMessage += '\n\n**You don\'t have an active journey yet.** Tell me what procedure you\'re interested in!';
+                break;
+              }
+
+              const { data: journeyData } = await supabase
+                .from('patient_journeys')
+                .select('procedure_type, timeline, status')
+                .eq('id', context.journeyId)
+                .single();
+
+              if (!journeyData) {
+                assistantMessage += '\n\n**I couldn\'t find your journey.**';
+                break;
+              }
+
+              const shortlistCount = context.shortlist?.length || 0;
+
+              assistantMessage += '\n\n📋 **Your Journey Summary**\n\n';
+              assistantMessage += `**Procedure:** ${journeyData.procedure_type}\n`;
+              assistantMessage += `**Timeline:** ${journeyData.timeline}\n`;
+              assistantMessage += `**Shortlist:** ${shortlistCount} facilities\n`;
+              assistantMessage += `**Status:** ${journeyData.status}\n`;
+            }
+            break;
+
+          // Stub implementations for note, share, invite, contact, export
+          case 'add_journey_note':
+          case 'share_journey':
+          case 'invite_collaborator':
+          case 'contact_facility':
+          case 'export_journey_pdf':
+            assistantMessage += `\n\n[This feature is being set up. Please use the [journey dashboard](/my-journey) for now.]`;
+            break;
+
+          // === MEDICAL TRUST TOOLS ===
+          case 'explain_medical_trust':
+            {
+              assistantMessage += `\n\n## 🛡️ What is a Medical Trust?\n\n`;
+              assistantMessage += `A **Medical Trust** is a legal structure that protects your assets from medical debt—the #1 cause of bankruptcy in America.\n\n`;
+              assistantMessage += `**How it works:**\n`;
+              assistantMessage += `1. You transfer assets (home, savings, investments) into a trust\n`;
+              assistantMessage += `2. The trust owns the assets, not you personally\n`;
+              assistantMessage += `3. Medical creditors can't seize trust assets to pay your bills\n`;
+              assistantMessage += `4. You still control and benefit from the assets\n\n`;
+              assistantMessage += `**Why it matters:**\n`;
+              assistantMessage += `- 66.5% of bankruptcies are medical-related\n`;
+              assistantMessage += `- Even people WITH insurance go bankrupt from medical bills\n`;
+              assistantMessage += `- A trust is like a firewall between your wealth and the healthcare system\n\n`;
+              assistantMessage += `[Learn more about Medical Trusts →](/medical-trusts)\n`;
+              assistantMessage += `[Take the Medical Trust Pledge →](/action)`;
+            }
+            break;
+
+          case 'get_trust_resources':
+            {
+              assistantMessage += `\n\n## 📚 Medical Trust Resources\n\n`;
+              assistantMessage += `**On Oasara:**\n`;
+              assistantMessage += `- [Medical Trust Guide](/medical-trusts) - Full explanation\n`;
+              assistantMessage += `- [Take the Pledge](/action) - Commit to protecting yourself\n\n`;
+              assistantMessage += `**External Resources:**\n`;
+              assistantMessage += `- Asset protection attorneys in your state\n`;
+              assistantMessage += `- Irrevocable trust vs. revocable trust considerations\n`;
+              assistantMessage += `- Timing requirements (must be set up BEFORE medical debt occurs)\n\n`;
+              assistantMessage += `*Note: We're building partnerships with legal services to help you actually form a trust. Want to be notified when that launches?*`;
+            }
+            break;
+
+          // === INSURANCE EXIT TOOLS ===
+          case 'explain_insurance_exit':
+            {
+              assistantMessage += `\n\n## 💸 Alternatives to Traditional Insurance\n\n`;
+              assistantMessage += `The average family pays **$24,000/year** in premiums + a **$3,000 deductible**—and still gets **18% of claims denied**.\n\n`;
+              assistantMessage += `**Your alternatives:**\n\n`;
+              assistantMessage += `### 1. Health Shares\n`;
+              assistantMessage += `- Members share medical costs directly\n`;
+              assistantMessage += `- $200-500/month vs $2,000/month insurance\n`;
+              assistantMessage += `- Examples: Sedera, Knew Health, Zion Health\n\n`;
+              assistantMessage += `### 2. Direct Primary Care (DPC)\n`;
+              assistantMessage += `- $50-150/month for unlimited doctor visits\n`;
+              assistantMessage += `- No co-pays, no insurance hassle\n`;
+              assistantMessage += `- Combined with catastrophic coverage\n\n`;
+              assistantMessage += `### 3. Self-Pay + Medical Tourism\n`;
+              assistantMessage += `- Pay cash for routine care (often cheaper than co-pays)\n`;
+              assistantMessage += `- Go abroad for major procedures (60-90% savings)\n`;
+              assistantMessage += `- Keep a medical emergency fund instead of paying premiums\n\n`;
+              assistantMessage += `*We're building a full Insurance Exit Assessment tool. [Join the waitlist →](/action)*`;
+            }
+            break;
+
+          case 'join_insurance_waitlist':
+            {
+              const email = toolInput.email || context.userEmail;
+              
+              if (!email) {
+                assistantMessage += '\n\n**Please provide your email to join the waitlist.**';
+                break;
+              }
+
+              // Add to insurance_exit_waitlist table (create if doesn't exist)
+              const { error } = await supabase
+                .from('insurance_exit_waitlist')
+                .insert({
+                  email: email.toLowerCase(),
+                  current_insurance_type: toolInput.current_insurance_type || null,
+                  state: toolInput.state || null,
+                  created_at: new Date().toISOString()
+                });
+
+              if (error && error.code !== '23505') { // Ignore duplicate
+                // Table might not exist, that's ok for now
+                console.log('Waitlist insert error (may not exist yet):', error);
+              }
+
+              assistantMessage += `\n\n✅ **You're on the Insurance Exit waitlist!**\n\n`;
+              assistantMessage += `We'll email you at **${email}** when our full Insurance Exit Assessment tool launches. `;
+              assistantMessage += `You'll get:\n`;
+              assistantMessage += `- Personalized alternatives for your state\n`;
+              assistantMessage += `- Cost comparison calculator\n`;
+              assistantMessage += `- Step-by-step exit guide\n\n`;
+              assistantMessage += `In the meantime, [take the pledge →](/action)`;
+            }
+            break;
+
+          // === PLEDGE TOOLS ===
+          case 'check_pledge_status':
+            {
+              const email = context.userEmail;
+
+              if (!email) {
+                assistantMessage += '\n\nTo check your pledge status, please make sure you\'re logged in!';
+                break;
+              }
+
+              const { data: pledges } = await supabase
+                .from('pledges')
+                .select('pledge_type')
+                .eq('email', email.toLowerCase());
+
+              const hasMedicalTrust = pledges?.some(p => p.pledge_type === 'medical_trust') || false;
+              const hasCancelInsurance = pledges?.some(p => p.pledge_type === 'cancel_insurance') || false;
+              const hasMedicalTourism = pledges?.some(p => p.pledge_type === 'try_medical_tourism') || false;
+
+              const pledgeCount = [hasMedicalTrust, hasCancelInsurance, hasMedicalTourism].filter(Boolean).length;
+
+              assistantMessage += '\n\n🛡️ **Your Healthcare Sovereignty Pledges**\n\n';
+
+              if (pledgeCount === 3) {
+                assistantMessage += '🎉 **All three pledges taken!** You\'re leading the revolution.\n\n';
+              }
+
+              assistantMessage += `${hasMedicalTrust ? '✅' : '⬜'} **Medical Trust** - Protect assets\n`;
+              assistantMessage += `${hasCancelInsurance ? '✅' : '⬜'} **Cancel Insurance** - Exit the trap\n`;
+              assistantMessage += `${hasMedicalTourism ? '✅' : '⬜'} **Medical Tourism** - Use global healthcare\n\n`;
+
+              if (pledgeCount < 3) {
+                assistantMessage += `[Take the pledge →](/action)`;
+              }
+            }
+            break;
+
+          case 'prompt_pledge':
+            {
+              const { pledge_type } = toolInput;
+
+              const pledgeInfo: Record<string, { title: string; why: string }> = {
+                medical_trust: {
+                  title: 'Medical Trust',
+                  why: 'Medical debt is the #1 cause of bankruptcy in America—even for people WITH insurance.'
+                },
+                cancel_insurance: {
+                  title: 'Cancel Insurance',
+                  why: 'The average family pays $24,000/year in premiums and still gets claims denied.'
+                },
+                try_medical_tourism: {
+                  title: 'Medical Tourism',
+                  why: 'JCI-accredited hospitals abroad offer the same quality at 60-90% savings.'
+                }
+              };
+
+              const pledge = pledgeInfo[pledge_type] || pledgeInfo.try_medical_tourism;
+
+              assistantMessage += `\n\n💡 **Have you considered the ${pledge.title} pledge?**\n\n`;
+              assistantMessage += `${pledge.why}\n\n`;
+              assistantMessage += `[Learn more & take the pledge →](/action)`;
+            }
+            break;
+        }
+      }
+    }
+
+    // Default message
+    if (!assistantMessage) {
+      assistantMessage = "Hey! I'm here to help you take control of your healthcare. What's on your mind?";
+    }
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({
+        message: assistantMessage,
+        facilities: facilities.length > 0 ? facilities : undefined,
+        journeyId: journeyId || undefined,
+        isComparison: isComparison || undefined,
+        shortlistChanged: shortlistChanged || undefined
+      })
+    };
+
+  } catch (error) {
+    console.error('Unified chat error:', error);
+
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({
+        error: 'Failed to process chat request',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      })
+    };
+  }
+};
+
+export { handler };
+
