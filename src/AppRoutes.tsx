@@ -54,7 +54,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<PublicSite />} />
       <Route path="/app" element={<PublicSite />} />
       <Route path="/welcome" element={<PublicSite />} />
-      <Route path="/start" element={<ProtectedRoute><AIOnboarding /></ProtectedRoute>} />
+      <Route path="/start" element={<AIOnboarding />} />
       <Route path="/hub" element={<MedicalTourismHub />} />
       <Route path="/facilities/:id" element={<FacilityDetail />} />
       <Route path="/why-zano" element={<WhyZano />} />
