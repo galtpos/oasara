@@ -11,6 +11,12 @@ interface PledgeStatus {
   try_medical_tourism: boolean;
 }
 
+interface SiteStats {
+  facilities: number;
+  pledges: number;
+  journeys: number;
+}
+
 const AIOnboarding: React.FC = () => {
   const navigate = useNavigate();
   const [chatOpen, setChatOpen] = useState(true);
@@ -20,6 +26,45 @@ const AIOnboarding: React.FC = () => {
     cancel_insurance: false,
     try_medical_tourism: false,
   });
+  const [stats, setStats] = useState<SiteStats>({
+    facilities: 0,
+    pledges: 0,
+    journeys: 0,
+  });
+
+  // Load site stats
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        // Get facility count
+        const { count: facilityCount } = await supabase
+          .from('facilities')
+          .select('*', { count: 'exact', head: true });
+
+        // Get pledge count
+        const { count: pledgeCount } = await supabase
+          .from('pledges')
+          .select('*', { count: 'exact', head: true });
+
+        // Get journey count
+        const { count: journeyCount } = await supabase
+          .from('journeys')
+          .select('*', { count: 'exact', head: true });
+
+        setStats({
+          facilities: facilityCount || 518,
+          pledges: pledgeCount || 0,
+          journeys: journeyCount || 0,
+        });
+      } catch (error) {
+        console.error('Failed to load stats:', error);
+        // Fallback values
+        setStats({ facilities: 518, pledges: 0, journeys: 0 });
+      }
+    };
+
+    loadStats();
+  }, []);
 
   // Load user info and pledges
   useEffect(() => {
@@ -63,31 +108,29 @@ const AIOnboarding: React.FC = () => {
       {/* Site Header for Navigation */}
       <SiteHeader />
 
-      {/* Trust Indicators Bar - Right under header */}
-      <div className="flex-shrink-0 py-3 border-b border-sage-200 bg-white/80">
+      {/* Stats Counter Bar - Right under header */}
+      <div className="flex-shrink-0 py-3 border-b border-sage-200 bg-gradient-to-r from-ocean-600 to-ocean-700">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className="flex flex-wrap justify-center gap-4 md:gap-8 text-xs md:text-sm text-ocean-600 px-4"
+          className="flex flex-wrap justify-center gap-6 md:gap-12 text-white px-4"
         >
-          <div className="flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-            <span>JCI-Accredited Facilities</span>
+          <div className="text-center">
+            <div className="text-xl md:text-2xl font-bold">{stats.facilities.toLocaleString()}</div>
+            <div className="text-xs text-ocean-100">JCI Facilities</div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            <span>Private &amp; Secure</span>
+          <div className="text-center">
+            <div className="text-xl md:text-2xl font-bold">{stats.pledges.toLocaleString()}</div>
+            <div className="text-xs text-ocean-100">Pledges Taken</div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span>Save 40-80% vs US</span>
+          <div className="text-center">
+            <div className="text-xl md:text-2xl font-bold">{stats.journeys.toLocaleString()}</div>
+            <div className="text-xs text-ocean-100">Journeys Started</div>
+          </div>
+          <div className="text-center">
+            <div className="text-xl md:text-2xl font-bold">40-80%</div>
+            <div className="text-xs text-ocean-100">Savings vs US</div>
           </div>
         </motion.div>
       </div>
