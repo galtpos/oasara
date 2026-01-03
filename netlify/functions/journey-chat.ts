@@ -155,6 +155,17 @@ User: "What procedures are popular in Lisbon?"
 - After tool use, explain what you did in human terms
 - If journey doesn't exist yet, guide them through onboarding first
 
+**HEALTHCARE SOVEREIGNTY PLEDGES:**
+Oasara has three pledges users can take:
+1. Medical Trust - Protect assets from medical debt
+2. Cancel Insurance - Exit the insurance trap
+3. Medical Tourism - Commit to using global healthcare
+
+You have tools to check if the user has taken these pledges (check_pledge_status) and to gently prompt them (prompt_pledge).
+- Use check_pledge_status when they ask about pledges
+- Use prompt_pledge sparingly - at most ONCE per conversation, and only if relevant to what they're discussing
+- Never be pushy about pledges - they're a personal commitment
+
 Answer their question:`;
 
     // Define all 12 function calling tools
@@ -351,6 +362,30 @@ Answer their question:`;
           properties: {},
           required: []
         }
+      },
+      {
+        name: 'check_pledge_status',
+        description: 'Checks which Healthcare Sovereignty pledges the user has taken. Use when user asks about pledges or you want to encourage them.',
+        input_schema: {
+          type: 'object',
+          properties: {},
+          required: []
+        }
+      },
+      {
+        name: 'prompt_pledge',
+        description: 'Gently suggests the user take a specific pledge. Use sparingly - max once per conversation.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            pledge_type: {
+              type: 'string',
+              enum: ['medical_trust', 'cancel_insurance', 'try_medical_tourism'],
+              description: 'Which pledge to suggest'
+            }
+          },
+          required: ['pledge_type']
+        }
       }
     ];
 
@@ -456,13 +491,46 @@ Answer their question:`;
               const procedure = inputProcedure || context.procedure;
               const { country, limit = 5 } = content.input as any;
 
-              console.log('[search_facilities] Searching for procedure:', procedure, 'country:', country);
+              console.log('[search_facilities] Searching for procedure:', procedure, 'country:', country, 'context.procedure:', context.procedure);
+
+              // CRITICAL: We MUST have a procedure to search - never show random facilities
+              if (!procedure) {
+                assistantMessage += `\n\n**To find facilities, I need to know what procedure you're looking for.**\n\nWhat medical procedure are you researching? For example:\n- Hip or Knee Replacement\n- Dental work (implants, veneers)\n- Cosmetic surgery\n- Heart procedures\n- Cancer treatment`;
+                break;
+              }
+
+              const procedureLower = procedure.toLowerCase().trim();
+
+              // Build procedure synonyms/related terms for better matching
+              const procedureSynonyms: Record<string, string[]> = {
+                'breast augmentation': ['cosmetic surgery', 'plastic surgery', 'breast', 'augmentation', 'boob job'],
+                'breast implants': ['cosmetic surgery', 'plastic surgery', 'breast', 'augmentation'],
+                'root canal': ['dental', 'endodontic', 'tooth'],
+                'dental implants': ['dental', 'implants', 'tooth'],
+                'teeth whitening': ['dental', 'cosmetic'],
+                'tummy tuck': ['cosmetic surgery', 'plastic surgery', 'abdominoplasty', 'liposuction'],
+                'facelift': ['cosmetic surgery', 'plastic surgery', 'facial'],
+                'rhinoplasty': ['cosmetic surgery', 'nose job', 'plastic surgery'],
+                'liposuction': ['cosmetic surgery', 'plastic surgery', 'body contouring'],
+                'hip replacement': ['orthopedics', 'joint replacement', 'hip'],
+                'knee replacement': ['orthopedics', 'joint replacement', 'knee'],
+                'gastric bypass': ['bariatric surgery', 'weight loss', 'gastric'],
+                'gastric sleeve': ['bariatric surgery', 'weight loss', 'gastric'],
+                'lasik': ['eye surgery', 'ophthalmology', 'vision correction'],
+                'ivf': ['fertility', 'ivf treatment', 'reproductive'],
+                'hair transplant': ['cosmetic', 'hair restoration']
+              };
+
+              // Get synonyms for this procedure
+              const synonyms = Object.entries(procedureSynonyms).find(([key]) =>
+                procedureLower.includes(key) || key.includes(procedureLower)
+              )?.[1] || [];
 
               let query = supabase
                 .from('facilities')
                 .select('id, name, city, country, jci_accredited, google_rating, review_count, popular_procedures, specialties')
                 .order('google_rating', { ascending: false })
-                .limit(Math.min(limit, 10));
+                .limit(500); // Get ALL facilities for filtering - don't miss matches!
 
               if (country) {
                 query = query.ilike('country', `%${country}%`);
@@ -471,44 +539,114 @@ Answer their question:`;
               const { data, error } = await query;
 
               if (!error && data) {
-                // Filter by procedure - ALWAYS use journey's procedure type
-                const procedureToSearch = procedure || '';
-                const procedureLower = procedureToSearch.toLowerCase();
+                console.log('[search_facilities] Got', data.length, 'facilities from DB');
 
+                // STRICT filtering - must match procedure or synonyms
                 facilities = data.filter(facility => {
-                  if (!procedureLower) return true;
-
-                  // Check if procedure matches any of the facility's popular procedures
+                  // Check popular_procedures (JSONB array)
                   const hasMatchingProcedure = facility.popular_procedures?.some((p: any) => {
-                    const procName = p.name?.toLowerCase() || '';
-                    // Match if procedure contains the search term or vice versa
-                    return procName.includes(procedureLower) || procedureLower.includes(procName);
+                    const procName = (p.name || '').toLowerCase();
+                    // Direct match
+                    if (procName.includes(procedureLower) || procedureLower.includes(procName)) {
+                      return true;
+                    }
+                    // Synonym match
+                    return synonyms.some(syn => procName.includes(syn) || syn.includes(procName));
                   });
 
-                  // Also check facility specialties if available
-                  const matchesSpecialty = facility.specialties?.toLowerCase().includes(procedureLower);
+                  // Check specialties - it's a TEXT[] array, not a string!
+                  const specialtiesArray: string[] = Array.isArray(facility.specialties) ? facility.specialties : [];
+                  const matchesSpecialty = specialtiesArray.some((spec: string) => {
+                    const specLower = (spec || '').toLowerCase();
+                    return specLower.includes(procedureLower) || procedureLower.includes(specLower) ||
+                      synonyms.some(syn => specLower.includes(syn) || syn.includes(specLower));
+                  });
 
                   return hasMatchingProcedure || matchesSpecialty;
                 }).slice(0, limit);
 
-                // Smart messaging for search results - DON'T fall back to random facilities
+                console.log('[search_facilities] Filtered to', facilities.length, 'matching facilities');
+
+                // If no matches found, give helpful message - NEVER show random facilities
                 if (facilities.length === 0) {
-                  assistantMessage += `\n\n**I couldn't find facilities offering ${procedure || 'that procedure'} in our database yet.**\n\nOur network is growing! In the meantime:\n- Try a different location\n- Ask about a related procedure\n- Or browse our [full facility list](/facilities) to see all options.`;
-                } else {
-                  // Add procedure-specific pricing to displayed facilities
-                  facilities = facilities.map(facility => {
-                    const matchingProc = facility.popular_procedures?.find((p: any) =>
-                      p.name?.toLowerCase().includes(procedureLower) || procedureLower.includes(p.name?.toLowerCase() || '')
+                  // Check what procedures we DO have for this country
+                  let availableProcedures: string[] = [];
+                  if (country) {
+                    const countryFacilities = data.filter(f =>
+                      f.country?.toLowerCase().includes(country.toLowerCase())
                     );
+                    countryFacilities.forEach(f => {
+                      f.popular_procedures?.forEach((p: any) => {
+                        if (p.name && !availableProcedures.includes(p.name)) {
+                          availableProcedures.push(p.name);
+                        }
+                      });
+                    });
+                  }
+
+                  assistantMessage += `\n\n**I couldn't find facilities offering "${procedure}" ${country ? `in ${country} ` : ''}in our current database.**\n\n`;
+
+                  if (availableProcedures.length > 0) {
+                    assistantMessage += `**Available procedures ${country ? `in ${country}` : 'in our network'}:**\n`;
+                    availableProcedures.slice(0, 8).forEach(proc => {
+                      assistantMessage += `- ${proc}\n`;
+                    });
+                    assistantMessage += `\nWould you like to search for any of these instead?`;
+                  } else {
+                    assistantMessage += `Our facility network is growing! You can:\n- Try a different country\n- Browse all [available facilities](/facilities)\n- Ask about a different procedure`;
+                  }
+                } else {
+                  // Get facility IDs to fetch doctor counts
+                  const facilityIds = facilities.map(f => f.id);
+                  
+                  // Fetch doctors for these facilities (for trust signal)
+                  const { data: doctorsData } = await supabase
+                    .from('doctors')
+                    .select('facility_id, name, specialty, years_experience')
+                    .in('facility_id', facilityIds);
+                  
+                  // Group doctors by facility
+                  const doctorsByFacility: Record<string, any[]> = {};
+                  doctorsData?.forEach(doc => {
+                    if (!doctorsByFacility[doc.facility_id]) {
+                      doctorsByFacility[doc.facility_id] = [];
+                    }
+                    doctorsByFacility[doc.facility_id].push(doc);
+                  });
+                  
+                  // Add procedure-specific pricing AND doctor info to displayed facilities
+                  facilities = facilities.map(facility => {
+                    const matchingProc = facility.popular_procedures?.find((p: any) => {
+                      const procName = (p.name || '').toLowerCase();
+                      return procName.includes(procedureLower) || procedureLower.includes(procName) ||
+                        synonyms.some(syn => procName.includes(syn));
+                    });
+                    
+                    const facilityDoctors = doctorsByFacility[facility.id] || [];
+                    // Find a featured doctor (prefer one matching specialty)
+                    const featuredDoctor = facilityDoctors.find(d => 
+                      d.specialty?.toLowerCase().includes(procedureLower) ||
+                      synonyms.some(syn => d.specialty?.toLowerCase().includes(syn))
+                    ) || facilityDoctors[0];
+                    
                     return {
                       ...facility,
                       matched_procedure: matchingProc || null,
-                      procedure_price: matchingProc?.price_range || null
+                      procedure_price: matchingProc?.price_range || null,
+                      doctor_count: facilityDoctors.length,
+                      featured_doctor: featuredDoctor ? {
+                        name: featuredDoctor.name,
+                        specialty: featuredDoctor.specialty,
+                        years_experience: featuredDoctor.years_experience
+                      } : null
                     };
                   });
 
-                  assistantMessage += `\n\n**I found ${facilities.length} excellent ${facilities.length === 1 ? 'option' : 'options'} for ${procedure || 'you'}:**`;
+                  assistantMessage += `\n\n**I found ${facilities.length} excellent ${facilities.length === 1 ? 'option' : 'options'} for ${procedure}:**`;
                 }
+              } else if (error) {
+                console.error('[search_facilities] Database error:', error);
+                assistantMessage += `\n\n**I'm having trouble searching our database right now.** Please try again in a moment.`;
               }
             }
             break;
@@ -1332,6 +1470,82 @@ Once you have 2+ facilities on your shortlist, I can create a detailed compariso
                 assistantMessage += '- Contact facilities for quotes\n';
               }
               assistantMessage += '- Visit your [full dashboard](/my-journey) for more details';
+            }
+            break;
+
+          case 'check_pledge_status':
+            {
+              if (!context.userId) {
+                assistantMessage += '\n\nTo check your pledge status, I need to know who you are. Please make sure you\'re logged in!';
+                break;
+              }
+
+              // Get user email
+              const { data: userData } = await supabase.auth.admin.getUserById(context.userId);
+              const userEmail = userData?.user?.email;
+
+              if (!userEmail) {
+                assistantMessage += '\n\nI couldn\'t find your account email. Please try logging in again.';
+                break;
+              }
+
+              // Check pledges
+              const { data: pledges } = await supabase
+                .from('pledges')
+                .select('pledge_type')
+                .eq('email', userEmail.toLowerCase());
+
+              const hasMedicalTrust = pledges?.some(p => p.pledge_type === 'medical_trust') || false;
+              const hasCancelInsurance = pledges?.some(p => p.pledge_type === 'cancel_insurance') || false;
+              const hasMedicalTourism = pledges?.some(p => p.pledge_type === 'try_medical_tourism') || false;
+
+              const pledgeCount = [hasMedicalTrust, hasCancelInsurance, hasMedicalTourism].filter(Boolean).length;
+
+              assistantMessage += '\n\n🛡️ **Your Healthcare Sovereignty Pledges**\n\n';
+
+              if (pledgeCount === 3) {
+                assistantMessage += '🎉 **You\'ve taken all three pledges!** You\'re leading the healthcare revolution.\n\n';
+              } else if (pledgeCount === 0) {
+                assistantMessage += 'You haven\'t taken any pledges yet. These are commitments to yourself—to take control of your healthcare.\n\n';
+              } else {
+                assistantMessage += `You've taken ${pledgeCount}/3 pledges:\n\n`;
+              }
+
+              assistantMessage += `${hasMedicalTrust ? '✅' : '⬜'} **Medical Trust** - Protect your assets from medical debt\n`;
+              assistantMessage += `${hasCancelInsurance ? '✅' : '⬜'} **Cancel Insurance** - Exit the insurance trap\n`;
+              assistantMessage += `${hasMedicalTourism ? '✅' : '⬜'} **Medical Tourism** - Use global healthcare for major savings\n\n`;
+
+              if (pledgeCount < 3) {
+                assistantMessage += `[Take the pledge →](/action)`;
+              }
+            }
+            break;
+
+          case 'prompt_pledge':
+            {
+              const { pledge_type } = toolInput;
+              
+              const pledgeInfo: Record<string, { title: string; why: string }> = {
+                medical_trust: {
+                  title: 'Medical Trust',
+                  why: 'Medical debt is the #1 cause of bankruptcy in America—even for people WITH insurance. A medical trust protects your home, savings, and investments.'
+                },
+                cancel_insurance: {
+                  title: 'Cancel Insurance',
+                  why: 'The average family pays $24,000/year in premiums plus a $3,000 deductible—and still gets 18% of claims denied. There are better alternatives.'
+                },
+                try_medical_tourism: {
+                  title: 'Medical Tourism',
+                  why: 'The same surgeons, same technology, JCI-accredited hospitals—at 60-90% savings. You don\'t have to stay trapped in the US system.'
+                }
+              };
+
+              const pledge = pledgeInfo[pledge_type] || pledgeInfo.try_medical_tourism;
+
+              assistantMessage += `\n\n💡 **By the way...** have you considered the **${pledge.title}** pledge?\n\n`;
+              assistantMessage += `${pledge.why}\n\n`;
+              assistantMessage += `It's not a contract—it's a commitment to yourself. Many of our users find it helpful to formalize their intentions.\n\n`;
+              assistantMessage += `[Learn more & take the pledge →](/action)`;
             }
             break;
 

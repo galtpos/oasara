@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
+import { getPricingForCountry, formatPriceRange } from '../../data/procedurePricing';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -15,6 +16,14 @@ interface Message {
     google_rating: number;
     review_count: number;
     popular_procedures?: Array<{ name: string; price_range: string; wait_time: string }>;
+    matched_procedure?: { name: string; price_range?: string; wait_time?: string } | null;
+    procedure_price?: string | null;
+    doctor_count?: number;
+    featured_doctor?: {
+      name: string;
+      specialty?: string;
+      years_experience?: number;
+    } | null;
   }>;
 }
 
@@ -71,6 +80,16 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
   const [shortlistLoading, setShortlistLoading] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
+  const prevJourneyIdRef = useRef<string>(journey.id);
+
+  // Reload messages when journey changes (user switched journeys)
+  useEffect(() => {
+    if (prevJourneyIdRef.current !== journey.id) {
+      console.log('Journey changed, reloading chat for:', journey.id);
+      prevJourneyIdRef.current = journey.id;
+      setMessages(loadMessages());
+    }
+  }, [journey.id]);
 
   // Track shortlisted facility IDs
   const shortlistedIds = shortlistedFacilities.map(sf => sf.facilities.id);
@@ -483,10 +502,53 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                                     </span>
                                   </div>
                                 )}
-                                {facility.popular_procedures && facility.popular_procedures.length > 0 && (
-                                  <div className="text-xs text-ocean-600 mt-1">
-                                    <span className="font-medium">{facility.popular_procedures[0].name}:</span>{' '}
-                                    {facility.popular_procedures[0].price_range}
+                                {/* Show matched procedure pricing (what user searched for) */}
+                                {(() => {
+                                  // 1. Best case: facility has exact price for this procedure
+                                  if (facility.matched_procedure?.price_range) {
+                                    return (
+                                      <div className="text-xs text-ocean-600 mt-1">
+                                        <span className="font-medium">{facility.matched_procedure.name}:</span>{' '}
+                                        {facility.matched_procedure.price_range}
+                                      </div>
+                                    );
+                                  }
+                                  
+                                  // 2. Fallback: use reference pricing for this procedure + country
+                                  const refPricing = getPricingForCountry(journey.procedure_type, facility.country);
+                                  if (refPricing) {
+                                    return (
+                                      <div className="text-xs text-ocean-600 mt-1">
+                                        <span className="font-medium">Est.:</span>{' '}
+                                        {formatPriceRange(refPricing.low, refPricing.high)}{' '}
+                                        <span className="text-green-600">(saves {refPricing.savings})</span>
+                                      </div>
+                                    );
+                                  }
+                                  
+                                  // 3. Last resort: contact for quote
+                                  return (
+                                    <div className="text-xs text-ocean-500 mt-1 italic">
+                                      Contact for pricing
+                                    </div>
+                                  );
+                                })()}
+                                {/* Featured Doctor - trust signal */}
+                                {facility.featured_doctor && (
+                                  <div className="text-xs text-ocean-600 mt-1 flex items-center gap-1">
+                                    <svg className="w-3 h-3 text-ocean-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    </svg>
+                                    <span className="font-medium">{facility.featured_doctor.name}</span>
+                                    {facility.featured_doctor.specialty && (
+                                      <span className="text-ocean-500">• {facility.featured_doctor.specialty}</span>
+                                    )}
+                                    {facility.featured_doctor.years_experience && (
+                                      <span className="text-ocean-500">• {facility.featured_doctor.years_experience}+ yrs</span>
+                                    )}
+                                    {facility.doctor_count && facility.doctor_count > 1 && (
+                                      <span className="text-ocean-400">+{facility.doctor_count - 1} more</span>
+                                    )}
                                   </div>
                                 )}
                               </div>
