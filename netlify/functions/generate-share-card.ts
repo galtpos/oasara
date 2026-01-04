@@ -38,6 +38,17 @@ interface ShareCardData {
     height: number;
   };
   twitter_thread?: string[];
+  instagram_carousel?: InstagramSlide[];
+  plain_text?: string;
+}
+
+interface InstagramSlide {
+  slide_number: number;
+  type: 'hook' | 'content' | 'stats' | 'cta';
+  headline: string;
+  body?: string;
+  stats?: string[];
+  background: string;
 }
 
 const STORY_TYPE_COLORS = {
@@ -67,28 +78,27 @@ const CARD_DIMENSIONS = {
 
 function generateTwitterThread(story: any): string[] {
   const threads: string[] = [];
-  const typeEmoji = story.story_type === 'horror' ? '💔' : story.story_type === 'success' ? '🎉' : '⚖️';
   
   // Tweet 1: Hook
   if (story.story_type === 'comparison' && story.cost_us && story.cost_abroad) {
-    threads.push(`${typeEmoji} THREAD: How I saved ${story.savings_percent}% on ${story.procedure || 'healthcare'}
+    threads.push(`THREAD: How I saved ${story.savings_percent}% on ${story.procedure || 'healthcare'}
 
 US quote: $${story.cost_us.toLocaleString()}
 What I actually paid: $${story.cost_abroad.toLocaleString()}
 
-Here's exactly what happened 🧵👇`);
+Here's exactly what happened 🧵`);
   } else if (story.story_type === 'horror') {
-    threads.push(`${typeEmoji} THREAD: ${story.title}
+    threads.push(`THREAD: ${story.title}
 
 This is what's wrong with American healthcare.
 
-What happened to me should never happen to anyone. 🧵👇`);
+What happened to me should never happen to anyone. 🧵`);
   } else {
-    threads.push(`${typeEmoji} THREAD: ${story.title}
+    threads.push(`THREAD: ${story.title}
 
 I found a way out of the broken healthcare system.
 
-Here's my story. 🧵👇`);
+Here's my story. 🧵`);
   }
   
   // Tweet 2-4: Story content (split by paragraphs, max 280 chars each)
@@ -110,11 +120,113 @@ Here's my story. 🧵👇`);
 
 Together, we're building a healthcare revolution.
 
-${story.reaction_counts?.me_too > 0 ? `${story.reaction_counts.me_too} others have said "me too" 🤝` : ''}
+${story.reaction_counts?.me_too > 0 ? `${story.reaction_counts.me_too} others have said "me too"` : ''}
 
-#HealthcareReform #MedicalTourism #OwnNothing`);
+#HealthcareReform #MedicalTourism`);
   
   return threads;
+}
+
+function generateInstagramCarousel(story: any): InstagramSlide[] {
+  const slides: InstagramSlide[] = [];
+  const colorScheme = STORY_TYPE_COLORS[story.story_type as keyof typeof STORY_TYPE_COLORS];
+  
+  // Slide 1: Hook
+  let hookHeadline = '';
+  if (story.story_type === 'comparison' && story.cost_us && story.cost_abroad) {
+    hookHeadline = `I Saved\n${story.savings_percent}%`;
+  } else if (story.story_type === 'horror') {
+    hookHeadline = 'This Should\nNever Happen';
+  } else {
+    hookHeadline = 'I Found a\nBetter Way';
+  }
+  
+  slides.push({
+    slide_number: 1,
+    type: 'hook',
+    headline: hookHeadline,
+    body: story.procedure || 'Healthcare',
+    background: colorScheme.background
+  });
+  
+  // Slides 2-4: Story content (broken into chunks)
+  const content = story.content || story.summary || '';
+  const sentences = content.split(/[.!?]+/).filter((s: string) => s.trim()).slice(0, 6);
+  
+  // Group sentences into 2-3 per slide
+  const chunks: string[][] = [];
+  for (let i = 0; i < sentences.length; i += 2) {
+    chunks.push(sentences.slice(i, i + 2));
+  }
+  
+  chunks.slice(0, 3).forEach((chunk, index) => {
+    slides.push({
+      slide_number: index + 2,
+      type: 'content',
+      headline: `Part ${index + 1}`,
+      body: chunk.join('. ').trim() + (chunk.join('').trim().endsWith('.') ? '' : '.'),
+      background: colorScheme.background
+    });
+  });
+  
+  // Stats slide
+  let stats: string[] = [];
+  if (story.story_type === 'comparison' && story.cost_us && story.cost_abroad) {
+    stats = [
+      `US Cost: $${story.cost_us.toLocaleString()}`,
+      `Abroad: $${story.cost_abroad.toLocaleString()}`,
+      `Saved: $${(story.cost_us - story.cost_abroad).toLocaleString()}`
+    ];
+  } else {
+    stats = [
+      `${story.reaction_counts?.me_too || 0} "Me Too" reactions`,
+      `${story.share_count || 0} times shared`,
+      `${story.reaction_counts?.heart || 0} hearts`
+    ];
+  }
+  
+  slides.push({
+    slide_number: slides.length + 1,
+    type: 'stats',
+    headline: story.story_type === 'comparison' ? 'The Numbers' : 'Community Impact',
+    stats,
+    background: colorScheme.background
+  });
+  
+  // CTA slide
+  slides.push({
+    slide_number: slides.length + 1,
+    type: 'cta',
+    headline: 'Share Your Story',
+    body: 'Join the healthcare revolution\n\noasara.com/share-story',
+    background: colorScheme.background
+  });
+  
+  return slides;
+}
+
+function generatePlainText(story: any): string {
+  let text = '';
+  
+  if (story.story_type === 'comparison' && story.cost_us && story.cost_abroad) {
+    text = `I saved ${story.savings_percent}% on ${story.procedure || 'healthcare'}!
+
+US quote: $${story.cost_us.toLocaleString()}
+What I paid: $${story.cost_abroad.toLocaleString()}
+Savings: $${(story.cost_us - story.cost_abroad).toLocaleString()}
+
+`;
+  }
+  
+  text += `${story.title}
+
+${story.summary || story.content?.substring(0, 300)}${story.content?.length > 300 ? '...' : ''}
+
+Read the full story: https://oasara.com/stories/${story.slug}
+
+If something like this happened to you, share your story: https://oasara.com/share-story`;
+
+  return text;
 }
 
 export const handler: Handler = async (event: HandlerEvent) => {
@@ -222,10 +334,17 @@ export const handler: Handler = async (event: HandlerEvent) => {
         dimensions
       };
 
-      // Generate Twitter thread for twitter card type
+      // Generate format-specific content
       if (cardType === 'twitter') {
         cardData.twitter_thread = generateTwitterThread(story);
       }
+      
+      if (cardType === 'instagram') {
+        cardData.instagram_carousel = generateInstagramCarousel(story);
+      }
+      
+      // Always include plain text for copy/paste
+      cardData.plain_text = generatePlainText(story);
 
       cards.push(cardData);
     }
