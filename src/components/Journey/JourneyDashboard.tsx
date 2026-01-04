@@ -278,19 +278,6 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
         </div>
       </motion.div>
 
-      {/* Post-Selection Flow - Shows when facilities are shortlisted */}
-      {shortlistCount > 0 && (
-        <PostSelectionFlow
-          journeyId={journey.id}
-          procedureType={journey.procedure_type}
-          shortlistCount={shortlistCount}
-          onContactFacility={(facilityId, message) => {
-            // TODO: Open contact modal or trigger chatbot
-            setIsChatbotOpen(true);
-          }}
-        />
-      )}
-
       {/* Navigation Tabs */}
       <div className="bg-white rounded-2xl shadow-lg mb-6 overflow-hidden">
         <div className="flex border-b border-sage-200">
@@ -473,6 +460,19 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
           )}
         </div>
       </div>
+
+      {/* Post-Selection Flow - Shows when facilities are shortlisted */}
+      {shortlistCount > 0 && (
+        <PostSelectionFlow
+          journeyId={journey.id}
+          procedureType={journey.procedure_type}
+          shortlistCount={shortlistCount}
+          onContactFacility={(facilityId, message) => {
+            // TODO: Open contact modal or trigger chatbot
+            setIsChatbotOpen(true);
+          }}
+        />
+      )}
 
       {/* AI Chatbot - Fixed position */}
       <JourneyChatbot
