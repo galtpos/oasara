@@ -134,7 +134,7 @@ const ShareStory: React.FC = () => {
       
       // Update extracted data if any
       if (data.extracted) {
-        setAiExtracted(prev => ({ ...prev, ...data.extracted }));
+        setAiExtracted((prev: any) => ({ ...prev, ...data.extracted }));
         
         // Auto-populate form fields
         if (data.extracted.title) setTitle(data.extracted.title);
