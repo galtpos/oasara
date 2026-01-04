@@ -112,9 +112,8 @@ const SiteHeader: React.FC = () => {
               {/* Stories */}
               <Link
                 to="/stories"
-                className={`nav-link flex items-center gap-1 ${location.pathname.startsWith('/stories') || isActive('/share-story') ? 'text-gold-500' : ''}`}
+                className={`nav-link ${location.pathname.startsWith('/stories') || isActive('/share-story') ? 'text-gold-500' : ''}`}
               >
-                <span className="text-red-500">💔</span>
                 Stories
               </Link>
 
@@ -211,11 +210,10 @@ const SiteHeader: React.FC = () => {
                 <Link
                   to="/stories"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
+                  className={`px-4 py-2 rounded-lg transition-colors ${
                     location.pathname.startsWith('/stories') || isActive('/share-story') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
                   }`}
                 >
-                  <span className="text-red-500">💔</span>
                   Stories
                 </Link>
 
