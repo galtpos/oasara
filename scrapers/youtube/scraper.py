@@ -61,11 +61,21 @@ KEY_CHANNELS = [
 class YouTubeScraper:
     def __init__(self):
         self.storage = get_storage()
-        self.output_dir = Path(__file__).parent / 'output'
-        self.output_dir.mkdir(exist_ok=True)
+        
+        # Primary storage on NAS - NO TEMP FILES
+        self.nas_base = Path(os.getenv('NAS_MOUNT_PATH', '/mnt/nas/oasara'))
+        self.output_dir = self.nas_base / 'scraped' / 'youtube'
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         self.videos_dir = self.output_dir / 'videos'
         self.videos_dir.mkdir(exist_ok=True)
-        self.whisper_model = os.getenv('WHISPER_MODEL', 'base')
+        self.thumbnails_dir = self.output_dir / 'thumbnails'
+        self.thumbnails_dir.mkdir(exist_ok=True)
+        self.transcripts_dir = self.output_dir / 'transcripts'
+        self.transcripts_dir.mkdir(exist_ok=True)
+        
+        self.whisper_model = os.getenv('WHISPER_MODEL', 'large-v3')  # Use best model on DGX
+        
+        print(f"📁 Saving all content to NAS: {self.output_dir}")
     
     def _run_ytdlp_search(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Search YouTube using yt-dlp"""
@@ -117,56 +127,79 @@ class YouTubeScraper:
     
     def _download_video(self, video_id: str) -> Optional[Dict[str, Any]]:
         """
-        Download video, extract audio, get thumbnail
+        Download FULL VIDEO directly to NAS - no temp files
         Returns paths to downloaded files
         """
-        video_dir = self.videos_dir / video_id
-        video_dir.mkdir(exist_ok=True)
+        # Organize files by type on NAS
+        video_path = self.videos_dir / f"{video_id}.mp4"
+        thumb_path = self.thumbnails_dir / f"{video_id}.jpg"
+        transcript_path = self.transcripts_dir / f"{video_id}.srt"
+        info_path = self.output_dir / 'metadata' / f"{video_id}.json"
+        info_path.parent.mkdir(exist_ok=True)
         
         try:
-            # Download video info + thumbnail + audio
+            # Download FULL VIDEO directly to NAS
             cmd = [
                 'yt-dlp',
-                '-f', 'bestaudio[ext=m4a]/bestaudio',  # Audio only for transcription
+                '-f', 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best',
+                '--merge-output-format', 'mp4',
                 '--write-thumbnail',
+                '--convert-thumbnails', 'jpg',
                 '--write-info-json',
                 '--write-auto-sub',
                 '--sub-lang', 'en',
                 '--convert-subs', 'srt',
-                '-o', str(video_dir / '%(id)s.%(ext)s'),
+                # Save directly to NAS paths
+                '-o', str(video_path),
+                '--write-thumbnail', '-o', f'thumbnail:{thumb_path}',
+                '--write-info-json', '-o', f'infojson:{info_path}',
+                '--write-subs', '-o', f'subtitle:{transcript_path}',
                 f'https://www.youtube.com/watch?v={video_id}'
             ]
             
+            print(f"📥 Downloading {video_id} to NAS...")
             result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=300
+                timeout=600  # 10 min for large videos
             )
             
             if result.returncode != 0:
-                print(f"Download error for {video_id}: {result.stderr[:200]}")
+                print(f"Download error for {video_id}: {result.stderr[:500]}")
                 return None
             
-            # Find downloaded files
+            # Verify files exist on NAS
             files = {}
-            for f in video_dir.iterdir():
-                if f.suffix in ['.m4a', '.webm', '.opus', '.mp3']:
-                    files['audio'] = str(f)
-                elif f.suffix in ['.jpg', '.png', '.webp']:
-                    files['thumbnail'] = str(f)
-                elif f.suffix == '.json':
-                    files['info'] = str(f)
-                elif f.suffix == '.srt':
-                    files['subtitles'] = str(f)
+            if video_path.exists():
+                files['video'] = str(video_path)
+                size_mb = video_path.stat().st_size / 1024 / 1024
+                print(f"✅ Video saved: {size_mb:.1f}MB")
+            
+            # Find thumbnail (yt-dlp may add suffix)
+            for ext in ['.jpg', '.webp', '.png']:
+                thumb_check = self.thumbnails_dir / f"{video_id}{ext}"
+                if thumb_check.exists():
+                    files['thumbnail'] = str(thumb_check)
+                    break
+            
+            # Check for subtitles
+            for srt_file in self.transcripts_dir.glob(f"{video_id}*.srt"):
+                files['subtitles'] = str(srt_file)
+                break
+            
+            # Check for info json
+            for json_file in (self.output_dir / 'metadata').glob(f"{video_id}*.json"):
+                files['info'] = str(json_file)
+                break
             
             return files
             
         except subprocess.TimeoutExpired:
-            print(f"Download timeout for {video_id}")
+            print(f"⏱️ Download timeout for {video_id}")
             return None
         except Exception as e:
-            print(f"Error downloading {video_id}: {e}")
+            print(f"❌ Error downloading {video_id}: {e}")
             return None
     
     def _transcribe_audio(self, audio_path: str) -> Optional[str]:
@@ -215,50 +248,48 @@ class YouTubeScraper:
             print(f"Error reading subtitles: {e}")
             return ''
     
-    def _upload_thumbnail(self, thumbnail_path: str, video_id: str) -> Optional[str]:
-        """Upload thumbnail to R2"""
-        try:
-            with open(thumbnail_path, 'rb') as f:
-                data = f.read()
-            
-            ext = Path(thumbnail_path).suffix
-            content_type = 'image/jpeg' if ext == '.jpg' else 'image/webp' if ext == '.webp' else 'image/png'
-            
-            result = self.storage.upload_bytes_to_r2(
-                data=data,
-                filename=f"youtube_{video_id}_thumb{ext}",
-                source='youtube',
-                content_type=content_type,
-                metadata={'video_id': video_id}
-            )
-            
-            return result['public_url']
-            
-        except Exception as e:
-            print(f"Error uploading thumbnail: {e}")
-            return None
+    def _get_nas_url(self, file_path: str) -> str:
+        """
+        Get NAS file URL. Files are already on NAS - no upload needed.
+        Returns the NAS path which can be served via nginx or Synology web station.
+        """
+        # Convert NAS path to web-accessible URL
+        nas_web_base = os.getenv('NAS_WEB_URL', 'http://10.0.0.30:5000/oasara')
+        relative_path = str(Path(file_path)).replace(str(self.nas_base), '')
+        return f"{nas_web_base}{relative_path}"
     
-    def _upload_video(self, video_path: str, video_id: str) -> Optional[str]:
-        """Upload video file to R2 (if small enough)"""
+    def _upload_to_supabase(self, file_path: str, video_id: str, file_type: str) -> Optional[str]:
+        """
+        Upload file to Supabase Storage for CDN access.
+        Files are already saved on NAS - this is for web delivery.
+        """
         try:
-            file_size = Path(video_path).stat().st_size
+            file_size = Path(file_path).stat().st_size
+            max_size = int(os.getenv('MAX_UPLOAD_SIZE_MB', '500')) * 1024 * 1024
             
-            # Only upload videos under 100MB
-            if file_size > 100 * 1024 * 1024:
-                print(f"Video too large to upload: {file_size / 1024 / 1024:.1f}MB")
-                return None
+            if file_size > max_size:
+                print(f"⚠️ File too large for Supabase ({file_size / 1024 / 1024:.1f}MB) - using NAS URL")
+                return self._get_nas_url(file_path)
             
-            result = self.storage.upload_to_r2(
-                file_path=video_path,
+            ext = Path(file_path).suffix
+            if file_type == 'video':
+                content_type = 'video/mp4'
+            elif file_type == 'thumbnail':
+                content_type = 'image/jpeg' if ext == '.jpg' else 'image/webp' if ext == '.webp' else 'image/png'
+            else:
+                content_type = 'application/octet-stream'
+            
+            result = self.storage.upload_file(
+                file_path=file_path,
                 source='youtube',
-                metadata={'video_id': video_id}
+                content_type=content_type
             )
             
             return result['public_url']
             
         except Exception as e:
-            print(f"Error uploading video: {e}")
-            return None
+            print(f"⚠️ Supabase upload failed, using NAS URL: {e}")
+            return self._get_nas_url(file_path)
     
     def process_video(self, video: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """
@@ -292,10 +323,18 @@ class YouTubeScraper:
             print(f"No transcript available for {video_id}")
             return None
         
-        # Upload thumbnail
+        # Get URLs for files (already on NAS, optionally upload to Supabase CDN)
         thumbnail_url = None
         if files.get('thumbnail'):
-            thumbnail_url = self._upload_thumbnail(files['thumbnail'], video_id)
+            thumbnail_url = self._upload_to_supabase(files['thumbnail'], video_id, 'thumbnail')
+        
+        # Video stays on NAS (too large for Supabase), get NAS URL
+        video_url = None
+        nas_video_path = None
+        if files.get('video'):
+            nas_video_path = files['video']
+            video_url = self._get_nas_url(files['video'])
+            print(f"📹 Video on NAS: {nas_video_path}")
         
         # Read video info
         info = {}
@@ -314,6 +353,10 @@ class YouTubeScraper:
             'duration': video.get('duration') or info.get('duration'),
             'view_count': video.get('view_count') or info.get('view_count', 0),
             'images': [thumbnail_url] if thumbnail_url else [],
+            'video_url': video_url,  # Web-accessible URL
+            'nas_video_path': nas_video_path,  # Actual file on NAS
+            'nas_thumbnail_path': files.get('thumbnail'),
+            'nas_transcript_path': files.get('subtitles'),
             'youtube_url': source_url,
             'search_query': video.get('search_query', ''),
             'processed_at': datetime.now().isoformat(),
@@ -417,9 +460,11 @@ class YouTubeScraper:
                     'issues': extracted.get('issues', []),
                     'viral_score': extracted.get('viral_score', 5),
                     'key_quote': extracted.get('key_quote'),
-                    'youtube_channel': video.get('channel', ''),
-                    'youtube_views': video.get('view_count', 0),
-                    'youtube_duration': video.get('duration'),
+                    # Video-specific fields
+                    'video_url': video.get('video_url'),  # ACTUAL VIDEO FILE
+                    'video_thumbnail_url': video.get('images', [None])[0],
+                    'video_transcript': video.get('content', '')[:10000],
+                    'media_urls': [video.get('video_url')] if video.get('video_url') else [],
                 }
                 
                 self.storage.insert_story(story_record)

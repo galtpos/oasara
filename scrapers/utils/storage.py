@@ -1,6 +1,11 @@
 """
-Supabase Storage Client for Scraped Media
-Uses Supabase Storage (not R2) - R2 setup documented for future
+NAS-First Storage Client for Scraped Media
+All media saved directly to NAS - Supabase for metadata only
+
+Storage Architecture:
+- NAS: Primary storage for all scraped videos/images (permanent)
+- Supabase Storage: CDN for web delivery (optional upload)
+- Supabase Postgres: Metadata and story records
 
 DGX Services:
 - OCR: http://10.0.0.20:8002 (EasyOCR)
@@ -11,6 +16,7 @@ import os
 import hashlib
 import mimetypes
 import requests
+import shutil
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 from dotenv import load_dotenv
@@ -18,16 +24,33 @@ from supabase import create_client, Client
 
 load_dotenv()
 
+# NAS Configuration
+NAS_MOUNT_PATH = os.getenv('NAS_MOUNT_PATH', '/mnt/nas/oasara')
+NAS_WEB_URL = os.getenv('NAS_WEB_URL', 'http://10.0.0.30:5000/oasara')
+
 # DGX Service endpoints
 DGX_OCR_URL = os.getenv('DGX_OCR_URL', 'http://10.0.0.20:8002')
 DGX_VLM_URL = os.getenv('DGX_VLM_URL', 'http://10.0.0.20:8111')
 
 
 class StorageClient:
-    """Unified storage client using Supabase Storage for all media"""
+    """NAS-first storage client - all media saved to NAS permanently"""
     
     def __init__(self):
-        # Supabase
+        # NAS is PRIMARY storage
+        self.nas_path = Path(NAS_MOUNT_PATH)
+        self.nas_web_url = NAS_WEB_URL
+        
+        # Verify NAS is mounted
+        if not self.nas_path.exists():
+            print(f"⚠️ WARNING: NAS not mounted at {self.nas_path}")
+            print("Creating local fallback directory...")
+            self.nas_path = Path.home() / 'oasara-scraped'
+        
+        self.nas_path.mkdir(parents=True, exist_ok=True)
+        print(f"📁 Storage root: {self.nas_path}")
+        
+        # Supabase for metadata
         supabase_url = os.getenv('SUPABASE_URL')
         supabase_key = os.getenv('SUPABASE_SERVICE_KEY')
         
@@ -37,11 +60,7 @@ class StorageClient:
         self.supabase: Client = create_client(supabase_url, supabase_key)
         self.bucket_name = 'scraped-media'
         
-        # Local NAS path
-        self.nas_path = os.getenv('NAS_MOUNT_PATH')
-        self.nas_enabled = os.getenv('NAS_SYNC_ENABLED', 'false').lower() == 'true'
-        
-        # Ensure bucket exists
+        # Ensure Supabase bucket exists for CDN delivery
         self._ensure_bucket()
     
     def _ensure_bucket(self):
@@ -140,34 +159,63 @@ class StorageClient:
             'bucket': 'supabase'
         }
     
-    def save_to_nas(self, file_path: str, relative_path: str) -> Optional[str]:
+    def save_to_nas(self, data: bytes, relative_path: str) -> Dict[str, Any]:
         """
-        Save a copy to NAS (if enabled and mounted)
+        Save bytes directly to NAS - PRIMARY storage method
         
         Args:
-            file_path: Local file to copy
+            data: File bytes
+            relative_path: Path within NAS storage (e.g., 'youtube/videos/abc123.mp4')
+            
+        Returns:
+            Dict with nas_path and web_url
+        """
+        nas_full_path = self.nas_path / relative_path
+        nas_full_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        with open(nas_full_path, 'wb') as f:
+            f.write(data)
+        
+        web_url = f"{self.nas_web_url}/{relative_path}"
+        
+        return {
+            'nas_path': str(nas_full_path),
+            'web_url': web_url,
+            'size': len(data)
+        }
+    
+    def copy_to_nas(self, source_path: str, relative_path: str) -> Dict[str, Any]:
+        """
+        Copy existing file to NAS
+        
+        Args:
+            source_path: Local file to copy
             relative_path: Path within NAS storage
             
         Returns:
-            NAS path or None if not enabled/available
+            Dict with nas_path and web_url
         """
-        if not self.nas_enabled or not self.nas_path:
-            return None
-        
-        nas_full_path = Path(self.nas_path) / relative_path
-        
-        if not Path(self.nas_path).exists():
-            print(f"Warning: NAS not mounted at {self.nas_path}")
-            return None
-        
-        # Create directory structure
+        nas_full_path = self.nas_path / relative_path
         nas_full_path.parent.mkdir(parents=True, exist_ok=True)
         
-        # Copy file
-        import shutil
-        shutil.copy2(file_path, nas_full_path)
+        shutil.copy2(source_path, nas_full_path)
         
-        return str(nas_full_path)
+        web_url = f"{self.nas_web_url}/{relative_path}"
+        file_size = nas_full_path.stat().st_size
+        
+        return {
+            'nas_path': str(nas_full_path),
+            'web_url': web_url,
+            'size': file_size
+        }
+    
+    def get_nas_url(self, relative_path: str) -> str:
+        """Get web-accessible URL for NAS file"""
+        return f"{self.nas_web_url}/{relative_path}"
+    
+    def get_nas_path(self, relative_path: str) -> Path:
+        """Get full NAS path for a relative path"""
+        return self.nas_path / relative_path
     
     def insert_story(self, story_data: Dict[str, Any]) -> Dict[str, Any]:
         """Insert a scraped story into Supabase"""

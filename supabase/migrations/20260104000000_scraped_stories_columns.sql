@@ -28,6 +28,12 @@ ALTER TABLE stories ADD COLUMN IF NOT EXISTS youtube_channel TEXT;
 ALTER TABLE stories ADD COLUMN IF NOT EXISTS youtube_views INTEGER;
 ALTER TABLE stories ADD COLUMN IF NOT EXISTS youtube_duration INTEGER;
 
+-- Video/Media storage (for viral content)
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS video_url TEXT;
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS video_thumbnail_url TEXT;
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS video_transcript TEXT;
+ALTER TABLE stories ADD COLUMN IF NOT EXISTS media_urls TEXT[] DEFAULT '{}';
+
 -- OCR data from bill images
 ALTER TABLE stories ADD COLUMN IF NOT EXISTS ocr_text TEXT;
 ALTER TABLE stories ADD COLUMN IF NOT EXISTS ocr_amounts NUMERIC[] DEFAULT '{}';
