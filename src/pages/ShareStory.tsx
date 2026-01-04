@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import SiteHeader from '../components/Layout/SiteHeader';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthState } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 
 type StoryType = 'horror' | 'success' | 'comparison';
@@ -68,7 +68,7 @@ interface AIPromptResponse {
 
 const ShareStory: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuthState();
   
   // Step tracking
   const [step, setStep] = useState(1);

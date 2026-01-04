@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import SiteHeader from '../components/Layout/SiteHeader';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthState } from '../hooks/useAuth';
 
 interface Story {
   id: string;
@@ -65,7 +65,7 @@ const STORY_TYPE_CONFIG = {
 
 const StoryDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { user } = useAuth();
+  const { user } = useAuthState();
   const [story, setStory] = useState<Story | null>(null);
   const [related, setRelated] = useState<RelatedStory[]>([]);
   const [loading, setLoading] = useState(true);
