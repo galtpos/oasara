@@ -719,19 +719,19 @@ const ShareStory: React.FC = () => {
                   <input
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/*,video/*"
                     onChange={(e) => setImages(Array.from(e.target.files || []))}
                     className="hidden"
                     id="images"
                   />
                   <label htmlFor="images" className="cursor-pointer">
                     <div className="text-ocean-600 mb-2 flex justify-center">{Icons.camera}</div>
-                    <div className="text-ocean-600">Click to upload images</div>
-                    <div className="text-sm text-ocean-500">Photos, screenshots, etc.</div>
+                    <div className="text-ocean-600">Click to upload images or video</div>
+                    <div className="text-sm text-ocean-500">Photos, screenshots, or short videos</div>
                   </label>
                   {images.length > 0 && (
                     <div className="mt-4 text-sm text-green-600">
-                      {images.length} image(s) selected
+                      {images.length} file(s) selected
                     </div>
                   )}
                 </div>

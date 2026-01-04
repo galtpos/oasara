@@ -140,7 +140,7 @@ async function getStory(slug: string, incrementView: boolean = true) {
 }
 
 // POST /stories - Create new story
-async function createStory(body: any, userId: string) {
+async function createStory(body: any, userId: string | null) {
   const {
     title,
     content,
@@ -210,18 +210,20 @@ async function createStory(body: any, userId: string) {
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
 
-  // Check if this is user's first story -> award badge
-  const { count } = await supabase
-    .from('stories')
-    .select('*', { count: 'exact', head: true })
-    .eq('author_id', userId);
+  // Check if this is user's first story -> award badge (only for logged-in users)
+  if (userId) {
+    const { count } = await supabase
+      .from('stories')
+      .select('*', { count: 'exact', head: true })
+      .eq('author_id', userId);
 
-  if (count === 1) {
-    await supabase.from('author_badges').insert({
-      user_id: userId,
-      badge_type: 'first_story',
-      story_id: story.id
-    });
+    if (count === 1) {
+      await supabase.from('author_badges').insert({
+        user_id: userId,
+        badge_type: 'first_story',
+        story_id: story.id
+      });
+    }
   }
 
   return {
@@ -417,17 +419,11 @@ export const handler: Handler = async (event: HandlerEvent) => {
       return { ...result, headers: corsHeaders };
     }
 
-    // POST /stories - Create
+    // POST /stories - Create (allows anonymous submissions)
     if (httpMethod === 'POST' && pathParts.length === 0) {
-      if (!userId) {
-        return {
-          statusCode: 401,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: 'Authentication required' })
-        };
-      }
       const data = JSON.parse(body || '{}');
-      const result = await createStory(data, userId);
+      // Allow anonymous submissions - userId can be null
+      const result = await createStory(data, userId || null);
       return { ...result, headers: corsHeaders };
     }
 
