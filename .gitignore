@@ -24,3 +24,9 @@ yarn-error.log*
 
 # Local Netlify folder
 .netlify
+
+# Scrapers
+scrapers/venv/
+scrapers/output/
+scrapers/logs/
+scrapers/.env
