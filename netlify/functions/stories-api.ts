@@ -340,18 +340,18 @@ async function getFeaturedStories() {
 
   const { data: trending, error: trendingError } = await supabase
     .from('stories')
-    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, video_url, published_at')
+    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, video_url, published_at, source_platform')
     .in('status', ['published', 'featured'])
     .order('share_count', { ascending: false })
     .order('published_at', { ascending: false })
-    .limit(10);
+    .limit(100);
 
   const { data: latest, error: latestError } = await supabase
     .from('stories')
-    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, video_url, published_at')
+    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, video_url, published_at, source_platform')
     .in('status', ['published', 'featured'])
     .order('published_at', { ascending: false })
-    .limit(10);
+    .limit(100);
 
   return {
     statusCode: 200,
