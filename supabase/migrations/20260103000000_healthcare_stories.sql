@@ -64,15 +64,15 @@ CREATE TABLE IF NOT EXISTS stories (
   published_at TIMESTAMPTZ
 );
 
--- Indexes for common queries
-CREATE INDEX idx_stories_status ON stories(status);
-CREATE INDEX idx_stories_story_type ON stories(story_type);
-CREATE INDEX idx_stories_procedure ON stories(procedure);
-CREATE INDEX idx_stories_author ON stories(author_id);
-CREATE INDEX idx_stories_created ON stories(created_at DESC);
-CREATE INDEX idx_stories_published ON stories(published_at DESC) WHERE status = 'published';
-CREATE INDEX idx_stories_featured ON stories(featured_at DESC) WHERE is_featured = true;
-CREATE INDEX idx_stories_issues ON stories USING GIN(issues);
+-- Indexes for common queries (use IF NOT EXISTS for idempotency)
+CREATE INDEX IF NOT EXISTS idx_stories_status ON stories(status);
+CREATE INDEX IF NOT EXISTS idx_stories_story_type ON stories(story_type);
+CREATE INDEX IF NOT EXISTS idx_stories_procedure ON stories(procedure);
+CREATE INDEX IF NOT EXISTS idx_stories_author ON stories(author_id);
+CREATE INDEX IF NOT EXISTS idx_stories_created ON stories(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_stories_published ON stories(published_at DESC) WHERE status = 'published';
+CREATE INDEX IF NOT EXISTS idx_stories_featured ON stories(featured_at DESC) WHERE is_featured = true;
+CREATE INDEX IF NOT EXISTS idx_stories_issues ON stories USING GIN(issues);
 
 -- ============================================
 -- STORY REACTIONS TABLE
@@ -90,8 +90,8 @@ CREATE TABLE IF NOT EXISTS story_reactions (
   UNIQUE(story_id, session_id, reaction_type)
 );
 
-CREATE INDEX idx_reactions_story ON story_reactions(story_id);
-CREATE INDEX idx_reactions_user ON story_reactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_reactions_story ON story_reactions(story_id);
+CREATE INDEX IF NOT EXISTS idx_reactions_user ON story_reactions(user_id);
 
 -- ============================================
 -- STORY COMMENTS TABLE
@@ -117,9 +117,9 @@ CREATE TABLE IF NOT EXISTS story_comments (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_comments_story ON story_comments(story_id);
-CREATE INDEX idx_comments_parent ON story_comments(parent_id);
-CREATE INDEX idx_comments_author ON story_comments(author_id);
+CREATE INDEX IF NOT EXISTS idx_comments_story ON story_comments(story_id);
+CREATE INDEX IF NOT EXISTS idx_comments_parent ON story_comments(parent_id);
+CREATE INDEX IF NOT EXISTS idx_comments_author ON story_comments(author_id);
 
 -- ============================================
 -- STORY VECTORS TABLE (for semantic search)
@@ -150,8 +150,8 @@ CREATE TABLE IF NOT EXISTS story_shares (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_shares_story ON story_shares(story_id);
-CREATE INDEX idx_shares_platform ON story_shares(platform);
+CREATE INDEX IF NOT EXISTS idx_shares_story ON story_shares(story_id);
+CREATE INDEX IF NOT EXISTS idx_shares_platform ON story_shares(platform);
 
 -- ============================================
 -- AUTHOR BADGES TABLE
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS author_badges (
   UNIQUE(user_id, badge_type)
 );
 
-CREATE INDEX idx_badges_user ON author_badges(user_id);
+CREATE INDEX IF NOT EXISTS idx_badges_user ON author_badges(user_id);
 
 -- ============================================
 -- AUTHOR STATS TABLE (aggregated metrics)

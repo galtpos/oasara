@@ -223,6 +223,11 @@ Instead, EDUCATE them first:
 - check_pledge_status - Check which pledges user has taken
 - prompt_pledge - Gently suggest a specific pledge (MAX ONCE per conversation)
 
+**COMMUNITY STORIES**
+- search_stories - Find stories from other patients (horror stories, success stories, comparisons)
+- get_story_details - Get full details of a specific story
+- suggest_share_story - Gently encourage user to share their experience (after journey completion)
+
 ## CRITICAL RULES
 
 🚨 **AFTER CREATING A JOURNEY, IMMEDIATELY SEARCH** 🚨
@@ -518,6 +523,51 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
             }
           },
           required: ['pledge_type']
+        }
+      },
+      // === COMMUNITY STORIES TOOLS ===
+      {
+        name: 'search_stories',
+        description: 'Searches community stories for relevant experiences. Use when user mentions wanting to hear from others, share experiences, read horror stories, success stories, or comparisons.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            query: { type: 'string', description: 'Search query or topic' },
+            story_type: { 
+              type: 'string', 
+              enum: ['horror', 'success', 'comparison'],
+              description: 'Filter by story type' 
+            },
+            procedure: { type: 'string', description: 'Filter by procedure type' },
+            limit: { type: 'number', description: 'Number of results (default: 3)' }
+          },
+          required: []
+        }
+      },
+      {
+        name: 'get_story_details',
+        description: 'Gets full details of a specific story by slug or ID',
+        input_schema: {
+          type: 'object',
+          properties: {
+            story_slug: { type: 'string', description: 'Story slug or ID' }
+          },
+          required: ['story_slug']
+        }
+      },
+      {
+        name: 'suggest_share_story',
+        description: 'Gently encourages user to share their own healthcare story. Use when user has finished their journey or mentioned a significant experience.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            story_type: {
+              type: 'string',
+              enum: ['horror', 'success', 'comparison'],
+              description: 'Type of story to suggest based on conversation'
+            }
+          },
+          required: []
         }
       }
     ];
@@ -1396,6 +1446,132 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
               assistantMessage += `\n\n**Have you considered the ${pledge.title} pledge?**\n\n`;
               assistantMessage += `${pledge.why}\n\n`;
               assistantMessage += `[Learn more & take the pledge →](/action)`;
+            }
+            break;
+
+          // === COMMUNITY STORIES TOOLS ===
+          case 'search_stories':
+            {
+              const { query, story_type, procedure, limit = 3 } = toolInput;
+
+              let dbQuery = supabase
+                .from('stories')
+                .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, published_at')
+                .in('status', ['published', 'featured'])
+                .order('share_count', { ascending: false })
+                .limit(limit);
+
+              if (story_type) {
+                dbQuery = dbQuery.eq('story_type', story_type);
+              }
+              if (procedure) {
+                dbQuery = dbQuery.ilike('procedure', `%${procedure}%`);
+              }
+              if (query) {
+                dbQuery = dbQuery.or(`title.ilike.%${query}%,summary.ilike.%${query}%,content.ilike.%${query}%`);
+              }
+
+              const { data: storiesData, error } = await dbQuery;
+
+              if (error || !storiesData || storiesData.length === 0) {
+                assistantMessage += '\n\nI couldn\'t find any stories matching your search. Would you like to be the first to [share your experience](/share-story)?';
+              } else {
+                const storyTypeLabels = {
+                  horror: '💔 Horror Story',
+                  success: '🎉 Success Story',
+                  comparison: '⚖️ Comparison'
+                };
+
+                assistantMessage += '\n\n**Stories from Our Community**\n\n';
+                
+                for (const story of storiesData) {
+                  const typeLabel = storyTypeLabels[story.story_type as keyof typeof storyTypeLabels] || story.story_type;
+                  const reactions = story.reaction_counts as Record<string, number>;
+                  const meToo = reactions?.me_too || 0;
+                  
+                  assistantMessage += `**${typeLabel}**: [${story.title}](/stories/${story.slug})\n`;
+                  assistantMessage += `> ${story.summary?.substring(0, 100)}...\n`;
+                  assistantMessage += `*${meToo > 0 ? `${meToo} others relate` : 'Be the first to react'} • ${story.share_count || 0} shares*\n\n`;
+                }
+
+                assistantMessage += `[See all stories →](/stories)`;
+              }
+            }
+            break;
+
+          case 'get_story_details':
+            {
+              const { story_slug } = toolInput;
+
+              const { data: story, error } = await supabase
+                .from('stories')
+                .select('*')
+                .eq('slug', story_slug)
+                .in('status', ['published', 'featured'])
+                .single();
+
+              if (error || !story) {
+                assistantMessage += '\n\nI couldn\'t find that story. It may have been removed or isn\'t published yet.';
+              } else {
+                const storyTypeLabels = {
+                  horror: '💔 Horror Story',
+                  success: '🎉 Success Story',
+                  comparison: '⚖️ Comparison'
+                };
+                const typeLabel = storyTypeLabels[story.story_type as keyof typeof storyTypeLabels];
+                const reactions = story.reaction_counts as Record<string, number>;
+
+                assistantMessage += `\n\n**${typeLabel}**: ${story.title}\n\n`;
+                assistantMessage += `*By ${story.display_name || 'Anonymous'}`;
+                if (story.verification_level !== 'anonymous') {
+                  assistantMessage += ' (Verified)';
+                }
+                assistantMessage += `*\n\n`;
+
+                // For comparisons, show the savings
+                if (story.story_type === 'comparison' && story.cost_us && story.cost_abroad) {
+                  assistantMessage += `**US Price:** $${story.cost_us.toLocaleString()}\n`;
+                  assistantMessage += `**Abroad:** $${story.cost_abroad.toLocaleString()}\n`;
+                  assistantMessage += `**Saved:** ${story.savings_percent}%\n\n`;
+                }
+
+                // Show preview of content
+                const preview = story.content.substring(0, 300);
+                assistantMessage += `${preview}...\n\n`;
+
+                // Show reactions
+                assistantMessage += `❤️ ${reactions?.heart || 0} • 🤝 ${reactions?.me_too || 0} "Me Too" • 📢 ${story.share_count || 0} Shares\n\n`;
+
+                assistantMessage += `[Read full story →](/stories/${story.slug})`;
+              }
+            }
+            break;
+
+          case 'suggest_share_story':
+            {
+              const { story_type } = toolInput;
+
+              const suggestions: Record<string, { title: string; prompt: string }> = {
+                horror: {
+                  title: '💔 Share Your Healthcare Horror Story',
+                  prompt: 'Many people have had frustrating or unfair experiences with the US healthcare system. Sharing your story can help others feel less alone—and push for change.'
+                },
+                success: {
+                  title: '🎉 Share Your Success Story',
+                  prompt: 'Did medical tourism or a medical trust help you? Your success story could inspire someone else to take the leap.'
+                },
+                comparison: {
+                  title: '⚖️ Share Your Before & After',
+                  prompt: 'Comparing what you would have paid in the US vs. what you actually paid abroad is one of the most powerful ways to show others what\'s possible.'
+                }
+              };
+
+              const suggestion = suggestions[story_type || 'success'] || suggestions.success;
+
+              assistantMessage += `\n\n**${suggestion.title}**\n\n`;
+              assistantMessage += `${suggestion.prompt}\n\n`;
+              assistantMessage += `Your story could help thousands of others make informed decisions about their healthcare.\n\n`;
+              assistantMessage += `[Share your story →](/share-story)`;
             }
             break;
         }
