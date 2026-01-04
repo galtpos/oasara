@@ -32,6 +32,14 @@ const MyJourney: React.FC = () => {
   });
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
+  // Helper to add timeout to promises (works with PromiseLike from Supabase)
+  const withTimeout = <T,>(promiseLike: PromiseLike<T>, ms: number, errorMsg: string): Promise<T> => {
+    return Promise.race([
+      Promise.resolve(promiseLike),
+      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(errorMsg)), ms))
+    ]);
+  };
+
   // Load user and journeys
   const loadData = useCallback(async () => {
     try {
@@ -42,7 +50,11 @@ const MyJourney: React.FC = () => {
       console.log('[MyJourney] Starting loadData...');
 
       // Use getSession (cached, instant) not getUser (network call)
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await withTimeout(
+        supabase.auth.getSession(),
+        8000,
+        'Session check timed out'
+      );
 
       console.log('[MyJourney] Session result:', session ? 'has session' : 'no session', sessionError ? `error: ${sessionError.message}` : '');
 
@@ -64,35 +76,51 @@ const MyJourney: React.FC = () => {
       console.log('[MyJourney] User authenticated:', authUser.id);
       setUserEmail(authUser.email || null);
 
-      // Get user's pledges
+      // Get user's pledges (with timeout, non-blocking)
       if (authUser.email) {
-        const { data: pledges } = await supabase
-          .from('pledges')
-          .select('pledge_type')
-          .eq('email', authUser.email.toLowerCase());
+        try {
+          const pledgesResult = await withTimeout(
+            supabase
+              .from('pledges')
+              .select('pledge_type')
+              .eq('email', authUser.email.toLowerCase()),
+            5000,
+            'Pledges query timed out'
+          );
 
-        if (pledges) {
-          const pledgeStatus: UserPledges = {
-            medical_trust: false,
-            cancel_insurance: false,
-            try_medical_tourism: false,
-          };
-          pledges.forEach((p: { pledge_type: string }) => {
-            if (p.pledge_type in pledgeStatus) {
-              pledgeStatus[p.pledge_type as keyof UserPledges] = true;
-            }
-          });
-          setUserPledges(pledgeStatus);
+          if (pledgesResult.data) {
+            const pledgeStatus: UserPledges = {
+              medical_trust: false,
+              cancel_insurance: false,
+              try_medical_tourism: false,
+            };
+            (pledgesResult.data as { pledge_type: string }[]).forEach((p) => {
+              if (p.pledge_type in pledgeStatus) {
+                pledgeStatus[p.pledge_type as keyof UserPledges] = true;
+              }
+            });
+            setUserPledges(pledgeStatus);
+          }
+        } catch (pledgeErr) {
+          console.warn('[MyJourney] Pledges query failed (non-fatal):', pledgeErr);
+          // Continue without pledges - not critical
         }
       }
 
-      // Get journeys
-      const { data: journeys, error: journeyError } = await supabase
-        .from('patient_journeys')
-        .select('*')
-        .eq('user_id', authUser.id)
-        .in('status', ['researching', 'comparing', 'decided'])
-        .order('created_at', { ascending: false });
+      // Get journeys (with timeout)
+      const journeysResult = await withTimeout(
+        supabase
+          .from('patient_journeys')
+          .select('*')
+          .eq('user_id', authUser.id)
+          .in('status', ['researching', 'comparing', 'decided'])
+          .order('created_at', { ascending: false }),
+        8000,
+        'Journeys query timed out'
+      );
+      
+      const journeys = journeysResult.data;
+      const journeyError = journeysResult.error;
 
       console.log('[MyJourney] Journeys result:', journeys?.length || 0, 'journeys', journeyError ? `error: ${journeyError.message}` : '');
 
