@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import SiteHeader from '../components/Layout/SiteHeader';
@@ -140,6 +140,14 @@ const ShareStory: React.FC = () => {
   const [aiInput, setAiInput] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiExtracted, setAiExtracted] = useState<any>({});
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll chat to bottom when new messages arrive
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [aiMessages, aiLoading]);
   
   // UI state
   const [submitting, setSubmitting] = useState(false);
@@ -462,7 +470,7 @@ const ShareStory: React.FC = () => {
                   </div>
                   
                   {/* Chat messages */}
-                  <div className="h-[400px] overflow-y-auto p-4 space-y-4">
+                  <div ref={chatContainerRef} className="h-[400px] overflow-y-auto p-4 space-y-4">
                     {aiMessages.map((msg, i) => (
                       <div
                         key={i}
