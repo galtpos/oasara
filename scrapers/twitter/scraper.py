@@ -25,69 +25,65 @@ load_dotenv()
 
 # Search queries for finding viral healthcare content
 # Covers ALL Oasara story categories
+# Note: has:video and min_faves require premium API - using basic operators only
 SEARCH_QUERIES = [
-    # === VIDEO CONTENT (most viral) ===
-    'hospital bill has:video -is:retweet lang:en',
-    'medical bill has:video -is:retweet lang:en',
-    'healthcare cost has:video -is:retweet lang:en',
-    'insurance denied has:video -is:retweet lang:en',
-    'insulin price has:video -is:retweet lang:en',
-    
-    # === MEDICAL BILLS & COSTS ===
-    'hospital bill -is:retweet lang:en min_faves:100',
-    'medical bill ridiculous -is:retweet lang:en min_faves:100',
-    'ER bill -is:retweet lang:en min_faves:50',
-    'ambulance bill -is:retweet lang:en min_faves:50',
-    'surgery cost -is:retweet lang:en min_faves:50',
+    # === MEDICAL BILLS & COSTS (high-value searches) ===
+    '"hospital bill" -is:retweet lang:en',
+    '"medical bill" ridiculous -is:retweet lang:en',
+    '"ER bill" -is:retweet lang:en',
+    '"ambulance bill" -is:retweet lang:en',
     'itemized bill hospital -is:retweet lang:en',
     '"$100,000" hospital -is:retweet lang:en',
-    '"$50,000" medical -is:retweet lang:en',
-    'surprise billing -is:retweet lang:en min_faves:50',
+    '"$50,000" medical bill -is:retweet lang:en',
+    '"$30,000" medical -is:retweet lang:en',
+    'surprise billing healthcare -is:retweet lang:en',
     
     # === HEALTH INSURANCE PROBLEMS ===
-    'insurance denied claim -is:retweet lang:en min_faves:100',
-    'prior authorization denied -is:retweet lang:en min_faves:50',
-    'insurance company denied -is:retweet lang:en min_faves:50',
-    'lost health insurance -is:retweet lang:en min_faves:50',
-    'uninsured america -is:retweet lang:en min_faves:50',
+    'insurance denied claim medical -is:retweet lang:en',
+    'prior authorization denied -is:retweet lang:en',
+    '"insurance company denied" -is:retweet lang:en',
+    'health insurance nightmare -is:retweet lang:en',
     
     # === MEDICAL DEBT & BANKRUPTCY ===
-    'medical debt -is:retweet lang:en min_faves:100',
-    'healthcare bankruptcy -is:retweet lang:en min_faves:50',
-    'medical collections -is:retweet lang:en min_faves:50',
-    'hospital debt -is:retweet lang:en min_faves:50',
+    '"medical debt" -is:retweet lang:en',
+    'healthcare bankruptcy -is:retweet lang:en',
+    '"medical collections" -is:retweet lang:en',
+    'hospital bill ruined -is:retweet lang:en',
     
     # === MEDICAL TOURISM SUCCESS ===
-    'medical tourism saved -is:retweet lang:en',
+    '"medical tourism" -is:retweet lang:en',
     'surgery mexico cheaper -is:retweet lang:en',
-    'dental work abroad -is:retweet lang:en',
-    'dental mexico -is:retweet lang:en min_faves:20',
-    'treatment thailand -is:retweet lang:en',
+    'dental mexico saved -is:retweet lang:en',
+    'treatment abroad cheaper -is:retweet lang:en',
+    'surgery thailand -is:retweet lang:en',
     'surgery costa rica -is:retweet lang:en',
-    'healthcare abroad -is:retweet lang:en min_faves:50',
+    'dental tourism -is:retweet lang:en',
+    'went to mexico for surgery -is:retweet lang:en',
+    'got surgery in mexico -is:retweet lang:en',
     
     # === PRESCRIPTION DRUGS ===
-    'insulin price -is:retweet lang:en min_faves:100',
-    'drug prices america -is:retweet lang:en min_faves:50',
-    'prescription cost -is:retweet lang:en min_faves:50',
-    'medication afford -is:retweet lang:en min_faves:50',
-    'pharmacy bill -is:retweet lang:en min_faves:50',
+    'insulin price america -is:retweet lang:en',
+    '"drug prices" american -is:retweet lang:en',
+    'prescription cost ridiculous -is:retweet lang:en',
+    'afford medication -is:retweet lang:en',
     
-    # === DENTAL & VISION ===
-    'dental bill -is:retweet lang:en min_faves:50',
+    # === DENTAL ===
+    '"dental bill" -is:retweet lang:en',
+    '"root canal" cost -is:retweet lang:en',
     'dental insurance denied -is:retweet lang:en',
-    'root canal cost -is:retweet lang:en min_faves:30',
+    'dental work tijuana -is:retweet lang:en',
     
     # === SYSTEMIC ISSUES ===
-    'US healthcare broken -is:retweet lang:en min_faves:100',
-    'american healthcare system -is:retweet lang:en min_faves:100',
-    'healthcare other countries -is:retweet lang:en min_faves:50',
+    '"US healthcare" broken -is:retweet lang:en',
+    '"american healthcare" insane -is:retweet lang:en',
+    'healthcare compared to -is:retweet lang:en',
 ]
 
 # Minimum engagement for different content types
-MIN_LIKES_VIDEO = 50      # Videos are valuable even with lower engagement
-MIN_LIKES_IMAGE = 100     # Images need more engagement
-MIN_LIKES_TEXT = 200      # Text-only needs to be very viral
+# Lower thresholds to capture more content, AI filter will handle quality
+MIN_LIKES_VIDEO = 20      # Videos are valuable even with lower engagement
+MIN_LIKES_IMAGE = 30      # Images with some engagement
+MIN_LIKES_TEXT = 50       # Text needs moderate engagement
 
 
 class TwitterScraper:
@@ -213,13 +209,14 @@ class TwitterScraper:
                     ext = '.jpg' if 'jpeg' in content_type else '.png' if 'png' in content_type else '.jpg'
                     filename = f"twitter_{tweet_id}_{i}{ext}"
                     
-                    result = self.storage.upload_bytes_to_supabase(
+                    # Use upload_bytes which handles NAS + Supabase
+                    result = self.storage.upload_bytes(
                         data=response.content,
                         filename=filename,
                         source='twitter',
                         content_type=content_type
                     )
-                    if 'public_url' in result:
+                    if result.get('public_url'):
                         uploaded_urls.append(result['public_url'])
             except Exception as e:
                 print(f"Error downloading image: {e}")
@@ -242,8 +239,8 @@ class TwitterScraper:
                 filename = f"twitter_{tweet_id}.mp4"
                 
                 # Upload to storage (NAS first, then Supabase if under limit)
-                result = self.storage.upload_media(
-                    file_data=video_content,
+                result = self.storage.upload_bytes(
+                    data=video_content,
                     filename=filename,
                     source='twitter',
                     content_type='video/mp4'
