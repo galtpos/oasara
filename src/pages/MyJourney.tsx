@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useAuthState } from '../hooks/useAuth';
 import JourneyDashboard from '../components/Journey/JourneyDashboard';
 import SiteHeader from '../components/Layout/SiteHeader';
 
@@ -12,9 +13,10 @@ interface UserPledges {
 
 const MyJourney: React.FC = () => {
   const navigate = useNavigate();
+  const { user, session, initialized, refreshSession } = useAuthState();
+  
   const [allJourneys, setAllJourneys] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingTimeout, setLoadingTimeout] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Track selected journey index
@@ -30,123 +32,57 @@ const MyJourney: React.FC = () => {
     cancel_insurance: false,
     try_medical_tourism: false,
   });
-  const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  // Helper to add timeout to promises (works with PromiseLike from Supabase)
-  const withTimeout = <T,>(promiseLike: PromiseLike<T>, ms: number, errorMsg: string): Promise<T> => {
-    return Promise.race([
-      Promise.resolve(promiseLike),
-      new Promise<T>((_, reject) => setTimeout(() => reject(new Error(errorMsg)), ms))
-    ]);
-  };
-
-  // Load user and journeys
+  // Load journeys (auth is already handled by ProtectedRoute)
   const loadData = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      setLoadingTimeout(false);
       setError(null);
 
-      console.log('[MyJourney] Starting loadData...');
+      console.log('[MyJourney] Loading data for user:', user.id);
 
-      // Use getSession (cached, instant) not getUser (network call)
-      let session: any = null;
-      let sessionError: any = null;
-      
-      try {
-        const result = await withTimeout(
-          supabase.auth.getSession(),
-          8000,
-          'Session check timed out'
-        );
-        session = result.data?.session;
-        sessionError = result.error;
-      } catch (timeoutErr: any) {
-        console.error('[MyJourney] Session check timeout - likely network/Supabase issue:', timeoutErr);
-        // Try one more time with refreshSession which forces a network call
-        try {
-          const refreshResult = await withTimeout(
-            supabase.auth.refreshSession(),
-            5000,
-            'Session refresh timed out'
-          );
-          session = refreshResult.data?.session;
-          sessionError = refreshResult.error;
-        } catch (refreshErr) {
-          console.error('[MyJourney] Session refresh also failed:', refreshErr);
-          setError('Unable to verify your session. Please sign in again.');
-          setLoading(false);
-          return;
-        }
-      }
-
-      console.log('[MyJourney] Session result:', session ? 'has session' : 'no session', sessionError ? `error: ${sessionError.message}` : '');
-
-      if (sessionError) {
-        console.error('[MyJourney] Session error:', sessionError);
-        setError('Authentication error: ' + sessionError.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!session?.user) {
-        console.log('[MyJourney] No session, redirecting to auth');
-        setLoading(false);
-        navigate('/auth', { replace: true });
-        return;
-      }
-
-      const authUser = session.user;
-      console.log('[MyJourney] User authenticated:', authUser.id);
-      setUserEmail(authUser.email || null);
-
-      // Get user's pledges (with timeout, non-blocking)
-      if (authUser.email) {
-        try {
-          const pledgesResult = await withTimeout(
-            supabase
+      // Get user's pledges (non-blocking)
+      if (user.email) {
+        (async () => {
+          try {
+            const { data: pledges } = await supabase
               .from('pledges')
               .select('pledge_type')
-              .eq('email', authUser.email.toLowerCase()),
-            5000,
-            'Pledges query timed out'
-          );
-
-          if (pledgesResult.data) {
-            const pledgeStatus: UserPledges = {
-              medical_trust: false,
-              cancel_insurance: false,
-              try_medical_tourism: false,
-            };
-            (pledgesResult.data as { pledge_type: string }[]).forEach((p) => {
-              if (p.pledge_type in pledgeStatus) {
-                pledgeStatus[p.pledge_type as keyof UserPledges] = true;
-              }
-            });
-            setUserPledges(pledgeStatus);
+              .eq('email', user.email!.toLowerCase());
+            
+            if (pledges) {
+              const pledgeStatus: UserPledges = {
+                medical_trust: false,
+                cancel_insurance: false,
+                try_medical_tourism: false,
+              };
+              pledges.forEach((p: { pledge_type: string }) => {
+                if (p.pledge_type in pledgeStatus) {
+                  pledgeStatus[p.pledge_type as keyof UserPledges] = true;
+                }
+              });
+              setUserPledges(pledgeStatus);
+            }
+          } catch (err) {
+            console.warn('[MyJourney] Pledges query failed (non-fatal):', err);
           }
-        } catch (pledgeErr) {
-          console.warn('[MyJourney] Pledges query failed (non-fatal):', pledgeErr);
-          // Continue without pledges - not critical
-        }
+        })();
       }
 
-      // Get journeys (with timeout)
-      const journeysResult = await withTimeout(
-        supabase
-          .from('patient_journeys')
-          .select('*')
-          .eq('user_id', authUser.id)
-          .in('status', ['researching', 'comparing', 'decided'])
-          .order('created_at', { ascending: false }),
-        8000,
-        'Journeys query timed out'
-      );
-      
-      const journeys = journeysResult.data;
-      const journeyError = journeysResult.error;
+      // Get journeys
+      const { data: journeys, error: journeyError } = await supabase
+        .from('patient_journeys')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('status', ['researching', 'comparing', 'decided'])
+        .order('created_at', { ascending: false });
 
-      console.log('[MyJourney] Journeys result:', journeys?.length || 0, 'journeys', journeyError ? `error: ${journeyError.message}` : '');
+      console.log('[MyJourney] Journeys result:', journeys?.length || 0, 'journeys');
 
       if (journeyError) {
         setError('Failed to load journeys: ' + journeyError.message);
@@ -157,45 +93,28 @@ const MyJourney: React.FC = () => {
       // If no journeys, redirect to start
       if (!journeys || journeys.length === 0) {
         console.log('[MyJourney] No journeys, redirecting to start');
-        setLoading(false);
         navigate('/start', { replace: true });
         return;
       }
 
       setAllJourneys(journeys);
       setLoading(false);
-      console.log('[MyJourney] Loaded successfully with', journeys.length, 'journeys');
     } catch (err: any) {
       console.error('[MyJourney] Unexpected error:', err);
       setError('Unexpected error: ' + (err.message || 'Unknown'));
       setLoading(false);
     }
-  }, [navigate]);
+  }, [user, navigate]);
 
-  // Timeout for loading - show helpful message after 5 seconds
+  // Load data when user is available
   useEffect(() => {
-    if (loading) {
-      const timeout = setTimeout(() => {
-        setLoadingTimeout(true);
-      }, 5000);
-      return () => clearTimeout(timeout);
+    if (initialized && user) {
+      loadData();
+    } else if (initialized && !user) {
+      // ProtectedRoute should have caught this, but just in case
+      navigate('/auth', { replace: true });
     }
-  }, [loading]);
-
-  // Listen for auth state changes (magic link might take a moment)
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('[MyJourney] Auth state change:', event, session ? 'has session' : 'no session');
-      if (event === 'SIGNED_IN' && session) {
-        loadData();
-      }
-    });
-
-    // Initial load
-    loadData();
-
-    return () => subscription.unsubscribe();
-  }, [loadData]);
+  }, [initialized, user, loadData, navigate]);
 
   // Get currently selected journey
   const journey = allJourneys?.[selectedJourneyIndex] || allJourneys?.[0] || null;
@@ -284,31 +203,12 @@ const MyJourney: React.FC = () => {
   };
 
   // Show loading
-  if (loading) {
+  if (loading || !initialized) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50/30 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-ocean-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-ocean-700 font-display">Getting everything ready for you...</p>
-          {loadingTimeout && (
-            <div className="mt-6 space-y-3">
-              <p className="text-sm text-ocean-500">Taking longer than expected...</p>
-              <div className="flex gap-3 justify-center">
-                <button
-                  onClick={() => loadData()}
-                  className="px-4 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors text-sm"
-                >
-                  Try Again
-                </button>
-                <button
-                  onClick={() => navigate('/auth', { replace: true })}
-                  className="px-4 py-2 bg-sage-200 text-ocean-700 rounded-lg hover:bg-sage-300 transition-colors text-sm"
-                >
-                  Sign In Again
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -326,12 +226,25 @@ const MyJourney: React.FC = () => {
           </div>
           <h2 className="text-xl font-display text-ocean-700 mb-2">Something went wrong</h2>
           <p className="text-ocean-600 mb-4">{error}</p>
-          <button
-            onClick={() => loadData()}
-            className="px-6 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors"
-          >
-            Try Again
-          </button>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={async () => {
+                const success = await refreshSession();
+                if (success) {
+                  loadData();
+                }
+              }}
+              className="px-6 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700 transition-colors"
+            >
+              Refresh Session
+            </button>
+            <button
+              onClick={() => navigate('/auth', { replace: true })}
+              className="px-6 py-2 bg-sage-200 text-ocean-700 rounded-lg hover:bg-sage-300 transition-colors"
+            >
+              Sign In Again
+            </button>
+          </div>
         </div>
       </div>
     );

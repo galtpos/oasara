@@ -1,61 +1,95 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
 const ConfirmEmail: React.FC = () => {
+  const navigate = useNavigate();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [error, setError] = useState('');
+  const processedRef = useRef(false);
 
   useEffect(() => {
-    // Check for error in URL hash (Supabase puts errors there)
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const errorParam = params.get('error');
-    const errorDescription = params.get('error_description');
+    // Prevent double-processing in StrictMode
+    if (processedRef.current) return;
+    processedRef.current = true;
 
-    if (errorParam) {
-      setError(errorDescription || errorParam);
-      setStatus('error');
-      return;
-    }
+    const handleAuth = async () => {
+      // Check for error in URL hash (Supabase puts errors there)
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const errorParam = params.get('error');
+      const errorDescription = params.get('error_description');
 
-    // Get redirect destination
-    const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/my-journey';
-
-    // Check if already logged in (Supabase auto-detects URL token)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setStatus('success');
-        localStorage.removeItem('oasara-auth-redirect');
-        window.history.replaceState(null, '', window.location.pathname);
-        window.location.replace(redirectTo);
+      if (errorParam) {
+        setError(errorDescription || errorParam);
+        setStatus('error');
+        return;
       }
-    });
+
+      // Get redirect destination
+      const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/my-journey';
+
+      // Check if already logged in (Supabase auto-detects URL token)
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('[ConfirmEmail] Session error:', sessionError);
+          setError(sessionError.message);
+          setStatus('error');
+          return;
+        }
+
+        if (session) {
+          console.log('[ConfirmEmail] Session found, redirecting to:', redirectTo);
+          setStatus('success');
+          localStorage.removeItem('oasara-auth-redirect');
+          // Clean URL hash
+          window.history.replaceState(null, '', window.location.pathname);
+          // Use navigate instead of window.location for smoother transition
+          setTimeout(() => navigate(redirectTo, { replace: true }), 500);
+          return;
+        }
+      } catch (err) {
+        console.error('[ConfirmEmail] Error checking session:', err);
+      }
+
+      // If no session yet, wait for auth state change
+      console.log('[ConfirmEmail] No session yet, waiting for auth state change...');
+    };
+
+    handleAuth();
 
     // Listen for auth state change (triggered when Supabase processes URL token)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('[ConfirmEmail] Auth state change:', event);
+      
       if (event === 'SIGNED_IN' && session) {
+        const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/my-journey';
         setStatus('success');
         localStorage.removeItem('oasara-auth-redirect');
         window.history.replaceState(null, '', window.location.pathname);
-        window.location.replace(redirectTo);
+        setTimeout(() => navigate(redirectTo, { replace: true }), 500);
       }
     });
 
-    // Timeout after 10 seconds
+    // Timeout after 15 seconds
     const timeout = setTimeout(() => {
-      if (status === 'verifying') {
-        setError('Sign-in timed out. Please request a new magic link.');
-        setStatus('error');
-      }
-    }, 10000);
+      setStatus(current => {
+        if (current === 'verifying') {
+          setError('Sign-in timed out. Please request a new magic link.');
+          return 'error';
+        }
+        return current;
+      });
+    }, 15000);
 
     return () => {
       subscription.unsubscribe();
       clearTimeout(timeout);
     };
-  }, [status]);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6 py-12">
