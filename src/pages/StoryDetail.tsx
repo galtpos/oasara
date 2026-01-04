@@ -38,6 +38,9 @@ interface Story {
   };
   share_card_url?: string;
   published_at: string;
+  source_url?: string;
+  source_platform?: string;
+  is_scraped?: boolean;
 }
 
 interface RelatedStory {
@@ -444,6 +447,54 @@ const StoryDetail: React.FC = () => {
             paragraph.trim() && <p key={i}>{paragraph}</p>
           ))}
         </motion.div>
+        
+        {/* Source Attribution for scraped stories */}
+        {story.source_url && story.is_scraped && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-8 p-4 bg-sage-50 rounded-lg border border-sage-200"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-ocean-100 flex items-center justify-center">
+                  {story.source_platform === 'twitter' && (
+                    <svg className="w-4 h-4 text-ocean-600" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                  )}
+                  {story.source_platform === 'youtube' && (
+                    <svg className="w-4 h-4 text-ocean-600" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                  )}
+                  {story.source_platform === 'gofundme' && (
+                    <svg className="w-4 h-4 text-ocean-600" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-ocean-700">
+                    Originally shared on {story.source_platform === 'twitter' ? 'X (Twitter)' : story.source_platform === 'youtube' ? 'YouTube' : 'GoFundMe'}
+                  </div>
+                  <div className="text-xs text-sage-600">Verified from public source</div>
+                </div>
+              </div>
+              <a
+                href={story.source_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-ocean-600 text-white text-sm font-medium rounded-md hover:bg-ocean-700 transition-colors flex items-center gap-2"
+              >
+                View Original
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                </svg>
+              </a>
+            </div>
+          </motion.div>
+        )}
         
         {/* Tags */}
         {story.issues.length > 0 && (

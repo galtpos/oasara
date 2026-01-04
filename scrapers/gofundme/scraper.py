@@ -1,16 +1,15 @@
 """
 GoFundMe Medical Campaigns Scraper
-Scrapes medical fundraising campaigns showing healthcare costs and desperation
+Uses Playwright for JavaScript-rendered pages
 """
 import os
 import re
 import json
 import time
-import requests
+import asyncio
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from pathlib import Path
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from tqdm import tqdm
 
@@ -26,26 +25,13 @@ load_dotenv()
 # Search terms for medical campaigns
 SEARCH_TERMS = [
     'medical bills',
-    'hospital bills',
-    'surgery costs',
+    'hospital bills', 
     'cancer treatment',
-    'chemotherapy costs',
-    'emergency surgery',
+    'surgery costs',
     'medical debt',
     'insurance denied',
-    'insurance won\'t cover',
-    'can\'t afford treatment',
-    'help with medical',
-    'life saving surgery',
-    'transplant costs',
-    'out of pocket medical',
-]
-
-# Categories on GoFundMe
-MEDICAL_CATEGORIES = [
-    'medical',
-    'medical-illness-healing',
-    'accidents-emergencies',
+    'emergency surgery',
+    'chemotherapy',
 ]
 
 
@@ -54,145 +40,162 @@ class GoFundMeScraper:
         self.storage = get_storage()
         self.output_dir = Path(__file__).parent / 'output'
         self.output_dir.mkdir(exist_ok=True)
-        self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-        })
+        self.browser = None
+        self.context = None
     
-    def _search_campaigns(self, query: str, limit: int = 50) -> List[Dict[str, Any]]:
-        """
-        Search GoFundMe for campaigns
-        Note: GoFundMe doesn't have a public API, so we scrape search results
-        """
+    async def _init_browser(self):
+        """Initialize Playwright browser"""
+        from playwright.async_api import async_playwright
+        
+        self.playwright = await async_playwright().start()
+        self.browser = await self.playwright.chromium.launch(
+            headless=True,
+            args=['--no-sandbox', '--disable-setuid-sandbox']
+        )
+        self.context = await self.browser.new_context(
+            user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            viewport={'width': 1280, 'height': 720}
+        )
+    
+    async def _close_browser(self):
+        """Close browser"""
+        if self.context:
+            await self.context.close()
+        if self.browser:
+            await self.browser.close()
+        if self.playwright:
+            await self.playwright.stop()
+    
+    async def _search_campaigns(self, query: str, limit: int = 20) -> List[Dict[str, Any]]:
+        """Search GoFundMe for campaigns using Playwright"""
         campaigns = []
         
-        # GoFundMe search URL
-        search_url = f"https://www.gofundme.com/s"
-        params = {
-            'q': query,
-            'country': 'US',
-        }
-        
         try:
-            response = self.session.get(search_url, params=params, timeout=30)
-            response.raise_for_status()
+            page = await self.context.new_page()
             
-            soup = BeautifulSoup(response.text, 'lxml')
+            # Navigate to search
+            search_url = f"https://www.gofundme.com/s?q={query.replace(' ', '+')}"
+            await page.goto(search_url, wait_until='networkidle', timeout=30000)
             
-            # Find campaign cards (structure may change)
-            # GoFundMe uses React, so we look for data in script tags or rendered HTML
-            campaign_links = soup.find_all('a', href=re.compile(r'/f/[a-zA-Z0-9-]+'))
+            # Wait for results to load
+            await page.wait_for_timeout(3000)
+            
+            # Scroll to load more results
+            for _ in range(3):
+                await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+                await page.wait_for_timeout(1500)
+            
+            # Extract campaign links
+            links = await page.query_selector_all('a[href*="/f/"]')
             
             seen_urls = set()
-            for link in campaign_links[:limit]:
-                href = link.get('href', '')
+            for link in links[:limit]:
+                href = await link.get_attribute('href')
                 if not href or href in seen_urls:
                     continue
                 
                 full_url = f"https://www.gofundme.com{href}" if href.startswith('/') else href
-                seen_urls.add(href)
                 
+                # Skip non-campaign links
+                if '/f/' not in full_url or 'sign-up' in full_url or 'create' in full_url:
+                    continue
+                
+                seen_urls.add(full_url)
                 campaigns.append({
                     'url': full_url,
                     'search_query': query,
                 })
+            
+            await page.close()
             
         except Exception as e:
             print(f"Error searching GoFundMe for '{query}': {e}")
         
         return campaigns
     
-    def _scrape_campaign(self, url: str) -> Optional[Dict[str, Any]]:
-        """
-        Scrape a single GoFundMe campaign page
-        """
+    async def _scrape_campaign(self, url: str) -> Optional[Dict[str, Any]]:
+        """Scrape a single GoFundMe campaign page"""
         try:
-            response = self.session.get(url, timeout=30)
-            response.raise_for_status()
-            
-            soup = BeautifulSoup(response.text, 'lxml')
-            
-            # Extract campaign data
-            # Title
-            title_elem = soup.find('h1', class_=re.compile(r'campaign-title|heading'))
-            title = title_elem.get_text(strip=True) if title_elem else ''
-            
-            if not title:
-                # Try meta tag
-                og_title = soup.find('meta', property='og:title')
-                title = og_title.get('content', '') if og_title else ''
-            
-            # Description/story
-            story_elem = soup.find('div', class_=re.compile(r'story|description|campaign-description'))
-            story = story_elem.get_text(strip=True, separator='\n') if story_elem else ''
-            
-            if not story:
-                # Try finding in meta
-                og_desc = soup.find('meta', property='og:description')
-                story = og_desc.get('content', '') if og_desc else ''
-            
-            # Goal and raised amounts
-            goal_amount = None
-            raised_amount = None
-            
-            # Look for monetary values
-            money_pattern = r'\$[\d,]+(?:\.\d{2})?'
-            money_matches = re.findall(money_pattern, response.text)
-            
-            if money_matches:
-                # Usually first is raised, second is goal
-                for match in money_matches:
-                    val = int(re.sub(r'[^\d]', '', match))
-                    if val > 0:
-                        if raised_amount is None:
-                            raised_amount = val
-                        elif goal_amount is None:
-                            goal_amount = val
-                            break
-            
-            # Extract images
-            images = []
-            
-            # Campaign main image
-            og_image = soup.find('meta', property='og:image')
-            if og_image and og_image.get('content'):
-                images.append(og_image['content'])
-            
-            # Gallery images
-            gallery_imgs = soup.find_all('img', src=re.compile(r'gofundme|d2g8igdw02'))
-            for img in gallery_imgs:
-                src = img.get('src', '')
-                if src and 'avatar' not in src.lower() and src not in images:
-                    images.append(src)
-            
-            # Check for duplicate
+            # Check for duplicate first
             if self.storage.story_exists(url):
                 return None
             
-            # Download images to R2
-            uploaded_images = []
-            campaign_id = url.split('/')[-1]
+            page = await self.context.new_page()
+            await page.goto(url, wait_until='networkidle', timeout=30000)
+            await page.wait_for_timeout(2000)
             
-            for img_url in images[:5]:
+            # Extract title
+            title = ''
+            title_elem = await page.query_selector('h1')
+            if title_elem:
+                title = await title_elem.inner_text()
+            
+            if not title:
+                # Try og:title
+                og_title = await page.query_selector('meta[property="og:title"]')
+                if og_title:
+                    title = await og_title.get_attribute('content') or ''
+            
+            # Extract story content
+            story = ''
+            story_elem = await page.query_selector('[class*="story"], [class*="description"], .campaign-description')
+            if story_elem:
+                story = await story_elem.inner_text()
+            
+            if not story:
+                # Try getting all paragraphs in main content
+                paragraphs = await page.query_selector_all('main p, article p')
+                story_parts = []
+                for p in paragraphs[:10]:
+                    text = await p.inner_text()
+                    if len(text) > 20:
+                        story_parts.append(text)
+                story = '\n\n'.join(story_parts)
+            
+            # Extract amounts from the page
+            goal_amount = None
+            raised_amount = None
+            
+            # Look for progress bar or amount displays
+            page_text = await page.content()
+            money_matches = re.findall(r'\$[\d,]+(?:\.\d{2})?', page_text)
+            
+            amounts = []
+            for match in money_matches:
                 try:
-                    img_response = self.session.get(img_url, timeout=30)
-                    if img_response.status_code == 200:
-                        content_type = img_response.headers.get('content-type', 'image/jpeg')
-                        ext = '.jpg' if 'jpeg' in content_type else '.png'
-                        filename = f"gofundme_{campaign_id}_{len(uploaded_images)}{ext}"
-                        
-                        result = self.storage.upload_bytes_to_r2(
-                            data=img_response.content,
-                            filename=filename,
-                            source='gofundme',
-                            content_type=content_type,
-                            metadata={'source_url': url}
-                        )
-                        uploaded_images.append(result['public_url'])
+                    val = int(re.sub(r'[^\d]', '', match))
+                    if 100 < val < 10000000:  # Reasonable range
+                        amounts.append(val)
                 except:
                     pass
+            
+            # Usually: raised first, then goal
+            if amounts:
+                raised_amount = amounts[0] if len(amounts) > 0 else None
+                goal_amount = amounts[1] if len(amounts) > 1 else None
+            
+            # Extract images
+            images = []
+            og_image = await page.query_selector('meta[property="og:image"]')
+            if og_image:
+                img_url = await og_image.get_attribute('content')
+                if img_url:
+                    images.append(img_url)
+            
+            # Gallery images
+            gallery_imgs = await page.query_selector_all('img[src*="gofundme"], img[src*="d2g8igdw02"]')
+            for img in gallery_imgs[:5]:
+                src = await img.get_attribute('src')
+                if src and 'avatar' not in src.lower() and src not in images:
+                    images.append(src)
+            
+            await page.close()
+            
+            # Skip if no meaningful content
+            if not title or len(story) < 50:
+                return None
+            
+            campaign_id = url.split('/')[-1]
             
             return {
                 'id': campaign_id,
@@ -201,8 +204,7 @@ class GoFundMeScraper:
                 'content': story,
                 'goal_amount': goal_amount,
                 'raised_amount': raised_amount,
-                'images': uploaded_images,
-                'original_images': images,
+                'images': images,
                 'source': 'gofundme',
                 'source_url': url,
                 'scraped_at': datetime.now().isoformat(),
@@ -212,7 +214,7 @@ class GoFundMeScraper:
             print(f"Error scraping campaign {url}: {e}")
             return None
     
-    def run_full_scrape(self, campaigns_per_term: int = 20) -> List[Dict[str, Any]]:
+    async def run_full_scrape(self, campaigns_per_term: int = 15) -> List[Dict[str, Any]]:
         """Run full GoFundMe scrape"""
         all_campaigns = []
         campaign_urls = []
@@ -221,31 +223,37 @@ class GoFundMeScraper:
         print("OASARA GOFUNDME SCRAPER - DATA LIBERATION PHASE 3")
         print("=" * 60)
         
-        # Collect campaign URLs from searches
-        for term in SEARCH_TERMS:
-            print(f"\nSearching: '{term}'")
-            campaigns = self._search_campaigns(term, campaigns_per_term)
-            campaign_urls.extend(campaigns)
-            print(f"  Found {len(campaigns)} campaigns")
-            time.sleep(2)
+        await self._init_browser()
         
-        # Deduplicate URLs
-        seen_urls = set()
-        unique_campaigns = []
-        for c in campaign_urls:
-            if c['url'] not in seen_urls:
-                seen_urls.add(c['url'])
-                unique_campaigns.append(c)
-        
-        print(f"\n{len(unique_campaigns)} unique campaigns to scrape")
-        
-        # Scrape each campaign
-        for campaign in tqdm(unique_campaigns, desc="Scraping campaigns"):
-            data = self._scrape_campaign(campaign['url'])
-            if data:
-                data['search_query'] = campaign.get('search_query', '')
-                all_campaigns.append(data)
-            time.sleep(1.5)  # Be nice to their servers
+        try:
+            # Collect campaign URLs from searches
+            for term in SEARCH_TERMS:
+                print(f"\nSearching: '{term}'")
+                campaigns = await self._search_campaigns(term, campaigns_per_term)
+                campaign_urls.extend(campaigns)
+                print(f"  Found {len(campaigns)} campaigns")
+                await asyncio.sleep(2)
+            
+            # Deduplicate URLs
+            seen_urls = set()
+            unique_campaigns = []
+            for c in campaign_urls:
+                if c['url'] not in seen_urls:
+                    seen_urls.add(c['url'])
+                    unique_campaigns.append(c)
+            
+            print(f"\n{len(unique_campaigns)} unique campaigns to scrape")
+            
+            # Scrape each campaign
+            for campaign in tqdm(unique_campaigns, desc="Scraping campaigns"):
+                data = await self._scrape_campaign(campaign['url'])
+                if data:
+                    data['search_query'] = campaign.get('search_query', '')
+                    all_campaigns.append(data)
+                await asyncio.sleep(1.5)
+            
+        finally:
+            await self._close_browser()
         
         print(f"\n{'=' * 60}")
         print(f"SCRAPE COMPLETE: {len(all_campaigns)} campaigns scraped")
@@ -271,7 +279,7 @@ class GoFundMeScraper:
                 full_content = f"{campaign['title']}\n\n{campaign['content']}"
                 
                 if campaign.get('goal_amount'):
-                    full_content += f"\n\nGoal: ${campaign['goal_amount']:,}"
+                    full_content += f"\n\nGoFundMe Goal: ${campaign['goal_amount']:,}"
                 if campaign.get('raised_amount'):
                     full_content += f"\nRaised: ${campaign['raised_amount']:,}"
                 
@@ -292,32 +300,25 @@ class GoFundMeScraper:
                     'slug': slug,
                     'content': extracted.get('content', campaign['content']),
                     'summary': extracted.get('summary', ''),
-                    'story_type': 'horror',  # GoFundMe campaigns are usually horror stories
+                    'story_type': 'horror',  # GoFundMe = horror stories
                     'procedure_type': extracted.get('procedure'),
                     'cost_us': extracted.get('cost_us') or campaign.get('goal_amount'),
                     'cost_abroad': extracted.get('cost_abroad'),
-                    'country_abroad': extracted.get('country_abroad'),
-                    'facility_name': extracted.get('facility_abroad'),
-                    'images': extracted.get('images', []),
+                    'images': campaign.get('images', [])[:3],
                     'source_url': campaign['url'],
                     'source_platform': 'gofundme',
                     'status': 'pending',
                     'is_scraped': True,
-                    'emotional_tags': extracted.get('emotional_tags', ['desperation']),
                     'issues': extracted.get('issues', ['medical_debt']),
-                    'viral_score': extracted.get('viral_score', 6),
-                    'key_quote': extracted.get('key_quote'),
-                    'gofundme_goal': campaign.get('goal_amount'),
-                    'gofundme_raised': campaign.get('raised_amount'),
                 }
                 
                 self.storage.insert_story(story_record)
                 saved_count += 1
                 
-                time.sleep(2)
+                time.sleep(1)
                 
             except Exception as e:
-                print(f"Error saving campaign {campaign['id']}: {e}")
+                print(f"Error saving campaign {campaign.get('id', 'unknown')}: {e}")
         
         print(f"\n✅ Saved {saved_count} stories to database")
         return saved_count
@@ -333,11 +334,11 @@ class GoFundMeScraper:
         return slug
 
 
-def main():
-    """Main entry point"""
+async def main_async():
+    """Async main entry point"""
     scraper = GoFundMeScraper()
     
-    campaigns = scraper.run_full_scrape(campaigns_per_term=20)
+    campaigns = await scraper.run_full_scrape(campaigns_per_term=15)
     
     if campaigns:
         saved = scraper.extract_and_save(campaigns)
@@ -346,6 +347,10 @@ def main():
         print("\n⚠️ No campaigns found to process.")
 
 
+def main():
+    """Main entry point"""
+    asyncio.run(main_async())
+
+
 if __name__ == '__main__':
     main()
-

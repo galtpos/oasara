@@ -86,7 +86,7 @@ const SharePanel: React.FC<SharePanelProps> = ({ story, onShare }) => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'quick' | 'thread' | 'carousel' | 'text'>('quick');
   const [copiedStates, setCopiedStates] = useState<Record<string, boolean>>({});
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true); // Default to expanded
 
   useEffect(() => {
     if (expanded && !viralKit) {
