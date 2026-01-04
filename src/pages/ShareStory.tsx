@@ -153,6 +153,7 @@ const ShareStory: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   // Handle AI-assisted conversation
   const sendToAI = async () => {
@@ -299,10 +300,8 @@ const ShareStory: React.FC = () => {
         throw new Error(err.error || 'Failed to submit story');
       }
       
-      const { story } = await response.json();
-      
-      // Redirect to success page or story
-      navigate(`/stories/${story.slug}?submitted=true`);
+      // Show success state
+      setSubmitted(true);
       
     } catch (err: any) {
       setError(err.message);
@@ -351,8 +350,50 @@ const ShareStory: React.FC = () => {
         </div>
         
         <AnimatePresence mode="wait">
+          {/* Success State */}
+          {submitted && (
+            <motion.div
+              key="success"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-12"
+            >
+              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
+                <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-display text-ocean-800 mb-4">Story Submitted!</h2>
+              <p className="text-ocean-600 mb-6 max-w-md mx-auto">
+                Thank you for sharing your experience. Your story will be reviewed and published shortly. 
+                Together, we're building a movement for healthcare transparency.
+              </p>
+              <div className="flex justify-center gap-4">
+                <Link
+                  to="/stories"
+                  className="px-6 py-3 bg-ocean-600 text-white rounded-md hover:bg-ocean-700 transition-colors"
+                >
+                  Browse Stories
+                </Link>
+                <button
+                  onClick={() => {
+                    setSubmitted(false);
+                    setStep(1);
+                    setStoryType(null);
+                    setTitle('');
+                    setContent('');
+                    setIssues([]);
+                  }}
+                  className="px-6 py-3 border-2 border-ocean-200 text-ocean-700 rounded-md hover:bg-ocean-50 transition-colors"
+                >
+                  Share Another Story
+                </button>
+              </div>
+            </motion.div>
+          )}
+          
           {/* Step 1: Choose Story Type */}
-          {step === 1 && (
+          {!submitted && step === 1 && (
             <motion.div
               key="step1"
               initial={{ opacity: 0, x: 20 }}
@@ -395,7 +436,7 @@ const ShareStory: React.FC = () => {
           )}
           
           {/* Step 2: Choose Submit Mode */}
-          {step === 2 && (
+          {!submitted && step === 2 && (
             <motion.div
               key="step2"
               initial={{ opacity: 0, x: 20 }}
@@ -448,7 +489,7 @@ const ShareStory: React.FC = () => {
           )}
           
           {/* Step 3: Write Story (Manual or AI-assisted) */}
-          {step === 3 && (
+          {!submitted && step === 3 && (
             <motion.div
               key="step3"
               initial={{ opacity: 0, x: 20 }}
@@ -666,7 +707,7 @@ const ShareStory: React.FC = () => {
           )}
           
           {/* Step 4: Identity & Submit */}
-          {step === 4 && (
+          {!submitted && step === 4 && (
             <motion.div
               key="step4"
               initial={{ opacity: 0, x: 20 }}
