@@ -245,6 +245,7 @@ const Stories: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'horror' | 'success' | 'comparison'>('all');
   const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
+  const [mediaFilter, setMediaFilter] = useState<'all' | 'video' | 'image' | 'text'>('all');
 
   useEffect(() => {
     loadStories();
@@ -275,7 +276,14 @@ const Stories: React.FC = () => {
 
   const filteredStories = [...stories.featured, ...stories.trending, ...stories.latest]
     .filter((story, index, arr) => arr.findIndex(s => s.id === story.id) === index)
-    .filter(story => activeTab === 'all' || story.story_type === activeTab);
+    .filter(story => activeTab === 'all' || story.story_type === activeTab)
+    .filter(story => {
+      if (mediaFilter === 'all') return true;
+      if (mediaFilter === 'video') return !!story.video_url;
+      if (mediaFilter === 'image') return story.images?.length > 0 && !story.video_url;
+      if (mediaFilter === 'text') return !story.video_url && (!story.images || story.images.length === 0);
+      return true;
+    });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-ocean-50/30">
@@ -380,6 +388,29 @@ const Stories: React.FC = () => {
                 >
                   {tab.icon && <span className={activeTab === tab.value ? 'text-ocean-600' : 'text-sage-500'}>{tab.icon}</span>}
                   {tab.label}
+                </button>
+              ))}
+            </div>
+            
+            {/* Media Type Filter */}
+            <div className="flex items-center gap-1 bg-sage-100 rounded p-1">
+              {[
+                { value: 'all', label: 'All', icon: null },
+                { value: 'video', label: 'Video', icon: Icons.video },
+                { value: 'image', label: 'Image', icon: Icons.document },
+                { value: 'text', label: 'Text', icon: Icons.document }
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setMediaFilter(opt.value as any)}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                    mediaFilter === opt.value
+                      ? 'bg-white text-ocean-700 shadow-sm'
+                      : 'text-sage-600 hover:text-ocean-700'
+                  }`}
+                >
+                  {opt.icon && <span className="text-sage-500">{opt.icon}</span>}
+                  {opt.label}
                 </button>
               ))}
             </div>
