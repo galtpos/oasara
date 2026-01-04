@@ -66,7 +66,6 @@ export function useAuthState(): AuthContextType {
     initialized: false,
   });
 
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const initializingRef = useRef(false);
 
   // Fetch user profile (non-blocking - doesn't affect auth state)
@@ -203,6 +202,10 @@ export function useAuthState(): AuthContextType {
     }
   }, []);
 
+  // Track session in a ref to avoid useEffect dependency issues
+  const sessionRef = useRef<Session | null>(null);
+  sessionRef.current = state.session;
+
   // Set up auth state listener and initialization
   useEffect(() => {
     initializeAuth();
@@ -230,15 +233,15 @@ export function useAuthState(): AuthContextType {
     );
 
     // Set up periodic session refresh (every 10 minutes)
-    refreshIntervalRef.current = setInterval(() => {
-      if (state.session) {
+    const refreshInterval = setInterval(() => {
+      if (sessionRef.current) {
         refreshSession();
       }
     }, 10 * 60 * 1000);
 
     // Refresh on visibility change (user returns to tab)
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && state.session) {
+      if (document.visibilityState === 'visible' && sessionRef.current) {
         console.log('[Auth] Tab became visible, refreshing session...');
         refreshSession();
       }
@@ -247,12 +250,10 @@ export function useAuthState(): AuthContextType {
 
     return () => {
       subscription.unsubscribe();
-      if (refreshIntervalRef.current) {
-        clearInterval(refreshIntervalRef.current);
-      }
+      clearInterval(refreshInterval);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [initializeAuth, fetchProfile, refreshSession, state.session]);
+  }, [initializeAuth, fetchProfile, refreshSession]);
 
   const signUp = async (email: string, password: string, name?: string) => {
     try {
