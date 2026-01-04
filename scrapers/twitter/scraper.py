@@ -24,31 +24,64 @@ from utils.ai_extractor import extract_story_data
 load_dotenv()
 
 # Search queries for finding viral healthcare content
-# Focus on high-engagement viral content with videos
+# Covers ALL Oasara story categories
 SEARCH_QUERIES = [
-    # Video content - most viral
+    # === VIDEO CONTENT (most viral) ===
     'hospital bill has:video -is:retweet lang:en',
     'medical bill has:video -is:retweet lang:en',
     'healthcare cost has:video -is:retweet lang:en',
     'insurance denied has:video -is:retweet lang:en',
+    'insulin price has:video -is:retweet lang:en',
     
-    # High-engagement text/image content  
+    # === MEDICAL BILLS & COSTS ===
     'hospital bill -is:retweet lang:en min_faves:100',
     'medical bill ridiculous -is:retweet lang:en min_faves:100',
+    'ER bill -is:retweet lang:en min_faves:50',
+    'ambulance bill -is:retweet lang:en min_faves:50',
+    'surgery cost -is:retweet lang:en min_faves:50',
+    'itemized bill hospital -is:retweet lang:en',
+    '"$100,000" hospital -is:retweet lang:en',
+    '"$50,000" medical -is:retweet lang:en',
+    'surprise billing -is:retweet lang:en min_faves:50',
+    
+    # === HEALTH INSURANCE PROBLEMS ===
     'insurance denied claim -is:retweet lang:en min_faves:100',
+    'prior authorization denied -is:retweet lang:en min_faves:50',
+    'insurance company denied -is:retweet lang:en min_faves:50',
+    'lost health insurance -is:retweet lang:en min_faves:50',
+    'uninsured america -is:retweet lang:en min_faves:50',
+    
+    # === MEDICAL DEBT & BANKRUPTCY ===
     'medical debt -is:retweet lang:en min_faves:100',
     'healthcare bankruptcy -is:retweet lang:en min_faves:50',
+    'medical collections -is:retweet lang:en min_faves:50',
+    'hospital debt -is:retweet lang:en min_faves:50',
     
-    # Medical tourism success stories
+    # === MEDICAL TOURISM SUCCESS ===
     'medical tourism saved -is:retweet lang:en',
     'surgery mexico cheaper -is:retweet lang:en',
     'dental work abroad -is:retweet lang:en',
+    'dental mexico -is:retweet lang:en min_faves:20',
     'treatment thailand -is:retweet lang:en',
+    'surgery costa rica -is:retweet lang:en',
+    'healthcare abroad -is:retweet lang:en min_faves:50',
     
-    # Viral bill shock content
-    '"$100,000" hospital -is:retweet lang:en',
-    '"$50,000" medical -is:retweet lang:en',
-    'itemized bill hospital -is:retweet lang:en',
+    # === PRESCRIPTION DRUGS ===
+    'insulin price -is:retweet lang:en min_faves:100',
+    'drug prices america -is:retweet lang:en min_faves:50',
+    'prescription cost -is:retweet lang:en min_faves:50',
+    'medication afford -is:retweet lang:en min_faves:50',
+    'pharmacy bill -is:retweet lang:en min_faves:50',
+    
+    # === DENTAL & VISION ===
+    'dental bill -is:retweet lang:en min_faves:50',
+    'dental insurance denied -is:retweet lang:en',
+    'root canal cost -is:retweet lang:en min_faves:30',
+    
+    # === SYSTEMIC ISSUES ===
+    'US healthcare broken -is:retweet lang:en min_faves:100',
+    'american healthcare system -is:retweet lang:en min_faves:100',
+    'healthcare other countries -is:retweet lang:en min_faves:50',
 ]
 
 # Minimum engagement for different content types

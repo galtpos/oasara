@@ -15,35 +15,72 @@ load_dotenv()
 client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 
 # Relevance classification prompt - runs BEFORE extraction
-RELEVANCE_PROMPT = """Classify whether this content is about HEALTHCARE costs/experiences.
+# Covers ALL Oasara story categories
+RELEVANCE_PROMPT = """Classify whether this content is relevant to HEALTHCARE SOVEREIGNTY.
 
-HEALTHCARE includes:
-- Medical bills (hospital, doctor, surgery, ER)
-- Health insurance claims/denials
-- Prescription drug costs
-- Dental care costs
-- Vision/eye care costs
-- Mental health costs
-- Medical tourism (treatment abroad)
-- Medical debt/bankruptcy from healthcare
+RELEVANT CATEGORIES (accept these):
 
-NOT HEALTHCARE (reject these):
-- Auto insurance
-- Car accidents (unless about medical bills specifically)
-- Home insurance
-- Pet insurance/vet bills
+1. MEDICAL BILLS & COSTS
+   - Hospital bills, ER bills, surgery costs
+   - Itemized bills, surprise billing, price gouging
+   - Out-of-pocket costs, deductibles, copays
+   - Ambulance bills, lab costs, radiology fees
+
+2. HEALTH INSURANCE PROBLEMS
+   - Claim denials, coverage disputes
+   - Prior authorization nightmares
+   - Insurance company horror stories
+   - Losing coverage, uninsured experiences
+   - ACA/Obamacare issues, marketplace problems
+
+3. MEDICAL DEBT & BANKRUPTCY
+   - Medical collections, credit damage
+   - Healthcare-related bankruptcy
+   - Payment plans, hospital debt
+
+4. MEDICAL TOURISM & TREATMENT ABROAD
+   - Surgery in Mexico, Thailand, Costa Rica, etc.
+   - Dental work abroad, dental tourism
+   - Cosmetic surgery abroad
+   - Cost comparisons US vs. abroad
+   - Medical tourism success stories
+
+5. PRESCRIPTION DRUGS
+   - Drug prices, insulin costs
+   - Pharmacy costs, medication affordability
+   - Importing medications, Canadian pharmacies
+
+6. DENTAL & VISION CARE
+   - Dental bills, dental insurance issues
+   - Vision care costs, LASIK, glasses
+
+7. MENTAL HEALTH COSTS
+   - Therapy costs, psychiatry bills
+   - Mental health coverage issues
+
+8. SYSTEMIC HEALTHCARE ISSUES
+   - US healthcare system criticism
+   - Healthcare reform discussions
+   - Comparisons to other countries' systems
+   - Hospital pricing transparency
+
+NOT RELEVANT (reject these):
+- Auto insurance (car insurance, collision)
+- Home/property insurance
+- Pet insurance, veterinary bills
 - Life insurance
-- Travel insurance (unless medical coverage)
-- Property damage
-- General financial advice
-- Cryptocurrency/investing
+- Travel insurance (unless medical coverage specifically)
+- Car accidents (unless discussing MEDICAL bills from accident)
+- Property damage claims
+- General financial advice unrelated to healthcare
+- Cryptocurrency, investing, stocks
 
 Content:
 ---
 {content}
 ---
 
-Respond with ONLY one word: HEALTHCARE, NOT_HEALTHCARE, or UNCERTAIN"""
+Respond with ONLY one word: RELEVANT, NOT_RELEVANT, or UNCERTAIN"""
 
 EXTRACTION_PROMPT = """You are an expert at extracting healthcare cost and experience data from social media posts and articles.
 
@@ -78,8 +115,8 @@ Respond with ONLY valid JSON, no markdown formatting."""
 
 def check_relevance(content: str) -> str:
     """
-    Check if content is healthcare-related before full extraction.
-    Returns: 'HEALTHCARE', 'NOT_HEALTHCARE', or 'UNCERTAIN'
+    Check if content is relevant to healthcare sovereignty before full extraction.
+    Returns: 'RELEVANT', 'NOT_RELEVANT', or 'UNCERTAIN'
     """
     try:
         response = client.messages.create(
@@ -96,10 +133,10 @@ def check_relevance(content: str) -> str:
         result = response.content[0].text.strip().upper()
         
         # Normalize response
-        if 'NOT' in result or 'NO' in result:
-            return 'NOT_HEALTHCARE'
-        elif 'HEALTHCARE' in result or 'YES' in result:
-            return 'HEALTHCARE'
+        if 'NOT_RELEVANT' in result or 'NOT RELEVANT' in result or 'NOTRELEVANT' in result:
+            return 'NOT_RELEVANT'
+        elif 'RELEVANT' in result or 'YES' in result:
+            return 'RELEVANT'
         else:
             return 'UNCERTAIN'
             
@@ -128,12 +165,12 @@ def extract_story_data(
     Returns:
         Structured story data ready for database insertion
     """
-    # First, check if content is healthcare-related
+    # First, check if content is relevant to healthcare sovereignty
     if not skip_relevance_check:
         relevance = check_relevance(content)
-        if relevance == 'NOT_HEALTHCARE':
+        if relevance == 'NOT_RELEVANT':
             return {
-                'error': 'Content not healthcare-related',
+                'error': 'Content not relevant to healthcare sovereignty',
                 'relevance': relevance,
                 'source': source,
                 'source_url': source_url,
