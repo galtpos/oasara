@@ -132,16 +132,50 @@ const handler: Handler = async (event: HandlerEvent) => {
 
 Your job is to:
 1. Listen carefully to what they share
-2. Ask follow-up questions to get more details
+2. Ask follow-up questions to get more details (2-3 questions max per response)
 3. Help them articulate their experience clearly
-4. Extract key information (costs, procedures, issues)
+4. When you have enough information (after 3-4 exchanges), use the save_story_draft tool to save the extracted data
 
 Be warm, empathetic, and encouraging. Keep responses short (2-3 sentences max).
 
-After 3-4 exchanges, summarize what you've learned and ask if they want to add anything else.
+IMPORTANT: When the user indicates they're done (e.g., "that's it", "that covers it", "done"), or after 4+ exchanges with good detail, you MUST call the save_story_draft tool to save the story.
 
 The user has already selected story type: ${storyTypeLabel}
 ${context.extracted_so_far ? `\nAlready extracted: ${JSON.stringify(context.extracted_so_far)}` : ''}`;
+
+      const storyTools = [
+        {
+          name: 'save_story_draft',
+          description: 'Save the extracted story information. Call this when you have enough details from the conversation.',
+          input_schema: {
+            type: 'object' as const,
+            properties: {
+              title: {
+                type: 'string',
+                description: 'A compelling, emotional title for the story (e.g., "$45,000 for a Broken Arm: My ER Nightmare")'
+              },
+              content: {
+                type: 'string',
+                description: 'The full story narrative in first person, 2-4 paragraphs, capturing the emotion and key details'
+              },
+              cost_us: {
+                type: 'number',
+                description: 'The total cost in USD if mentioned'
+              },
+              procedure: {
+                type: 'string',
+                description: 'The medical procedure or treatment involved'
+              },
+              issues: {
+                type: 'array',
+                items: { type: 'string' },
+                description: 'List of issue categories: billing, insurance_denial, bankruptcy, wait_time, quality, medical_tourism'
+              }
+            },
+            required: ['title', 'content']
+          }
+        }
+      ];
 
       const anthropic = new Anthropic({
         apiKey: process.env.ANTHROPIC_API_KEY || '',
@@ -159,19 +193,37 @@ ${context.extracted_so_far ? `\nAlready extracted: ${JSON.stringify(context.extr
 
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
+        max_tokens: 1000,
         system: storyCollectionPrompt,
-        messages: storyMessages
+        messages: storyMessages,
+        tools: storyTools
       });
 
-      const textBlock = response.content.find(c => c.type === 'text');
-      const assistantMessage = textBlock ? textBlock.text : "Thank you for sharing. Could you tell me more about your experience?";
+      // Check if the AI called the save_story_draft tool
+      let extracted: any = null;
+      let assistantMessage = '';
+
+      for (const block of response.content) {
+        if (block.type === 'text') {
+          assistantMessage += block.text;
+        } else if (block.type === 'tool_use' && block.name === 'save_story_draft') {
+          extracted = block.input;
+        }
+      }
+
+      // If no text message but tool was called, provide a confirmation
+      if (!assistantMessage && extracted) {
+        assistantMessage = "I've captured your story! You can now review and edit it before submitting.";
+      } else if (!assistantMessage) {
+        assistantMessage = "Thank you for sharing. Could you tell me more about your experience?";
+      }
 
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
-          message: assistantMessage
+          message: assistantMessage,
+          extracted: extracted
         })
       };
     }
