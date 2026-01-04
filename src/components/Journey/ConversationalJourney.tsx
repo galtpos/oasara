@@ -23,6 +23,11 @@ interface Message {
       price_range: string;
       wait_time?: string;
     }>;
+    matched_procedure?: {
+      name: string;
+      price_range: string;
+      wait_time?: string;
+    } | null;
     accepts_zano?: boolean;
   }>;
 }

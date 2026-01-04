@@ -20,6 +20,8 @@ interface FacilityCardProps {
     review_count?: number;
     popular_procedures?: Procedure[];
     accepts_zano?: boolean;
+    // New: matched procedure from backend search
+    matched_procedure?: Procedure | null;
   };
   procedureType?: string;
   onAddToShortlist?: () => void;
@@ -48,9 +50,12 @@ const FacilityCard: React.FC<FacilityCardProps> = ({
   onToggleSelect
 }) => {
   // Find matching procedure for price display
-  const matchingProcedure = facility.popular_procedures?.find(p =>
-    procedureType && p.name.toLowerCase().includes(procedureType.toLowerCase())
-  ) || facility.popular_procedures?.[0];
+  // Priority: 1) matched_procedure from backend, 2) find in popular_procedures by name, 3) first popular_procedure
+  const matchingProcedure = facility.matched_procedure ||
+    facility.popular_procedures?.find(p =>
+      procedureType && p.name.toLowerCase().includes(procedureType.toLowerCase())
+    ) ||
+    (procedureType ? null : facility.popular_procedures?.[0]); // Only fall back to [0] if no procedure type specified
 
   // Get savings estimate
   const savingsRange = matchingProcedure
