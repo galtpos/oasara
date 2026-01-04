@@ -8,37 +8,83 @@ import { supabase } from '../lib/supabase';
 type StoryType = 'horror' | 'success' | 'comparison';
 type SubmitMode = 'write' | 'assisted';
 
+// SVG Icons following brand guide
+const Icons = {
+  heartbreak: (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 5.5L10 12l4-2-4 6" />
+    </svg>
+  ),
+  celebrate: (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+    </svg>
+  ),
+  scale: (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0012 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 01-2.031.352 5.988 5.988 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0l2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 01-2.031.352 5.989 5.989 0 01-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971z" />
+    </svg>
+  ),
+  pencil: (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+    </svg>
+  ),
+  chat: (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+    </svg>
+  ),
+  camera: (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+    </svg>
+  ),
+  document: (
+    <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    </svg>
+  ),
+  check: (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+    </svg>
+  )
+};
+
 const STORY_TYPES = [
   { 
     value: 'horror' as StoryType, 
     label: 'Horror Story', 
-    emoji: '💔',
+    icon: Icons.heartbreak,
     description: 'Share a nightmare experience with the US healthcare system',
     example: 'I was charged $50,000 for a routine procedure...'
   },
   { 
     value: 'success' as StoryType, 
     label: 'Success Story', 
-    emoji: '🎉',
+    icon: Icons.celebrate,
     description: 'Share how medical tourism or alternative healthcare helped you',
     example: 'I flew to Mexico and saved 70% on my dental work...'
   },
   { 
     value: 'comparison' as StoryType, 
     label: 'Before & After', 
-    emoji: '⚖️',
+    icon: Icons.scale,
     description: 'Compare what you paid in the US vs abroad',
     example: 'US quoted $80k, I paid $12k in Thailand including flights...'
   }
 ];
 
 const ISSUE_OPTIONS = [
-  { value: 'billing', label: 'Insane Billing', emoji: '💸' },
-  { value: 'insurance_denial', label: 'Insurance Denial', emoji: '🚫' },
-  { value: 'bankruptcy', label: 'Medical Bankruptcy', emoji: '💔' },
-  { value: 'wait_time', label: 'Long Wait Time', emoji: '⏰' },
-  { value: 'quality', label: 'Quality/Safety Issue', emoji: '🏥' },
-  { value: 'medical_tourism', label: 'Medical Tourism Success', emoji: '✈️' }
+  { value: 'billing', label: 'Insane Billing' },
+  { value: 'insurance_denial', label: 'Insurance Denial' },
+  { value: 'bankruptcy', label: 'Medical Bankruptcy' },
+  { value: 'wait_time', label: 'Long Wait Time' },
+  { value: 'quality', label: 'Quality/Safety Issue' },
+  { value: 'medical_tourism', label: 'Medical Tourism Success' }
 ];
 
 const PROCEDURE_OPTIONS = [
@@ -129,8 +175,14 @@ const ShareStory: React.FC = () => {
       
       const data = await response.json();
       
-      // Add assistant response
-      setAiMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+      // Check for errors
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      // Add assistant response - unified-chat returns "message" not "response"
+      const assistantContent = data.message || data.response || 'I received your message. Please tell me more about your experience.';
+      setAiMessages(prev => [...prev, { role: 'assistant', content: assistantContent }]);
       
       // Update extracted data if any
       if (data.extracted) {
@@ -312,14 +364,14 @@ const ShareStory: React.FC = () => {
                       setStoryType(type.value);
                       setStep(2);
                     }}
-                    className={`w-full p-6 rounded-2xl border-2 text-left transition-all hover:shadow-lg ${
+                    className={`w-full p-6 rounded-md border-2 text-left transition-all hover:shadow-lg ${
                       storyType === type.value
                         ? 'border-ocean-500 bg-ocean-50'
                         : 'border-sage-200 bg-white hover:border-ocean-300'
                     }`}
                   >
                     <div className="flex items-start gap-4">
-                      <span className="text-4xl">{type.emoji}</span>
+                      <span className="text-ocean-600">{type.icon}</span>
                       <div className="flex-1">
                         <div className="font-display text-xl text-ocean-800 mb-1">
                           {type.label}
@@ -353,9 +405,9 @@ const ShareStory: React.FC = () => {
                     setSubmitMode('write');
                     setStep(3);
                   }}
-                  className="p-8 rounded-2xl border-2 border-sage-200 bg-white hover:border-ocean-300 hover:shadow-lg transition-all text-center"
+                  className="p-8 rounded-md border-2 border-sage-200 bg-white hover:border-ocean-300 hover:shadow-lg transition-all text-center"
                 >
-                  <div className="text-4xl mb-4">✍️</div>
+                  <div className="text-ocean-600 mb-4 flex justify-center">{Icons.pencil}</div>
                   <div className="font-display text-xl text-ocean-800 mb-2">Write It Myself</div>
                   <p className="text-ocean-600 text-sm">
                     I'll fill out the form and write my story directly
@@ -368,9 +420,9 @@ const ShareStory: React.FC = () => {
                     startAIConversation();
                     setStep(3);
                   }}
-                  className="p-8 rounded-2xl border-2 border-ocean-200 bg-gradient-to-br from-ocean-50 to-white hover:border-ocean-400 hover:shadow-lg transition-all text-center"
+                  className="p-8 rounded-md border-2 border-ocean-200 bg-gradient-to-br from-ocean-50 to-white hover:border-ocean-400 hover:shadow-lg transition-all text-center"
                 >
-                  <div className="text-4xl mb-4">💬</div>
+                  <div className="text-ocean-600 mb-4 flex justify-center">{Icons.chat}</div>
                   <div className="font-display text-xl text-ocean-800 mb-2">Help Me Tell It</div>
                   <p className="text-ocean-600 text-sm">
                     Chat with our AI assistant who will help shape your story
@@ -398,7 +450,7 @@ const ShareStory: React.FC = () => {
             >
               {submitMode === 'assisted' ? (
                 // AI-Assisted Mode
-                <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div className="bg-white rounded-md shadow-lg overflow-hidden">
                   <div className="p-4 bg-ocean-600 text-white flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                       💬
@@ -417,7 +469,7 @@ const ShareStory: React.FC = () => {
                         className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                          className={`max-w-[80%] rounded-md px-4 py-3 ${
                             msg.role === 'user'
                               ? 'bg-ocean-600 text-white rounded-br-none'
                               : 'bg-sage-100 text-ocean-800 rounded-bl-none'
@@ -429,7 +481,7 @@ const ShareStory: React.FC = () => {
                     ))}
                     {aiLoading && (
                       <div className="flex justify-start">
-                        <div className="bg-sage-100 rounded-2xl rounded-bl-none px-4 py-3">
+                        <div className="bg-sage-100 rounded-md rounded-bl-none px-4 py-3">
                           <div className="flex gap-1">
                             <span className="w-2 h-2 bg-ocean-400 rounded-full animate-bounce" />
                             <span className="w-2 h-2 bg-ocean-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
@@ -526,7 +578,7 @@ const ShareStory: React.FC = () => {
                               : 'bg-sage-100 text-ocean-700 hover:bg-sage-200'
                           }`}
                         >
-                          {opt.emoji} {opt.label}
+                          {opt.label}
                         </button>
                       ))}
                     </div>
@@ -665,7 +717,7 @@ const ShareStory: React.FC = () => {
                     id="images"
                   />
                   <label htmlFor="images" className="cursor-pointer">
-                    <div className="text-4xl mb-2">📷</div>
+                    <div className="text-ocean-600 mb-2 flex justify-center">{Icons.camera}</div>
                     <div className="text-ocean-600">Click to upload images</div>
                     <div className="text-sm text-ocean-500">Photos, screenshots, etc.</div>
                   </label>
@@ -692,7 +744,7 @@ const ShareStory: React.FC = () => {
                     id="bills"
                   />
                   <label htmlFor="bills" className="cursor-pointer">
-                    <div className="text-4xl mb-2">📄</div>
+                    <div className="text-ocean-600 mb-2 flex justify-center">{Icons.document}</div>
                     <div className="text-ocean-600">Upload actual bills or receipts</div>
                     <div className="text-sm text-ocean-500">Nothing makes the point like real evidence</div>
                   </label>
@@ -708,8 +760,9 @@ const ShareStory: React.FC = () => {
               <div className="bg-sage-50 rounded-xl p-6">
                 <h3 className="font-medium text-ocean-700 mb-4">Story Preview</h3>
                 <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <div className="text-xs text-ocean-500 mb-2">
-                    {STORY_TYPES.find(t => t.value === storyType)?.emoji} {STORY_TYPES.find(t => t.value === storyType)?.label}
+                  <div className="text-xs text-ocean-500 mb-2 flex items-center gap-1">
+                    <span className="w-4 h-4">{STORY_TYPES.find(t => t.value === storyType)?.icon}</span>
+                    <span>{STORY_TYPES.find(t => t.value === storyType)?.label}</span>
                   </div>
                   <h4 className="font-display text-lg text-ocean-800 mb-2">{title || 'Your title here'}</h4>
                   <p className="text-ocean-600 text-sm line-clamp-3">

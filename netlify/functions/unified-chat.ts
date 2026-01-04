@@ -123,6 +123,59 @@ const handler: Handler = async (event: HandlerEvent) => {
 
     console.log('[unified-chat] Context:', JSON.stringify(context));
 
+    // Special handling for story_collection mode - simplified AI-assisted story writing
+    if (context.mode === 'story_collection') {
+      const storyType = context.story_type || 'horror';
+      const storyTypeLabel = storyType === 'horror' ? 'horror story' : storyType === 'success' ? 'success story' : 'comparison';
+      
+      const storyCollectionPrompt = `You are a compassionate story interviewer helping someone share their healthcare ${storyTypeLabel}. 
+
+Your job is to:
+1. Listen carefully to what they share
+2. Ask follow-up questions to get more details
+3. Help them articulate their experience clearly
+4. Extract key information (costs, procedures, issues)
+
+Be warm, empathetic, and encouraging. Keep responses short (2-3 sentences max).
+
+After 3-4 exchanges, summarize what you've learned and ask if they want to add anything else.
+
+The user has already selected story type: ${storyTypeLabel}
+${context.extracted_so_far ? `\nAlready extracted: ${JSON.stringify(context.extracted_so_far)}` : ''}`;
+
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY || '',
+      });
+
+      const storyMessages = messages.map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content
+      }));
+
+      // Add the current user message if not already in messages
+      if (userMessage && (!messages.length || messages[messages.length - 1].content !== userMessage)) {
+        storyMessages.push({ role: 'user', content: userMessage });
+      }
+
+      const response = await anthropic.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        system: storyCollectionPrompt,
+        messages: storyMessages
+      });
+
+      const textBlock = response.content.find(c => c.type === 'text');
+      const assistantMessage = textBlock ? textBlock.text : "Thank you for sharing. Could you tell me more about your experience?";
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          message: assistantMessage
+        })
+      };
+    }
+
     // Create Supabase client with user's auth token if provided
     const authHeader = event.headers.authorization || event.headers.Authorization;
     const supabase = createClient(
