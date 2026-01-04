@@ -21,6 +21,9 @@ import AIOnboarding from './pages/AIOnboarding';
 import ConversationalJourneyPage from './pages/ConversationalJourneyPage';
 import AcceptInvite from './pages/AcceptInvite';
 import SharedJourneyPage from './pages/SharedJourneyPage';
+import Stories from './pages/Stories';
+import StoryDetail from './pages/StoryDetail';
+import ShareStory from './pages/ShareStory';
 
 // Admin pages
 import AdminLogin from './admin/pages/AdminLogin';
@@ -68,6 +71,11 @@ const AppRoutes: React.FC = () => {
       <Route path="/journey/shared/:journeyId" element={<SharedJourneyPage />} />
       <Route path="/guide" element={<Guide />} />
       <Route path="/help" element={<Navigate to="/guide" replace />} />
+      
+      {/* Stories / Community Routes */}
+      <Route path="/stories" element={<Stories />} />
+      <Route path="/stories/:slug" element={<StoryDetail />} />
+      <Route path="/share-story" element={<ShareStory />} />
 
       {/* US Hospital Transparency Routes - Lazy loaded with Suspense */}
       <Route path="/us-hospitals" element={<Suspense fallback={<PageLoader />}><USHospitals /></Suspense>} />
