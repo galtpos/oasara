@@ -240,6 +240,7 @@ const Stories: React.FC = () => {
     featured: Story[];
     trending: Story[];
     latest: Story[];
+    stats?: { totalStories: number; totalMeToo: number; totalShares: number };
   }>({ featured: [], trending: [], latest: [] });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'horror' | 'success' | 'comparison'>('all');
@@ -262,7 +263,8 @@ const Stories: React.FC = () => {
       setStories({
         featured: Array.isArray(data.featured) ? data.featured : [],
         trending: Array.isArray(data.trending) ? data.trending : [],
-        latest: Array.isArray(data.latest) ? data.latest : []
+        latest: Array.isArray(data.latest) ? data.latest : [],
+        stats: data.stats
       });
     } catch (error) {
       console.error('Error loading stories:', error);
@@ -336,18 +338,18 @@ const Stories: React.FC = () => {
             className="mt-12 flex justify-center gap-8 md:gap-16 text-white"
           >
             <div className="text-center">
-              <div className="text-3xl font-bold text-gold-300">{stories.latest.length + stories.trending.length || '—'}</div>
+              <div className="text-3xl font-bold text-gold-300">{stories.stats?.totalStories || '—'}</div>
               <div className="text-sm text-ocean-200">Stories Shared</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-gold-300">
-                {stories.latest.reduce((acc, s) => acc + s.reaction_counts.me_too, 0) || '—'}
+                {stories.stats?.totalMeToo || '—'}
               </div>
               <div className="text-sm text-ocean-200">Me Too Reactions</div>
             </div>
             <div className="text-center">
               <div className="text-3xl font-bold text-gold-300">
-                {stories.latest.reduce((acc, s) => acc + s.share_count, 0) || '—'}
+                {stories.stats?.totalShares || '—'}
               </div>
               <div className="text-sm text-ocean-200">Times Shared</div>
             </div>

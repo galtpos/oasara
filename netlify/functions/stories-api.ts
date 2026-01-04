@@ -316,16 +316,31 @@ async function logShare(storyId: string, platform: string, shareType: string, us
 
 // GET /stories/featured - Get featured stories for homepage
 async function getFeaturedStories() {
+  // Get total count of all published stories
+  const { count: totalStories } = await supabase
+    .from('stories')
+    .select('*', { count: 'exact', head: true })
+    .in('status', ['published', 'featured']);
+
+  // Get total reactions (me_too specifically)
+  const { data: allStories } = await supabase
+    .from('stories')
+    .select('reaction_counts, share_count')
+    .in('status', ['published', 'featured']);
+  
+  const totalMeToo = allStories?.reduce((acc, s) => acc + (s.reaction_counts?.me_too || 0), 0) || 0;
+  const totalShares = allStories?.reduce((acc, s) => acc + (s.share_count || 0), 0) || 0;
+
   const { data: featured, error: featuredError } = await supabase
     .from('stories')
-    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, published_at')
+    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, video_url, published_at')
     .eq('is_featured', true)
     .order('featured_at', { ascending: false })
     .limit(5);
 
   const { data: trending, error: trendingError } = await supabase
     .from('stories')
-    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, published_at')
+    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, video_url, published_at')
     .in('status', ['published', 'featured'])
     .order('share_count', { ascending: false })
     .order('published_at', { ascending: false })
@@ -333,7 +348,7 @@ async function getFeaturedStories() {
 
   const { data: latest, error: latestError } = await supabase
     .from('stories')
-    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, published_at')
+    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, video_url, published_at')
     .in('status', ['published', 'featured'])
     .order('published_at', { ascending: false })
     .limit(10);
@@ -343,7 +358,12 @@ async function getFeaturedStories() {
     body: JSON.stringify({
       featured: featured || [],
       trending: trending || [],
-      latest: latest || []
+      latest: latest || [],
+      stats: {
+        totalStories: totalStories || 0,
+        totalMeToo,
+        totalShares
+      }
     })
   };
 }
