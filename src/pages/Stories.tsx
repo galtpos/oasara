@@ -149,9 +149,23 @@ const Stories: React.FC = () => {
     try {
       const response = await fetch('/.netlify/functions/stories-api/featured');
       const data = await response.json();
-      setStories(data);
+      
+      // Handle error responses or malformed data
+      if (data.error || !response.ok) {
+        console.error('API error:', data.error || 'Unknown error');
+        // Keep empty arrays
+        return;
+      }
+      
+      // Ensure we have arrays even if properties are missing
+      setStories({
+        featured: Array.isArray(data.featured) ? data.featured : [],
+        trending: Array.isArray(data.trending) ? data.trending : [],
+        latest: Array.isArray(data.latest) ? data.latest : []
+      });
     } catch (error) {
       console.error('Error loading stories:', error);
+      // Keep empty arrays on error
     } finally {
       setLoading(false);
     }
