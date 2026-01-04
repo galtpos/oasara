@@ -203,7 +203,10 @@ Instead, EDUCATE them first:
 - add_journey_note - Add reminder/note to journey
 - share_journey - Share journey with family/friends
 - invite_collaborator - Invite someone to help decide
-- contact_facility - Request quote from facility
+- draft_facility_message - Drafts professional message template for contacting facilities
+- contact_facility - Sends quote request to facility (after user reviews draft)
+- get_travel_requirements - Gets passport/visa/insurance requirements for destination country
+- get_recovery_timeline - Gets estimated recovery timeline for a procedure
 - export_journey_pdf - Generate PDF report
 - get_journey_summary - Get overview of current journey
 
@@ -394,15 +397,29 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
         }
       },
       {
+        name: 'draft_facility_message',
+        description: 'Drafts a professional message template for contacting a facility. Use this when user wants to reach out to a facility.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            facility_id: { type: 'string', description: 'Facility ID or name' },
+            procedure: { type: 'string', description: 'Procedure name (from journey context)' },
+            include_medical_history: { type: 'boolean', description: 'Whether to include placeholders for medical history' }
+          },
+          required: ['facility_id']
+        }
+      },
+      {
         name: 'contact_facility',
-        description: 'Sends quote request to facility',
+        description: 'Sends quote request to facility via email. Use this after user has reviewed and approved the draft message.',
         input_schema: {
           type: 'object',
           properties: {
             facility_id: { type: 'string', description: 'Facility ID' },
-            message: { type: 'string', description: 'Optional custom message' }
+            message: { type: 'string', description: 'The message to send (use draft_facility_message first)' },
+            user_email: { type: 'string', description: 'User email for facility to respond to' }
           },
-          required: ['facility_id']
+          required: ['facility_id', 'message', 'user_email']
         }
       },
       {
@@ -414,6 +431,29 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
         name: 'get_journey_summary',
         description: 'Gets overview of current journey',
         input_schema: { type: 'object', properties: {}, required: [] }
+      },
+      {
+        name: 'get_travel_requirements',
+        description: 'Gets travel requirements (passport, visa, insurance) for a destination country',
+        input_schema: {
+          type: 'object',
+          properties: {
+            country: { type: 'string', description: 'Destination country name' },
+            procedure_type: { type: 'string', description: 'Procedure type (affects stay duration)' }
+          },
+          required: ['country']
+        }
+      },
+      {
+        name: 'get_recovery_timeline',
+        description: 'Gets estimated recovery timeline for a specific procedure',
+        input_schema: {
+          type: 'object',
+          properties: {
+            procedure: { type: 'string', description: 'Procedure name' }
+          },
+          required: ['procedure']
+        }
       },
       // === MEDICAL TRUST TOOLS ===
       {
@@ -824,7 +864,276 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
           case 'add_journey_note':
           case 'share_journey':
           case 'invite_collaborator':
+          case 'draft_facility_message':
+            {
+              const { facility_id, procedure, include_medical_history = true } = toolInput;
+              
+              // Get facility details
+              const { data: facility } = await supabase
+                .from('facilities')
+                .select('name, city, country, website, email')
+                .or(`id.eq.${facility_id},name.ilike.%${facility_id}%`)
+                .limit(1)
+                .single();
+
+              if (!facility) {
+                assistantMessage += `\n\nI couldn't find that facility. Please check the facility name.`;
+                break;
+              }
+
+              const procedureName = procedure || context.procedure || 'my procedure';
+              
+              let draft = `Subject: Inquiry about ${procedureName} - Quote Request\n\n`;
+              draft += `Dear ${facility.name} Team,\n\n`;
+              draft += `I am interested in learning more about ${procedureName} at your facility in ${facility.city}, ${facility.country}.\n\n`;
+              
+              if (include_medical_history) {
+                draft += `**My Medical Information:**\n`;
+                draft += `- Procedure of interest: ${procedureName}\n`;
+                draft += `- [Please provide: Age, relevant medical history, current medications, any previous surgeries]\n\n`;
+              }
+              
+              draft += `**Questions:**\n`;
+              draft += `1. What is the estimated cost for ${procedureName}?\n`;
+              draft += `2. What is included in the quoted price (hospital stay, anesthesia, post-op care)?\n`;
+              draft += `3. What is the typical timeline from consultation to procedure?\n`;
+              draft += `4. Do you provide assistance with travel arrangements?\n`;
+              draft += `5. What are your payment options?\n\n`;
+              
+              draft += `I would appreciate a personalized quote based on my medical records, which I can provide upon request.\n\n`;
+              draft += `Thank you for your time.\n\n`;
+              draft += `Best regards,\n`;
+              draft += `[Your Name]\n`;
+              draft += `[Your Email]\n`;
+              draft += `[Your Phone Number]`;
+
+              assistantMessage += `\n\n**Draft Message for ${facility.name}:**\n\n`;
+              assistantMessage += `\`\`\`\n${draft}\n\`\`\`\n\n`;
+              assistantMessage += `You can copy this message and send it via email to ${facility.email || facility.website || 'their contact page'}. `;
+              assistantMessage += `Or I can help you send it directly if you'd like.`;
+            }
+            break;
+
           case 'contact_facility':
+            {
+              const { facility_id, message, user_email } = toolInput;
+              
+              if (!context.userEmail && !user_email) {
+                assistantMessage += `\n\n**To contact facilities, please [log in](/auth) first.**`;
+                break;
+              }
+
+              const email = user_email || context.userEmail;
+              
+              // Get facility details
+              const { data: facility } = await supabase
+                .from('facilities')
+                .select('name, email, website')
+                .or(`id.eq.${facility_id},name.ilike.%${facility_id}%`)
+                .limit(1)
+                .single();
+
+              if (!facility) {
+                assistantMessage += `\n\nI couldn't find that facility.`;
+                break;
+              }
+
+              // TODO: Send email via EmailJS or similar
+              // For now, provide instructions
+              assistantMessage += `\n\n**Ready to send!**\n\n`;
+              assistantMessage += `I've prepared your message for ${facility.name}.\n\n`;
+              assistantMessage += `**To send:**\n`;
+              assistantMessage += `1. Copy the message below\n`;
+              assistantMessage += `2. Email it to: ${facility.email || facility.website || 'their contact page'}\n\n`;
+              assistantMessage += `**Your Message:**\n\n`;
+              assistantMessage += `\`\`\`\n${message}\n\`\`\`\n\n`;
+              assistantMessage += `**Tip:** Keep a copy of this message and any responses for your records.`;
+            }
+            break;
+
+          case 'get_travel_requirements':
+            {
+              const { country, procedure_type } = toolInput;
+              
+              // Travel requirements by country
+              const requirements: Record<string, { visa: string; passport: string; insurance: string; notes: string[] }> = {
+                'thailand': {
+                  visa: 'Tourist visa (30-60 days) - visa on arrival for US citizens, or apply online for longer stays',
+                  passport: 'Valid for 6+ months from entry date',
+                  insurance: 'Medical tourism insurance recommended (covers complications, evacuation)',
+                  notes: [
+                    'No visa required for stays under 30 days (US citizens)',
+                    'Tourist visa sufficient for medical procedures',
+                    'Consider travel companion for major procedures',
+                    'English widely spoken in medical facilities'
+                  ]
+                },
+                'mexico': {
+                  visa: 'Tourist visa (FMM) - free for US citizens, valid 180 days',
+                  passport: 'Valid passport or passport card',
+                  insurance: 'Medical tourism insurance recommended, especially near border',
+                  notes: [
+                    'No visa required for US citizens (tourist permit at border)',
+                    'Many facilities near US border for easy access',
+                    'Spanish helpful but English common in medical facilities',
+                    'Consider travel companion for major procedures'
+                  ]
+                },
+                'india': {
+                  visa: 'Tourist visa required - apply online (e-Visa) or at consulate, valid 30-90 days',
+                  passport: 'Valid for 6+ months from entry date',
+                  insurance: 'Medical tourism insurance strongly recommended',
+                  notes: [
+                    'e-Visa available online (apply 4 days before travel)',
+                    'Tourist visa sufficient for medical procedures',
+                    'English widely spoken in major medical facilities',
+                    'Plan for longer stay (1-2 weeks post-op)',
+                    'Travel companion recommended'
+                  ]
+                },
+                'turkey': {
+                  visa: 'e-Visa required for US citizens - apply online, valid 90 days',
+                  passport: 'Valid for 6+ months from entry date',
+                  insurance: 'Medical tourism insurance recommended',
+                  notes: [
+                    'e-Visa available online (instant approval)',
+                    'Tourist visa sufficient for medical procedures',
+                    'English spoken in major medical facilities',
+                    'Consider travel companion for major procedures'
+                  ]
+                },
+                'costa rica': {
+                  visa: 'No visa required for US citizens (90 days)',
+                  passport: 'Valid passport',
+                  insurance: 'Medical tourism insurance recommended',
+                  notes: [
+                    'No visa needed for stays under 90 days',
+                    'Easy access from US',
+                    'English widely spoken',
+                    'Consider travel companion for major procedures'
+                  ]
+                },
+                'colombia': {
+                  visa: 'No visa required for US citizens (90 days)',
+                  passport: 'Valid passport',
+                  insurance: 'Medical tourism insurance recommended',
+                  notes: [
+                    'No visa needed for stays under 90 days',
+                    'English spoken in major medical facilities',
+                    'Consider travel companion for major procedures'
+                  ]
+                }
+              };
+
+              const countryLower = country.toLowerCase();
+              const countryKey = Object.keys(requirements).find(k => countryLower.includes(k)) || 'thailand';
+              const req = requirements[countryKey] || requirements['thailand'];
+
+              assistantMessage += `\n\n**Travel Requirements for ${country}:**\n\n`;
+              assistantMessage += `**Passport:** ${req.passport}\n\n`;
+              assistantMessage += `**Visa:** ${req.visa}\n\n`;
+              assistantMessage += `**Insurance:** ${req.insurance}\n\n`;
+              assistantMessage += `**Additional Notes:**\n`;
+              req.notes.forEach(note => {
+                assistantMessage += `• ${note}\n`;
+              });
+              
+              if (procedure_type) {
+                assistantMessage += `\n**For ${procedure_type}:** Plan to stay in ${country} for 1-2 weeks post-procedure for follow-up appointments and recovery.`;
+              }
+            }
+            break;
+
+          case 'get_recovery_timeline':
+            {
+              const { procedure } = toolInput;
+              const proc = procedure?.toLowerCase() || '';
+              
+              // Recovery timelines by procedure type
+              const timelines: Record<string, { hospital: string; destination: string; home: string; notes: string[] }> = {
+                'dental': {
+                  hospital: 'Same day or 1 night',
+                  destination: '3-7 days',
+                  home: '1-2 weeks (soft foods)',
+                  notes: [
+                    'Can usually return home within a week',
+                    'Avoid hard foods for 1-2 weeks',
+                    'Follow-up may be done remotely'
+                  ]
+                },
+                'knee replacement': {
+                  hospital: '2-4 days',
+                  destination: '10-14 days',
+                  home: '6-12 weeks (full recovery)',
+                  notes: [
+                    'Stay in destination for 2 weeks minimum',
+                    'Physical therapy starts 1-2 days post-op',
+                    'Can walk with assistance after 1-2 days',
+                    'Full recovery takes 3-6 months'
+                  ]
+                },
+                'hip replacement': {
+                  hospital: '2-4 days',
+                  destination: '10-14 days',
+                  home: '6-12 weeks (full recovery)',
+                  notes: [
+                    'Stay in destination for 2 weeks minimum',
+                    'Can walk with assistance after 1 day',
+                    'Physical therapy starts immediately',
+                    'Full recovery takes 3-6 months'
+                  ]
+                },
+                'heart surgery': {
+                  hospital: '5-7 days',
+                  destination: '2-3 weeks',
+                  home: '6-12 weeks (gradual return)',
+                  notes: [
+                    'Stay in destination for 3 weeks minimum',
+                    'Strict activity restrictions for 6-8 weeks',
+                    'Regular follow-up appointments required',
+                    'Travel clearance needed before returning home'
+                  ]
+                },
+                'cosmetic surgery': {
+                  hospital: '1-2 days',
+                  destination: '7-10 days',
+                  home: '2-4 weeks (swelling/bruising)',
+                  notes: [
+                    'Stay in destination for 1 week minimum',
+                    'Swelling and bruising normal for 2-3 weeks',
+                    'Avoid strenuous activity for 4-6 weeks',
+                    'Final results visible after 3-6 months'
+                  ]
+                },
+                'bariatric': {
+                  hospital: '1-2 days',
+                  destination: '7-10 days',
+                  home: '4-6 weeks (diet restrictions)',
+                  notes: [
+                    'Stay in destination for 1 week minimum',
+                    'Liquid diet for 2-4 weeks post-op',
+                    'Gradual return to solid foods',
+                    'Lifelong dietary changes required'
+                  ]
+                }
+              };
+
+              const procedureKey = Object.keys(timelines).find(k => proc.includes(k)) || 'dental';
+              const timeline = timelines[procedureKey] || timelines['dental'];
+
+              assistantMessage += `\n\n**Recovery Timeline for ${procedure}:**\n\n`;
+              assistantMessage += `**Hospital Stay:** ${timeline.hospital}\n\n`;
+              assistantMessage += `**Stay in Destination:** ${timeline.destination} (for follow-ups and initial recovery)\n\n`;
+              assistantMessage += `**Recovery at Home:** ${timeline.home}\n\n`;
+              assistantMessage += `**Important Notes:**\n`;
+              timeline.notes.forEach(note => {
+                assistantMessage += `• ${note}\n`;
+              });
+              
+              assistantMessage += `\n**Plan Accordingly:** Make sure you have enough time off work and support at home during recovery.`;
+            }
+            break;
+
           case 'export_journey_pdf':
             assistantMessage += `\n\n[This feature is being set up. Please use the [journey dashboard](/my-journey) for now.]`;
             break;

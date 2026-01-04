@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import ComparisonTable from './ComparisonTable';
 import FacilityShortlist from './FacilityShortlist';
 import PersonalNotes from './PersonalNotes';
+import PostSelectionFlow from './PostSelectionFlow';
 import { Link } from 'react-router-dom';
 import JourneyChatbot from './JourneyChatbot';
 import ShareJourneyModal from './ShareJourneyModal';
@@ -276,6 +277,19 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
           </div>
         </div>
       </motion.div>
+
+      {/* Post-Selection Flow - Shows when facilities are shortlisted */}
+      {shortlistCount > 0 && (
+        <PostSelectionFlow
+          journeyId={journey.id}
+          procedureType={journey.procedure_type}
+          shortlistCount={shortlistCount}
+          onContactFacility={(facilityId, message) => {
+            // TODO: Open contact modal or trigger chatbot
+            setIsChatbotOpen(true);
+          }}
+        />
+      )}
 
       {/* Navigation Tabs */}
       <div className="bg-white rounded-2xl shadow-lg mb-6 overflow-hidden">
