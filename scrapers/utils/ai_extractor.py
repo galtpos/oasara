@@ -1,6 +1,7 @@
 """
 AI-powered story extraction using Claude
 Extracts structured data from raw scraped content
+Includes relevance filtering to exclude non-healthcare content
 """
 import os
 import json
@@ -12,6 +13,37 @@ from dotenv import load_dotenv
 load_dotenv()
 
 client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+
+# Relevance classification prompt - runs BEFORE extraction
+RELEVANCE_PROMPT = """Classify whether this content is about HEALTHCARE costs/experiences.
+
+HEALTHCARE includes:
+- Medical bills (hospital, doctor, surgery, ER)
+- Health insurance claims/denials
+- Prescription drug costs
+- Dental care costs
+- Vision/eye care costs
+- Mental health costs
+- Medical tourism (treatment abroad)
+- Medical debt/bankruptcy from healthcare
+
+NOT HEALTHCARE (reject these):
+- Auto insurance
+- Car accidents (unless about medical bills specifically)
+- Home insurance
+- Pet insurance/vet bills
+- Life insurance
+- Travel insurance (unless medical coverage)
+- Property damage
+- General financial advice
+- Cryptocurrency/investing
+
+Content:
+---
+{content}
+---
+
+Respond with ONLY one word: HEALTHCARE, NOT_HEALTHCARE, or UNCERTAIN"""
 
 EXTRACTION_PROMPT = """You are an expert at extracting healthcare cost and experience data from social media posts and articles.
 
@@ -44,11 +76,44 @@ Extract the following fields (use null for missing data):
 
 Respond with ONLY valid JSON, no markdown formatting."""
 
+def check_relevance(content: str) -> str:
+    """
+    Check if content is healthcare-related before full extraction.
+    Returns: 'HEALTHCARE', 'NOT_HEALTHCARE', or 'UNCERTAIN'
+    """
+    try:
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            max_tokens=50,
+            messages=[
+                {
+                    "role": "user",
+                    "content": RELEVANCE_PROMPT.format(content=content[:3000])
+                }
+            ]
+        )
+        
+        result = response.content[0].text.strip().upper()
+        
+        # Normalize response
+        if 'NOT' in result or 'NO' in result:
+            return 'NOT_HEALTHCARE'
+        elif 'HEALTHCARE' in result or 'YES' in result:
+            return 'HEALTHCARE'
+        else:
+            return 'UNCERTAIN'
+            
+    except Exception as e:
+        print(f"Relevance check error: {e}")
+        return 'UNCERTAIN'
+
+
 def extract_story_data(
     content: str,
     source: str,
     source_url: Optional[str] = None,
-    attached_images: Optional[List[str]] = None
+    attached_images: Optional[List[str]] = None,
+    skip_relevance_check: bool = False
 ) -> Dict[str, Any]:
     """
     Extract structured story data from raw content
@@ -58,10 +123,25 @@ def extract_story_data(
         source: Source platform (reddit, twitter, youtube, etc.)
         source_url: Original URL
         attached_images: List of image URLs if any
+        skip_relevance_check: Skip the relevance filter (for pre-validated content)
         
     Returns:
         Structured story data ready for database insertion
     """
+    # First, check if content is healthcare-related
+    if not skip_relevance_check:
+        relevance = check_relevance(content)
+        if relevance == 'NOT_HEALTHCARE':
+            return {
+                'error': 'Content not healthcare-related',
+                'relevance': relevance,
+                'source': source,
+                'source_url': source_url,
+                'rejected': True
+            }
+        elif relevance == 'UNCERTAIN':
+            print(f"  ⚠️ Uncertain relevance, proceeding with extraction...")
+    
     try:
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
