@@ -12,18 +12,16 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
+-- Drop policies if they exist and recreate them
+DROP POLICY IF EXISTS "Public read access for story images" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can upload story images" ON storage.objects;
+
 -- Enable public read access
-CREATE POLICY IF NOT EXISTS "Public read access for story images"
+CREATE POLICY "Public read access for story images"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'story-images');
 
--- Allow authenticated users to upload
-CREATE POLICY IF NOT EXISTS "Authenticated users can upload story images"
+-- Allow anyone to upload (for anonymous story submissions)
+CREATE POLICY "Anyone can upload story images"
   ON storage.objects FOR INSERT
   WITH CHECK (bucket_id = 'story-images');
-
--- Allow anonymous uploads for story submissions
-CREATE POLICY IF NOT EXISTS "Anyone can upload story images"
-  ON storage.objects FOR INSERT
-  WITH CHECK (bucket_id = 'story-images');
-

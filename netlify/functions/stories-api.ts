@@ -3,9 +3,14 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-// Use anon key - RLS policies handle public access
+// Use anon key for reads (respects RLS)
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Use service key for writes (bypasses RLS for server-side operations)
+const supabaseAdmin = supabaseServiceKey 
+  ? createClient(supabaseUrl, supabaseServiceKey)
+  : supabase;
 
 interface Story {
   id: string;
@@ -180,7 +185,8 @@ async function createStory(body: any, userId: string | null) {
     .trim()
     .substring(0, 200) + '...';
 
-  const { data: story, error } = await supabase
+  // Use admin client to bypass RLS for story creation
+  const { data: story, error } = await supabaseAdmin
     .from('stories')
     .insert({
       author_id: userId,
@@ -212,13 +218,13 @@ async function createStory(body: any, userId: string | null) {
 
   // Check if this is user's first story -> award badge (only for logged-in users)
   if (userId) {
-    const { count } = await supabase
+    const { count } = await supabaseAdmin
       .from('stories')
       .select('*', { count: 'exact', head: true })
       .eq('author_id', userId);
 
     if (count === 1) {
-      await supabase.from('author_badges').insert({
+      await supabaseAdmin.from('author_badges').insert({
         user_id: userId,
         badge_type: 'first_story',
         story_id: story.id
@@ -252,7 +258,7 @@ async function addReaction(storyId: string, reactionType: string, userId?: strin
     return { statusCode: 400, body: JSON.stringify({ error: 'Must provide userId or sessionId' }) };
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('story_reactions')
     .upsert(insertData, { onConflict: userId ? 'story_id,user_id,reaction_type' : 'story_id,session_id,reaction_type' });
 
@@ -269,7 +275,7 @@ async function addReaction(storyId: string, reactionType: string, userId?: strin
 
 // DELETE /stories/:id/react - Remove reaction
 async function removeReaction(storyId: string, reactionType: string, userId?: string, sessionId?: string) {
-  let query = supabase
+  let query = supabaseAdmin
     .from('story_reactions')
     .delete()
     .eq('story_id', storyId)
@@ -292,7 +298,7 @@ async function removeReaction(storyId: string, reactionType: string, userId?: st
 
 // POST /stories/:id/share - Log a share
 async function logShare(storyId: string, platform: string, shareType: string, userId?: string) {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('story_shares')
     .insert({
       story_id: storyId,
