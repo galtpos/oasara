@@ -1,6 +1,9 @@
 """
 OCR + PII Redaction Pipeline
 Extracts text from bill images and automatically redacts sensitive information
+
+Uses DGX EasyOCR server (http://10.0.0.20:8002) when available,
+falls back to local Tesseract if DGX not reachable.
 """
 import os
 import re
@@ -13,6 +16,9 @@ from PIL import Image, ImageDraw, ImageFilter
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# DGX OCR Server
+DGX_OCR_URL = os.getenv('DGX_OCR_URL', 'http://10.0.0.20:8002')
 
 # PII patterns to redact
 PII_PATTERNS = {
@@ -65,16 +71,30 @@ class BillProcessor:
     """Process medical bill images: OCR, extract costs, redact PII"""
     
     def __init__(self):
-        self.ocr_available = self._check_tesseract()
+        self.dgx_available = self._check_dgx_ocr()
+        self.tesseract_available = self._check_tesseract()
+        self.ocr_available = self.dgx_available or self.tesseract_available
+    
+    def _check_dgx_ocr(self) -> bool:
+        """Check if DGX OCR server is available"""
+        try:
+            r = requests.get(f"{DGX_OCR_URL}/health", timeout=3)
+            if r.status_code == 200:
+                print(f"Using DGX EasyOCR server at {DGX_OCR_URL}")
+                return True
+        except:
+            pass
+        return False
     
     def _check_tesseract(self) -> bool:
-        """Check if Tesseract OCR is available"""
+        """Check if Tesseract OCR is available as fallback"""
         try:
             import pytesseract
             pytesseract.get_tesseract_version()
             return True
         except Exception:
-            print("Warning: Tesseract not installed. Install with: brew install tesseract")
+            if not self.dgx_available:
+                print("Warning: Neither DGX OCR nor Tesseract available")
             return False
     
     def process_image(self, image_path: str) -> Dict[str, Any]:
@@ -126,31 +146,51 @@ class BillProcessor:
         }
     
     def _ocr(self, image: Image.Image) -> str:
-        """Extract text from image using Tesseract"""
+        """Extract text from image using DGX or Tesseract"""
         if not self.ocr_available:
             return ""
         
-        try:
-            import pytesseract
-            
-            # Preprocess image for better OCR
-            # Convert to grayscale
-            gray = image.convert('L')
-            
-            # Increase contrast
-            from PIL import ImageEnhance
-            enhancer = ImageEnhance.Contrast(gray)
-            enhanced = enhancer.enhance(2.0)
-            
-            # OCR with config for medical bills
-            config = '--oem 3 --psm 6'
-            text = pytesseract.image_to_string(enhanced, config=config)
-            
-            return text
-            
-        except Exception as e:
-            print(f"OCR error: {e}")
-            return ""
+        # Try DGX first (faster, GPU-accelerated)
+        if self.dgx_available:
+            try:
+                # Save image to bytes
+                img_bytes = BytesIO()
+                image.save(img_bytes, format='JPEG', quality=95)
+                img_bytes.seek(0)
+                
+                response = requests.post(
+                    f"{DGX_OCR_URL}/ocr",
+                    files={'file': ('image.jpg', img_bytes, 'image/jpeg')},
+                    timeout=60
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    return result.get('text', '')
+            except Exception as e:
+                print(f"DGX OCR failed, falling back to Tesseract: {e}")
+        
+        # Fallback to Tesseract
+        if self.tesseract_available:
+            try:
+                import pytesseract
+                from PIL import ImageEnhance
+                
+                # Preprocess image for better OCR
+                gray = image.convert('L')
+                enhancer = ImageEnhance.Contrast(gray)
+                enhanced = enhancer.enhance(2.0)
+                
+                # OCR with config for medical bills
+                config = '--oem 3 --psm 6'
+                text = pytesseract.image_to_string(enhanced, config=config)
+                
+                return text
+                
+            except Exception as e:
+                print(f"Tesseract OCR error: {e}")
+        
+        return ""
     
     def _ocr_with_boxes(self, image: Image.Image) -> List[Dict[str, Any]]:
         """Get OCR results with bounding boxes"""
