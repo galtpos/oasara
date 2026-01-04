@@ -864,20 +864,52 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
           case 'add_journey_note':
           case 'share_journey':
           case 'invite_collaborator':
+            assistantMessage += `\n\nThis feature is coming soon!`;
+            break;
+
           case 'draft_facility_message':
             {
               const { facility_id, procedure, include_medical_history = true } = toolInput;
               
+              // Check if facility_id is a number (1, 2, 3) referencing shortlist position
+              let resolvedFacilityId = facility_id;
+              const numericRef = parseInt(facility_id, 10);
+              if (!isNaN(numericRef) && context.shortlist && context.shortlist.length >= numericRef && numericRef > 0) {
+                resolvedFacilityId = context.shortlist[numericRef - 1].id;
+                console.log(`Resolved shortlist reference ${numericRef} to facility ID: ${resolvedFacilityId}`);
+              }
+              
+              // Also check if it's a partial name match from shortlist
+              if (context.shortlist && context.shortlist.length > 0) {
+                const shortlistMatch = context.shortlist.find(s => 
+                  s.name.toLowerCase().includes(facility_id.toLowerCase()) ||
+                  facility_id.toLowerCase().includes(s.name.split(' ')[0].toLowerCase())
+                );
+                if (shortlistMatch) {
+                  resolvedFacilityId = shortlistMatch.id;
+                  console.log(`Matched shortlist facility by name: ${shortlistMatch.name}`);
+                }
+              }
+              
               // Get facility details
               const { data: facility } = await supabase
                 .from('facilities')
-                .select('name, city, country, website, email')
-                .or(`id.eq.${facility_id},name.ilike.%${facility_id}%`)
+                .select('name, city, country, website, contact_email')
+                .or(`id.eq.${resolvedFacilityId},name.ilike.%${resolvedFacilityId}%`)
                 .limit(1)
                 .single();
 
               if (!facility) {
-                assistantMessage += `\n\nI couldn't find that facility. Please check the facility name.`;
+                // If still not found, list the shortlist options
+                if (context.shortlist && context.shortlist.length > 0) {
+                  assistantMessage += `\n\nI couldn't find that facility. Your shortlisted facilities are:\n`;
+                  context.shortlist.forEach((s, i) => {
+                    assistantMessage += `${i + 1}. ${s.name} - ${s.location}\n`;
+                  });
+                  assistantMessage += `\nPlease tell me which one (1, 2, 3, etc.) or use the facility name.`;
+                } else {
+                  assistantMessage += `\n\nI couldn't find that facility. Please check the facility name or add some facilities to your shortlist first.`;
+                }
                 break;
               }
 
@@ -925,16 +957,41 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
 
               const email = user_email || context.userEmail;
               
+              // Check if facility_id is a number referencing shortlist position
+              let resolvedFacilityId = facility_id;
+              const numericRef = parseInt(facility_id, 10);
+              if (!isNaN(numericRef) && context.shortlist && context.shortlist.length >= numericRef && numericRef > 0) {
+                resolvedFacilityId = context.shortlist[numericRef - 1].id;
+              }
+              
+              // Also check shortlist for name match
+              if (context.shortlist && context.shortlist.length > 0) {
+                const shortlistMatch = context.shortlist.find(s => 
+                  s.name.toLowerCase().includes(facility_id.toLowerCase()) ||
+                  facility_id.toLowerCase().includes(s.name.split(' ')[0].toLowerCase())
+                );
+                if (shortlistMatch) {
+                  resolvedFacilityId = shortlistMatch.id;
+                }
+              }
+              
               // Get facility details
               const { data: facility } = await supabase
                 .from('facilities')
-                .select('name, email, website')
-                .or(`id.eq.${facility_id},name.ilike.%${facility_id}%`)
+                .select('name, contact_email, website')
+                .or(`id.eq.${resolvedFacilityId},name.ilike.%${resolvedFacilityId}%`)
                 .limit(1)
                 .single();
 
               if (!facility) {
-                assistantMessage += `\n\nI couldn't find that facility.`;
+                if (context.shortlist && context.shortlist.length > 0) {
+                  assistantMessage += `\n\nI couldn't find that facility. Your shortlisted facilities are:\n`;
+                  context.shortlist.forEach((s, i) => {
+                    assistantMessage += `${i + 1}. ${s.name} - ${s.location}\n`;
+                  });
+                } else {
+                  assistantMessage += `\n\nI couldn't find that facility. Please try again with a facility name.`;
+                }
                 break;
               }
 

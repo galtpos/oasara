@@ -264,7 +264,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
         headers['Authorization'] = `Bearer ${session.access_token}`;
       }
 
-      const response = await fetch('/.netlify/functions/journey-chat', {
+      const response = await fetch('/.netlify/functions/unified-chat', {
         method: 'POST',
         headers,
         body: JSON.stringify({
@@ -355,7 +355,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
         headers['Authorization'] = `Bearer ${session.access_token}`;
       }
 
-      const response = await fetch('/.netlify/functions/journey-chat', {
+      const response = await fetch('/.netlify/functions/unified-chat', {
         method: 'POST',
         headers,
         body: JSON.stringify({
