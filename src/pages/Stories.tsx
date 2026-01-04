@@ -21,6 +21,7 @@ interface Story {
   };
   share_count: number;
   images: string[];
+  video_url?: string;
   published_at: string;
 }
 
@@ -106,6 +107,12 @@ const Icons = {
     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
     </svg>
+  ),
+  video: (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 010 .656l-5.603 3.113a.375.375 0 01-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112z" />
+    </svg>
   )
 };
 
@@ -165,14 +172,21 @@ const StoryCard: React.FC<{ story: Story; featured?: boolean }> = ({ story, feat
           )}
         </div>
         
-        {/* Image (if present) */}
+        {/* Image/Video thumbnail (if present) */}
         {story.images?.[0] && (
-          <div className="h-48 overflow-hidden">
+          <div className="h-48 overflow-hidden relative">
             <img 
               src={story.images[0]} 
               alt={story.title}
               className="w-full h-full object-cover"
             />
+            {/* Video badge */}
+            {story.video_url && (
+              <div className="absolute top-3 right-3 px-2 py-1 bg-black/70 text-white rounded-md flex items-center gap-1.5 text-xs font-medium">
+                {Icons.video}
+                Video
+              </div>
+            )}
           </div>
         )}
         

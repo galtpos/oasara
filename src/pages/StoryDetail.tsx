@@ -368,8 +368,28 @@ const StoryDetail: React.FC = () => {
           </motion.div>
         )}
         
+        {/* Video Player */}
+        {story.video_url && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.25 }}
+            className="mb-8"
+          >
+            <video 
+              controls
+              preload="metadata"
+              poster={story.images?.[0]}
+              className="w-full rounded-xl shadow-lg"
+            >
+              <source src={story.video_url} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </motion.div>
+        )}
+        
         {/* Images */}
-        {story.images.length > 0 && (
+        {story.images.length > 0 && !story.video_url && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
