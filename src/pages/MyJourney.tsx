@@ -50,11 +50,35 @@ const MyJourney: React.FC = () => {
       console.log('[MyJourney] Starting loadData...');
 
       // Use getSession (cached, instant) not getUser (network call)
-      const { data: { session }, error: sessionError } = await withTimeout(
-        supabase.auth.getSession(),
-        8000,
-        'Session check timed out'
-      );
+      let session: any = null;
+      let sessionError: any = null;
+      
+      try {
+        const result = await withTimeout(
+          supabase.auth.getSession(),
+          8000,
+          'Session check timed out'
+        );
+        session = result.data?.session;
+        sessionError = result.error;
+      } catch (timeoutErr: any) {
+        console.error('[MyJourney] Session check timeout - likely network/Supabase issue:', timeoutErr);
+        // Try one more time with refreshSession which forces a network call
+        try {
+          const refreshResult = await withTimeout(
+            supabase.auth.refreshSession(),
+            5000,
+            'Session refresh timed out'
+          );
+          session = refreshResult.data?.session;
+          sessionError = refreshResult.error;
+        } catch (refreshErr) {
+          console.error('[MyJourney] Session refresh also failed:', refreshErr);
+          setError('Unable to verify your session. Please sign in again.');
+          setLoading(false);
+          return;
+        }
+      }
 
       console.log('[MyJourney] Session result:', session ? 'has session' : 'no session', sessionError ? `error: ${sessionError.message}` : '');
 
