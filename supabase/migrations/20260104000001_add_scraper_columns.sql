@@ -21,3 +21,4 @@ COMMENT ON COLUMN stories.source_url IS 'Original URL where story was scraped fr
 COMMENT ON COLUMN stories.media_urls IS 'Array of media URLs (images, videos) associated with the story';
 COMMENT ON COLUMN stories.nas_video_path IS 'Local NAS path to video file';
 
+

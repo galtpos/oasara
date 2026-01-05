@@ -240,8 +240,9 @@ const Stories: React.FC = () => {
     featured: Story[];
     trending: Story[];
     latest: Story[];
+    withVideo: Story[];
     stats?: { totalStories: number; totalMeToo: number; totalShares: number };
-  }>({ featured: [], trending: [], latest: [] });
+  }>({ featured: [], trending: [], latest: [], withVideo: [] });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'all' | 'horror' | 'success' | 'comparison'>('all');
   const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
@@ -265,6 +266,7 @@ const Stories: React.FC = () => {
         featured: Array.isArray(data.featured) ? data.featured : [],
         trending: Array.isArray(data.trending) ? data.trending : [],
         latest: Array.isArray(data.latest) ? data.latest : [],
+        withVideo: Array.isArray(data.withVideo) ? data.withVideo : [],
         stats: data.stats
       });
     } catch (error) {
@@ -274,7 +276,7 @@ const Stories: React.FC = () => {
     }
   };
 
-  const filteredStories = [...stories.featured, ...stories.trending, ...stories.latest]
+  const filteredStories = [...stories.featured, ...stories.trending, ...stories.latest, ...stories.withVideo]
     .filter((story, index, arr) => arr.findIndex(s => s.id === story.id) === index)
     .filter(story => activeTab === 'all' || story.story_type === activeTab)
     .filter(story => {

@@ -353,12 +353,22 @@ async function getFeaturedStories() {
     .order('published_at', { ascending: false })
     .limit(100);
 
+  // Get stories with videos specifically (so they don't get pushed out by text-only stories)
+  const { data: withVideo, error: videoError } = await supabase
+    .from('stories')
+    .select('id, slug, title, summary, story_type, procedure, display_name, verification_level, reaction_counts, share_count, images, video_url, published_at, source_platform')
+    .in('status', ['published', 'featured'])
+    .not('video_url', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(100);
+
   return {
     statusCode: 200,
     body: JSON.stringify({
       featured: featured || [],
       trending: trending || [],
       latest: latest || [],
+      withVideo: withVideo || [],
       stats: {
         totalStories: totalStories || 0,
         totalMeToo,

@@ -8,3 +8,4 @@ CREATE POLICY "Anyone can create anonymous stories"
   ON stories FOR INSERT
   WITH CHECK (author_id IS NULL);
 
+
