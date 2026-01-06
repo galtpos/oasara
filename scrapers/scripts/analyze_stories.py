@@ -91,8 +91,8 @@ def analyze_story(story: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def flag_story(story_id: str, status: str = 'rejected') -> bool:
-    """Update story status to flagged/rejected"""
+def flag_story(story_id: str, status: str = 'hidden') -> bool:
+    """Update story status to hidden (removes from public view)"""
     try:
         supabase.table('stories').update({
             'status': status,
