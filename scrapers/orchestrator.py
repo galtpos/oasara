@@ -112,7 +112,16 @@ class Orchestrator:
                 )
                 saved = scraper.extract_and_save(videos) if videos else 0
                 posts = videos
-                
+
+            elif scraper_name == 'news':
+                from news.scraper import NewsScraper
+                scraper = NewsScraper()
+                articles = scraper.run_full_scrape(
+                    articles_per_query=kwargs.get('limit', 5)
+                )
+                saved = scraper.extract_and_save(articles) if articles else 0
+                posts = articles
+
             else:
                 self.log(f"Unknown scraper: {scraper_name}", level='ERROR')
                 return None
@@ -152,7 +161,7 @@ class Orchestrator:
         Run all scrapers (or specified subset)
         """
         if scrapers is None:
-            scrapers = ['reddit', 'twitter', 'gofundme', 'youtube']
+            scrapers = ['reddit', 'twitter', 'gofundme', 'youtube', 'news']
         
         self.log("=" * 60)
         self.log("OASARA DATA LIBERATION - PHASE 3")
@@ -321,7 +330,7 @@ Examples:
     )
     
     parser.add_argument('--all', action='store_true', help='Run all scrapers')
-    parser.add_argument('--scrapers', nargs='+', choices=['reddit', 'twitter', 'gofundme', 'youtube'],
+    parser.add_argument('--scrapers', nargs='+', choices=['reddit', 'twitter', 'gofundme', 'youtube', 'news'],
                         help='Specific scrapers to run')
     parser.add_argument('--limit', type=int, default=50, help='Posts per source (default: 50)')
     parser.add_argument('--ocr', action='store_true', help='Process pending OCR tasks')
@@ -356,5 +365,12 @@ Examples:
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
+
 
 
