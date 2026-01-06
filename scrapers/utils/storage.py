@@ -22,7 +22,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-load_dotenv()
+load_dotenv(override=True)
 
 # NAS Configuration
 NAS_MOUNT_PATH = os.getenv('NAS_MOUNT_PATH', '/mnt/nas/oasara')

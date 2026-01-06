@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.storage import get_storage
 from utils.ai_extractor import extract_story_data
 
-load_dotenv()
+load_dotenv(override=True)
 
 # News sources and their search/RSS endpoints
 NEWS_SOURCES = {

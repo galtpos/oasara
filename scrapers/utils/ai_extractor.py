@@ -26,7 +26,7 @@ from typing import Dict, Any, Optional, List
 from anthropic import Anthropic
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 
