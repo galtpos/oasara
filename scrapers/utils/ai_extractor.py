@@ -1,7 +1,23 @@
 """
 AI-powered story extraction using Claude
 Extracts structured data from raw scraped content
-Includes relevance filtering to exclude non-healthcare content
+Includes relevance filtering based on OASARA Advisory Board criteria
+
+OASARA STORY CRITERIA (from Advisory Board):
+Mission: Help Americans EXIT the US healthcare system while maintaining sovereignty
+Core Value: "Exit the healthcare system. Keep your health data sovereign. Save 70-90% on care."
+
+We accept stories that:
+1. EXPOSE the broken US healthcare system (horror stories that motivate exit)
+2. DEMONSTRATE successful alternatives (medical tourism, direct-pay, etc.)
+3. COMPARE costs to show the savings possible (70-90% savings)
+4. EMPOWER readers to take action (not just complain)
+
+Advisory Board Values:
+- Julian Assange: Expose healthcare pricing corruption, systematic billing fraud
+- Naval Ravikant: Healthcare is 18% of GDP - the most captured industry
+- Roger Ver: Build the parallel economy, make their system obsolete
+- Ross Ulbricht: Build a better system outside of it
 """
 import os
 import json
@@ -14,73 +30,68 @@ load_dotenv()
 
 client = Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
 
-# Relevance classification prompt - runs BEFORE extraction
-# Covers ALL Oasara story categories
-RELEVANCE_PROMPT = """Classify whether this content is relevant to HEALTHCARE SOVEREIGNTY.
+# OASARA Advisory Board Story Acceptance Criteria
+# Based on mission: "Exit the healthcare system. Keep your health data sovereign. Save 70-90% on care."
+RELEVANCE_PROMPT = """You are the OASARA Story Review Board. Evaluate if this content supports our mission of HEALTHCARE SOVEREIGNTY.
 
-RELEVANT CATEGORIES (accept these):
+OUR MISSION: Help Americans exit the US healthcare system while maintaining sovereignty over health data, finances, and choices.
 
-1. MEDICAL BILLS & COSTS
-   - Hospital bills, ER bills, surgery costs
-   - Itemized bills, surprise billing, price gouging
-   - Out-of-pocket costs, deductibles, copays
-   - Ambulance bills, lab costs, radiology fees
+ACCEPT stories that:
 
-2. HEALTH INSURANCE PROBLEMS
-   - Claim denials, coverage disputes
-   - Prior authorization nightmares
-   - Insurance company horror stories
-   - Losing coverage, uninsured experiences
-   - ACA/Obamacare issues, marketplace problems
+1. HORROR STORIES (expose the broken system)
+   ✓ Shocking medical bills ($5k+) with specific amounts
+   ✓ Insurance claim denials with documented harm
+   ✓ Medical bankruptcy or severe financial hardship
+   ✓ Surprise billing / out-of-network traps
+   ✓ Prior authorization delays causing health damage
+   ✓ Hospital pricing corruption / chargemaster abuse
+   ✓ Ambulance bills that devastate families
+   → WHY: These stories motivate people to EXIT the system
 
-3. MEDICAL DEBT & BANKRUPTCY
-   - Medical collections, credit damage
-   - Healthcare-related bankruptcy
-   - Payment plans, hospital debt
+2. SUCCESS STORIES (prove alternatives work)
+   ✓ Medical tourism with specific savings (Mexico, Thailand, Costa Rica, etc.)
+   ✓ Dental work abroad with cost comparisons
+   ✓ Direct-pay / cash-pay success with transparent pricing
+   ✓ Self-pay negotiation victories
+   ✓ Alternative healthcare that worked
+   → WHY: These stories show the EXIT path works
 
-4. MEDICAL TOURISM & TREATMENT ABROAD
-   - Surgery in Mexico, Thailand, Costa Rica, etc.
-   - Dental work abroad, dental tourism
-   - Cosmetic surgery abroad
-   - Cost comparisons US vs. abroad
-   - Medical tourism success stories
+3. COMPARISON STORIES (quantify the savings)
+   ✓ US price vs. abroad price with actual numbers
+   ✓ Insurance vs. cash-pay cost analysis
+   ✓ Same procedure, different country, dramatic savings
+   → WHY: These stories prove 70-90% savings is real
 
-5. PRESCRIPTION DRUGS
-   - Drug prices, insulin costs
-   - Pharmacy costs, medication affordability
-   - Importing medications, Canadian pharmacies
+4. SYSTEMIC EXPOSÉS (reveal the corruption)
+   ✓ Hospital pricing transparency violations
+   ✓ Insurance company profit-over-patients decisions
+   ✓ PBM (pharmacy benefit manager) corruption
+   ✓ Healthcare lobbying and regulatory capture
+   → WHY: Understanding the enemy helps people exit
 
-6. DENTAL & VISION CARE
-   - Dental bills, dental insurance issues
-   - Vision care costs, LASIK, glasses
+REJECT stories that:
+✗ Generic complaints without specific details or amounts
+✗ Political healthcare debates without personal stories
+✗ Non-US healthcare systems (unless comparing to US)
+✗ Auto, home, pet, or life insurance issues
+✗ General personal finance unrelated to healthcare
+✗ Celebrity health news without systemic relevance
+✗ COVID vaccine debates (too politically charged)
+✗ Abortion debates (too politically charged)
+✗ Stories that just complain without actionable insight
 
-7. MENTAL HEALTH COSTS
-   - Therapy costs, psychiatry bills
-   - Mental health coverage issues
+QUALITY THRESHOLD:
+- Must have SPECIFIC DETAILS (dollar amounts, dates, procedures, locations)
+- Must be BELIEVABLE (not obviously fake or exaggerated)
+- Must be SHAREABLE (would someone forward this to a friend?)
+- Must support our message: "There IS an alternative to this broken system"
 
-8. SYSTEMIC HEALTHCARE ISSUES
-   - US healthcare system criticism
-   - Healthcare reform discussions
-   - Comparisons to other countries' systems
-   - Hospital pricing transparency
-
-NOT RELEVANT (reject these):
-- Auto insurance (car insurance, collision)
-- Home/property insurance
-- Pet insurance, veterinary bills
-- Life insurance
-- Travel insurance (unless medical coverage specifically)
-- Car accidents (unless discussing MEDICAL bills from accident)
-- Property damage claims
-- General financial advice unrelated to healthcare
-- Cryptocurrency, investing, stocks
-
-Content:
+Content to evaluate:
 ---
 {content}
 ---
 
-Respond with ONLY one word: RELEVANT, NOT_RELEVANT, or UNCERTAIN"""
+Respond with ONLY: ACCEPT, REJECT, or REVIEW_NEEDED (with brief reason)"""
 
 EXTRACTION_PROMPT = """You are an expert at extracting healthcare cost and experience data from social media posts and articles.
 
@@ -115,34 +126,47 @@ Respond with ONLY valid JSON, no markdown formatting."""
 
 def check_relevance(content: str) -> str:
     """
-    Check if content is relevant to healthcare sovereignty before full extraction.
-    Returns: 'RELEVANT', 'NOT_RELEVANT', or 'UNCERTAIN'
+    Check if content meets OASARA Advisory Board criteria for story acceptance.
+
+    Returns: 'ACCEPT', 'REJECT', or 'REVIEW_NEEDED'
+
+    Criteria (from Advisory Board):
+    - ACCEPT: Horror stories, success stories, comparisons, or systemic exposés
+    - REJECT: Off-topic, too political, no specific details, or non-actionable
+    - REVIEW_NEEDED: Borderline cases that need human review
     """
     try:
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=50,
+            max_tokens=100,
             messages=[
                 {
                     "role": "user",
-                    "content": RELEVANCE_PROMPT.format(content=content[:3000])
+                    "content": RELEVANCE_PROMPT.format(content=content[:4000])
                 }
             ]
         )
-        
+
         result = response.content[0].text.strip().upper()
-        
-        # Normalize response
-        if 'NOT_RELEVANT' in result or 'NOT RELEVANT' in result or 'NOTRELEVANT' in result:
-            return 'NOT_RELEVANT'
-        elif 'RELEVANT' in result or 'YES' in result:
-            return 'RELEVANT'
+
+        # Normalize response to our three categories
+        if 'REJECT' in result:
+            return 'REJECT'
+        elif 'ACCEPT' in result:
+            return 'ACCEPT'
+        elif 'REVIEW' in result:
+            return 'REVIEW_NEEDED'
+        # Legacy compatibility
+        elif 'NOT_RELEVANT' in result or 'NOT RELEVANT' in result:
+            return 'REJECT'
+        elif 'RELEVANT' in result:
+            return 'ACCEPT'
         else:
-            return 'UNCERTAIN'
-            
+            return 'REVIEW_NEEDED'
+
     except Exception as e:
         print(f"Relevance check error: {e}")
-        return 'UNCERTAIN'
+        return 'REVIEW_NEEDED'
 
 
 def extract_story_data(
@@ -165,19 +189,19 @@ def extract_story_data(
     Returns:
         Structured story data ready for database insertion
     """
-    # First, check if content is relevant to healthcare sovereignty
+    # First, check if content meets OASARA Advisory Board criteria
     if not skip_relevance_check:
-        relevance = check_relevance(content)
-        if relevance == 'NOT_RELEVANT':
+        decision = check_relevance(content)
+        if decision == 'REJECT':
             return {
-                'error': 'Content not relevant to healthcare sovereignty',
-                'relevance': relevance,
+                'error': 'Content does not meet OASARA story criteria',
+                'decision': decision,
                 'source': source,
                 'source_url': source_url,
                 'rejected': True
             }
-        elif relevance == 'UNCERTAIN':
-            print(f"  ⚠️ Uncertain relevance, proceeding with extraction...")
+        elif decision == 'REVIEW_NEEDED':
+            print(f"  ⚠️ Borderline content - proceeding with extraction for human review...")
     
     try:
         response = client.messages.create(
