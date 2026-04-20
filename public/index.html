@@ -32,6 +32,28 @@
     <title>OASARA - Medical Tourism Marketplace</title>
     <!-- Umami analytics (self-hosted on Mac Studio, privacy-first, zero cookies) -->
     <script async defer src="https://aarons-mac-studio.tail2913ba.ts.net/script.js" data-website-id="82cf7d97-f88a-4d44-892b-f51ac4bf74f2"></script>
+    <!-- JSON-LD structured data — Organization + WebSite -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://oasara.com/#org",
+            "name": "OASARA",
+            "url": "https://oasara.com",
+            "description": "Privacy-preserving medical tourism marketplace connecting seekers with 518 JCI-certified facilities globally."
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://oasara.com/#website",
+            "url": "https://oasara.com",
+            "name": "OASARA - Medical Tourism Marketplace",
+            "publisher": {"@id": "https://oasara.com/#org"}
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
