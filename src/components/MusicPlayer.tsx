@@ -2970,17 +2970,19 @@ function SongCommentSection({
   const [posting, setPosting] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
 
-  // Load comments
+  // Load comments. We don't join a profiles table here because the ecosystem
+  // Supabase project doesn't (yet) have a profiles table with display_name +
+  // avatar_url + an FK from song_comments.user_id. Display name falls back
+  // to a short hash of user_id; the avatar bubble already renders the first
+  // letter as a fallback. Wire a real profiles table later if we want
+  // human-readable identities cross-site.
   const loadComments = useCallback(async () => {
     const sb = getMusicSupabase();
     if (!sb) { setLoading(false); return; }
 
     const { data } = await sb
       .from('song_comments')
-      .select(`
-        id, user_id, song_id, text, parent_id, created_at,
-        ecosystem_profiles!inner(display_name, avatar_url)
-      `)
+      .select('id, user_id, song_id, text, parent_id, created_at')
       .eq('song_id', songId)
       .eq('is_deleted', false)
       .order('created_at', { ascending: true });
@@ -2988,8 +2990,8 @@ function SongCommentSection({
     if (data) {
       setComments(data.map((c: any) => ({
         ...c,
-        display_name: c.ecosystem_profiles?.display_name || 'Anonymous',
-        avatar_url: c.ecosystem_profiles?.avatar_url || null,
+        display_name: c.user_id ? `User-${String(c.user_id).slice(0, 6)}` : 'Anonymous',
+        avatar_url: null,
       })));
     }
     setLoading(false);
