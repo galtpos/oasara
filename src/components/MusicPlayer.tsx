@@ -2650,6 +2650,141 @@ function useMusicAuth() {
   return user;
 }
 
+// Magic-link sign-in to the ECOSYSTEM Supabase project. Each site has its
+// own per-site Supabase auth (TADS, OwnNothing, etc.), but the music
+// player's ratings + comments live in the shared ecosystem project so
+// voting/commenting from any site is collectively saved + visible across
+// the ecosystem. This sign-in lands the user as authenticated on that
+// shared project regardless of which site they're on.
+async function signInToEcosystem(email: string): Promise<{ ok: boolean; error?: string }> {
+  const sb = getMusicSupabase();
+  if (!sb) return { ok: false, error: 'auth client not ready' };
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { ok: false, error: 'enter a valid email' };
+  }
+  const { error } = await sb.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: typeof window !== 'undefined' ? window.location.href : undefined,
+    },
+  });
+  if (error) return { ok: false, error: error.message || String(error) };
+  return { ok: true };
+}
+
+async function signOutFromEcosystem(): Promise<void> {
+  const sb = getMusicSupabase();
+  if (!sb) return;
+  await sb.auth.signOut();
+}
+
+// Inline prompt that appears when an unauthenticated user tries to vote or
+// comment. Sends a magic link to the ecosystem project.
+function MusicSignInPrompt({ brand, onClose }: { brand: BrandConfig; onClose?: () => void }) {
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const submit = async () => {
+    setStatus('sending');
+    const r = await signInToEcosystem(email);
+    if (r.ok) {
+      setStatus('sent');
+    } else {
+      setStatus('error');
+      setErrorMsg(r.error || 'sign-in failed');
+    }
+  };
+
+  return (
+    <div
+      style={{
+        backgroundColor: brand.surfaceColor,
+        border: `1px solid ${brand.primaryColor}66`,
+        borderRadius: 8,
+        padding: 12,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8,
+        maxWidth: 420,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div style={{ fontSize: 13, color: brand.textColor, fontWeight: 600 }}>
+        Sign in to vote and comment
+      </div>
+      <div style={{ fontSize: 11, color: brand.textColor + 'AA' }}>
+        Ratings and comments are shared across every site in the ecosystem.
+        We'll email a one-tap login link.
+      </div>
+      {status === 'sent' ? (
+        <div style={{ fontSize: 12, color: brand.primaryColor }}>
+          Check {email} for the login link. After clicking it, you'll come
+          back here logged in.
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
+              style={{
+                flex: 1,
+                padding: '6px 10px',
+                fontSize: 13,
+                border: `1px solid ${brand.textColor + '33'}`,
+                borderRadius: 4,
+                backgroundColor: brand.backgroundColor,
+                color: brand.textColor,
+              }}
+              disabled={status === 'sending'}
+            />
+            <button
+              onClick={submit}
+              disabled={status === 'sending'}
+              style={{
+                padding: '6px 12px',
+                fontSize: 13,
+                fontWeight: 700,
+                border: 'none',
+                borderRadius: 4,
+                backgroundColor: brand.primaryColor,
+                color: brand.backgroundColor,
+                cursor: status === 'sending' ? 'wait' : 'pointer',
+              }}
+            >
+              {status === 'sending' ? 'Sending…' : 'Send link'}
+            </button>
+          </div>
+          {status === 'error' && (
+            <div style={{ fontSize: 11, color: '#ff6b6b' }}>{errorMsg}</div>
+          )}
+        </>
+      )}
+      {onClose && (
+        <button
+          onClick={onClose}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: brand.textColor + '66',
+            fontSize: 11,
+            cursor: 'pointer',
+            alignSelf: 'flex-end',
+            padding: 0,
+          }}
+        >
+          close
+        </button>
+      )}
+    </div>
+  );
+}
+
 // ─── Star Rating Icons ─────────────────────────────────────────────────────
 
 function IconStar({ size = 20, filled = false, color = '#D4AF37' }: { size?: number; filled?: boolean; color?: string }) {
@@ -2696,6 +2831,7 @@ function StarRating({
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
 
   // Load ratings
   useEffect(() => {
@@ -2761,10 +2897,11 @@ function StarRating({
   const displayRating = hoverRating || userRating || 0;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 4 : 8 }}>
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: compact ? 4 : 8, flexWrap: 'wrap', position: 'relative' }}>
       <div
-        style={{ display: 'flex', gap: 2, cursor: user ? 'pointer' : 'default', opacity: saving ? 0.5 : 1 }}
+        style={{ display: 'flex', gap: 2, cursor: 'pointer', opacity: saving ? 0.5 : 1 }}
         onMouseLeave={() => setHoverRating(0)}
+        title={user ? 'Click a star to rate' : 'Sign in to vote'}
       >
         {[1, 2, 3, 4, 5].map((star) => (
           <span
@@ -2772,7 +2909,11 @@ function StarRating({
             onMouseEnter={() => user && setHoverRating(star)}
             onClick={(e) => {
               e.stopPropagation();
-              if (user) handleRate(star);
+              if (user) {
+                handleRate(star);
+              } else {
+                setShowSignIn(true);
+              }
             }}
             style={{ display: 'inline-flex' }}
           >
@@ -2784,6 +2925,11 @@ function StarRating({
           </span>
         ))}
       </div>
+      {showSignIn && !user && (
+        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 10 }}>
+          <MusicSignInPrompt brand={brand} onClose={() => setShowSignIn(false)} />
+        </div>
+      )}
       {!compact && totalRatings > 0 && (
         <span style={{ fontSize: 12, color: brand.textColor + '88' }}>
           {avgRating.toFixed(1)} ({totalRatings})
