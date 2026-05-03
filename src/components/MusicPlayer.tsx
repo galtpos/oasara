@@ -1,0 +1,3188 @@
+/**
+ * Shared Music Player Component
+ * Aaron Day Ecosystem - Works in all 7 Vite+React sites + Next.js
+ *
+ * Single-file, zero external dependencies beyond React.
+ * All styles inline for cross-site portability.
+ *
+ * Features:
+ *   - MusicProvider: context with shuffle, repeat, radio station mode
+ *   - MusicBar: persistent bottom bar with glow, animated bars, marquee, seek dot
+ *   - MusicPage: track grid with radio card, channel card, hover effects
+ *   - MusicVideoChannel: cinematic auto-playing video page with interstitials
+ *   - Keyboard shortcuts: space, arrows, M
+ *
+ * Usage:
+ *   <MusicProvider brandConfig={brandConfigs.aarondayshow} catalog={catalogData}>
+ *     <App />
+ *     <MusicBar />
+ *   </MusicProvider>
+ *
+ *   // On your /music route:
+ *   <MusicPage />
+ *
+ *   // On your /music/channel route:
+ *   <MusicVideoChannel />
+ */
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+export interface Song {
+  id: string;
+  title: string;
+  artist: string;
+  audio_url: string;
+  image_url: string | null;
+  video_url: string | null;
+  youtube_url: string | null;
+  rumble_url: string | null;
+  duration: string;
+  tags: string[];
+  suno_url: string | null;
+}
+
+export interface BrandConfig {
+  siteName: string;
+  siteKey: string;
+  primaryColor: string;
+  accentColor: string;
+  backgroundColor: string;
+  surfaceColor: string;
+  textColor: string;
+  headingFont: string;
+  bodyFont: string;
+}
+
+interface Playlist {
+  name: string;
+  song_ids: string[];
+}
+
+interface Catalog {
+  songs: Song[];
+  playlists: Record<string, Playlist>;
+  youtube_playlist: { id: string; name: string };
+}
+
+export type PlayMode = 'normal' | 'shuffle' | 'radio';
+export type RepeatMode = 'off' | 'all' | 'one';
+
+// ─── Brand Presets ───────────────────────────────────────────────────────────
+
+export const brandConfigs: Record<string, BrandConfig> = {
+  aarondayshow: {
+    siteName: 'The Aaron Day Show',
+    siteKey: 'aarondayshow',
+    primaryColor: '#E8B923',
+    accentColor: '#FF57B2',
+    backgroundColor: '#0A0A0A',
+    surfaceColor: '#1A1A2E',
+    textColor: '#FFFFFF',
+    headingFont: 'Montserrat, sans-serif',
+    bodyFont: 'Inter, sans-serif',
+  },
+  day2026: {
+    siteName: 'Day 2026',
+    siteKey: 'day2026',
+    primaryColor: '#D4AF37',
+    accentColor: '#FAF3E0',
+    backgroundColor: '#0A0A0A',
+    surfaceColor: '#1A1A1A',
+    textColor: '#FAF3E0',
+    headingFont: 'Playfair Display, serif',
+    bodyFont: 'Inter, sans-serif',
+  },
+  ownnothing: {
+    siteName: 'Own Nothing',
+    siteKey: 'ownnothing',
+    primaryColor: '#8B5CF6',
+    accentColor: '#EC4899',
+    backgroundColor: '#0F0F1A',
+    surfaceColor: '#1A1A2E',
+    textColor: '#FFFFFF',
+    headingFont: 'Archivo Black, sans-serif',
+    bodyFont: 'Work Sans, sans-serif',
+  },
+  technocracyatlas: {
+    siteName: 'Technocracy Atlas',
+    siteKey: 'technocracyatlas',
+    primaryColor: '#00CC6F',
+    accentColor: '#00D4FF',
+    backgroundColor: '#000000',
+    surfaceColor: '#1A1A1A',
+    textColor: '#FFFFFF',
+    headingFont: 'Bebas Neue, sans-serif',
+    bodyFont: 'Share Tech Mono, monospace',
+  },
+  freedomforge: {
+    siteName: 'Freedom Forge',
+    siteKey: 'freedomforge',
+    primaryColor: '#FF6B35',
+    accentColor: '#004E89',
+    backgroundColor: '#0D1117',
+    surfaceColor: '#161B22',
+    textColor: '#FFFFFF',
+    headingFont: 'Poppins, sans-serif',
+    bodyFont: 'Inter, sans-serif',
+  },
+  daylightfreedom: {
+    siteName: 'Daylight Freedom',
+    siteKey: 'daylightfreedom',
+    primaryColor: '#FFD93D',
+    accentColor: '#6BCB77',
+    backgroundColor: '#0A0A0A',
+    surfaceColor: '#1A1A2E',
+    textColor: '#FFFFFF',
+    headingFont: 'Playfair Display, serif',
+    bodyFont: 'Source Sans Pro, sans-serif',
+  },
+  oasara: {
+    siteName: 'OASARA',
+    siteKey: 'oasara',
+    primaryColor: '#4ECDC4',
+    accentColor: '#45B7D1',
+    backgroundColor: '#1A1A2E',
+    surfaceColor: '#2D2D44',
+    textColor: '#FFFFFF',
+    headingFont: 'Nunito, sans-serif',
+    bodyFont: 'Open Sans, sans-serif',
+  },
+};
+
+// ─── Station Names ──────────────────────────────────────────────────────────
+
+const STATION_NAMES: Record<string, string> = {
+  aarondayshow: 'The Aaron Day Show Radio',
+  day2026: 'Day 2026 Radio',
+  ownnothing: 'Own Nothing Radio',
+  technocracyatlas: 'Atlas Radio',
+  freedomforge: 'Freedom Forge Radio',
+  daylightfreedom: 'Daylight Radio',
+  oasara: 'OASARA Radio',
+};
+
+// ─── CSS Keyframes (injected once) ──────────────────────────────────────────
+
+let stylesInjected = false;
+
+function injectGlobalStyles() {
+  if (stylesInjected || typeof document === 'undefined') return;
+  stylesInjected = true;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes admp-bar1 {
+      0%, 100% { height: 30%; }
+      50% { height: 100%; }
+    }
+    @keyframes admp-bar2 {
+      0%, 100% { height: 60%; }
+      50% { height: 20%; }
+    }
+    @keyframes admp-bar3 {
+      0%, 100% { height: 45%; }
+      50% { height: 90%; }
+    }
+    @keyframes admp-glow-pulse {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 0.5; }
+    }
+    @keyframes admp-marquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-100%); }
+    }
+    @keyframes admp-radio-wave {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.8); }
+    }
+    @keyframes admp-countdown-ring {
+      0% { stroke-dashoffset: 0; }
+      100% { stroke-dashoffset: 283; }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+// ─── Context ─────────────────────────────────────────────────────────────────
+
+interface MusicContextValue {
+  brand: BrandConfig;
+  songs: Song[];
+  featuredSongs: Song[];
+  allSongs: Song[];
+  currentSong: Song | null;
+  currentIndex: number;
+  isPlaying: boolean;
+  volume: number;
+  currentTime: number;
+  duration: number;
+  playMode: PlayMode;
+  repeatMode: RepeatMode;
+  stationName: string;
+  play: (song?: Song) => void;
+  pause: () => void;
+  toggle: () => void;
+  next: () => void;
+  prev: () => void;
+  seek: (time: number) => void;
+  setVolume: (v: number) => void;
+  playSongById: (id: string) => void;
+  setPlayMode: (mode: PlayMode) => void;
+  setRepeatMode: (mode: RepeatMode) => void;
+  toggleShuffle: () => void;
+  cycleRepeat: () => void;
+  startRadio: () => void;
+  stopRadio: () => void;
+}
+
+const MusicContext = createContext<MusicContextValue | null>(null);
+
+function useMusicContext(): MusicContextValue {
+  const ctx = useContext(MusicContext);
+  if (!ctx) throw new Error('useMusicContext must be used within <MusicProvider>');
+  return ctx;
+}
+
+// ─── Storage helpers ─────────────────────────────────────────────────────────
+
+const STORAGE_KEY = 'aaronday-music-player';
+
+function saveState(songId: string, time: number) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ songId, time, ts: Date.now() }));
+  } catch {}
+}
+
+function loadState(): { songId: string; time: number } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (Date.now() - data.ts > 86400000) return null;
+    return { songId: data.songId, time: data.time };
+  } catch {
+    return null;
+  }
+}
+
+// ─── Weighted shuffle for radio ─────────────────────────────────────────────
+
+function weightedShuffle(songs: Song[], featuredIds: Set<string>, lastPlayedId?: string): Song[] {
+  // Build weighted pool: featured songs appear 3x
+  const pool: Song[] = [];
+  for (const song of songs) {
+    const weight = featuredIds.has(song.id) ? 3 : 1;
+    for (let i = 0; i < weight; i++) pool.push(song);
+  }
+  // Fisher-Yates on the pool, then deduplicate consecutive
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  // Deduplicate: no same song twice in a row
+  const result: Song[] = [];
+  const seen = new Set<string>();
+  for (const song of pool) {
+    if (seen.has(song.id)) continue;
+    if (result.length > 0 && result[result.length - 1].id === song.id) continue;
+    if (result.length === 0 && song.id === lastPlayedId) continue;
+    result.push(song);
+    seen.add(song.id);
+  }
+  return result;
+}
+
+// ─── Provider ────────────────────────────────────────────────────────────────
+
+interface MusicProviderProps {
+  brandConfig: BrandConfig;
+  catalog: Catalog;
+  children: React.ReactNode;
+}
+
+export function MusicProvider({ brandConfig, catalog, children }: MusicProviderProps) {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const consecutiveErrorsRef = useRef(0);
+
+  useEffect(() => { injectGlobalStyles(); }, []);
+
+  // Filter unplayable entries (missing/empty audio_url) — without this a stale
+  // catalog entry whose URL is null cascades through the catalog via onError.
+  const allSongs = useMemo(
+    () => catalog.songs.filter((s) => typeof s.audio_url === 'string' && s.audio_url.length > 0),
+    [catalog],
+  );
+
+  const featuredSongs = useMemo(() => {
+    const pl = catalog.playlists[brandConfig.siteKey];
+    if (!pl || pl.song_ids.length === 0) return allSongs;
+    return pl.song_ids
+      .map((id) => allSongs.find((s) => s.id === id))
+      .filter((s): s is Song => s !== undefined);
+  }, [catalog, brandConfig.siteKey, allSongs]);
+
+  const featuredIds = useMemo(() => new Set(featuredSongs.map((s) => s.id)), [featuredSongs]);
+
+  const songs = featuredSongs.length > 0 ? featuredSongs : allSongs;
+  const stationName = STATION_NAMES[brandConfig.siteKey] || `${brandConfig.siteName} Radio`;
+
+  const saved = useMemo(() => loadState(), []);
+  const initialIndex = saved ? Math.max(0, songs.findIndex((s) => s.id === saved.songId)) : 0;
+
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolumeState] = useState(0.7);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [playMode, setPlayMode] = useState<PlayMode>('normal');
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
+  const [radioQueue, setRadioQueue] = useState<Song[]>([]);
+  const [radioIndex, setRadioIndex] = useState(0);
+
+  const currentSong = playMode === 'radio'
+    ? (radioQueue[radioIndex] ?? songs[currentIndex] ?? null)
+    : (songs[currentIndex] ?? null);
+
+  // Create audio element once
+  useEffect(() => {
+    const audio = new Audio();
+    audio.preload = 'metadata';
+    audio.volume = 0.7;
+    audioRef.current = audio;
+
+    const onTime = () => setCurrentTime(audio.currentTime);
+    const onDuration = () => setDuration(audio.duration || 0);
+    const onCanPlay = () => { consecutiveErrorsRef.current = 0; };
+    const onEnded = () => {
+      // Handled by advanceTrack
+      advanceTrackRef.current();
+    };
+    const onError = () => {
+      consecutiveErrorsRef.current += 1;
+      if (consecutiveErrorsRef.current >= 3) {
+        // Stop after 3 consecutive load failures so a stretch of bad URLs
+        // does not cascade through the entire catalog.
+        console.warn('Audio: 3 consecutive load errors, stopping playback');
+        setIsPlaying(false);
+        consecutiveErrorsRef.current = 0;
+        return;
+      }
+      console.warn('Audio load error, skipping track');
+      advanceTrackRef.current();
+    };
+
+    audio.addEventListener('timeupdate', onTime);
+    audio.addEventListener('loadedmetadata', onDuration);
+    audio.addEventListener('canplay', onCanPlay);
+    audio.addEventListener('ended', onEnded);
+    audio.addEventListener('error', onError);
+
+    return () => {
+      audio.removeEventListener('timeupdate', onTime);
+      audio.removeEventListener('loadedmetadata', onDuration);
+      audio.removeEventListener('canplay', onCanPlay);
+      audio.removeEventListener('ended', onEnded);
+      audio.removeEventListener('error', onError);
+      audio.pause();
+      audio.src = '';
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Advance track logic (respects repeat/shuffle/radio)
+  const advanceTrackRef = useRef<() => void>(() => {});
+
+  advanceTrackRef.current = () => {
+    if (repeatMode === 'one') {
+      const audio = audioRef.current;
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
+      return;
+    }
+
+    if (playMode === 'radio') {
+      const nextIdx = radioIndex + 1;
+      if (nextIdx >= radioQueue.length) {
+        // Reshuffle
+        const newQueue = weightedShuffle(allSongs, featuredIds, radioQueue[radioIndex]?.id);
+        setRadioQueue(newQueue);
+        setRadioIndex(0);
+      } else {
+        setRadioIndex(nextIdx);
+      }
+      return;
+    }
+
+    if (playMode === 'shuffle') {
+      // Random next, different from current
+      let nextIdx: number;
+      if (songs.length <= 1) {
+        nextIdx = 0;
+      } else {
+        do {
+          nextIdx = Math.floor(Math.random() * songs.length);
+        } while (nextIdx === currentIndex && songs.length > 1);
+      }
+      setCurrentIndex(nextIdx);
+      return;
+    }
+
+    // Normal mode
+    const nextIdx = currentIndex + 1;
+    if (nextIdx >= songs.length) {
+      if (repeatMode === 'all') {
+        setCurrentIndex(0);
+      } else {
+        setCurrentIndex(0);
+        setIsPlaying(false);
+      }
+    } else {
+      setCurrentIndex(nextIdx);
+    }
+  };
+
+  // Determine the actual audio source song
+  const audioSourceSong = playMode === 'radio'
+    ? radioQueue[radioIndex]
+    : songs[currentIndex];
+
+  // Update audio source when song changes
+  const prevSongIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    const song = audioSourceSong;
+    if (!audio || !song) return;
+    if (song.id === prevSongIdRef.current && audio.src) return;
+
+    prevSongIdRef.current = song.id;
+    const wasPlaying = isPlaying;
+    audio.src = song.audio_url;
+    audio.load();
+
+    if (wasPlaying) {
+      audio.play().catch(() => {});
+    }
+
+    if (saved && song.id === saved.songId && currentTime === 0) {
+      audio.currentTime = saved.time;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioSourceSong?.id]);
+
+  // Persist state periodically
+  useEffect(() => {
+    const song = audioSourceSong;
+    if (!song) return;
+    const interval = setInterval(() => {
+      saveState(song.id, audioRef.current?.currentTime ?? 0);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [audioSourceSong]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      // Don't capture when typing in inputs
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return;
+
+      switch (e.key) {
+        case ' ':
+          e.preventDefault();
+          if (isPlaying) {
+            audioRef.current?.pause();
+            setIsPlaying(false);
+          } else {
+            audioRef.current?.play().catch(() => {});
+            setIsPlaying(true);
+          }
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          if (audioRef.current) {
+            audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
+          }
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          if (audioRef.current) {
+            audioRef.current.currentTime = Math.min(
+              audioRef.current.duration || 0,
+              audioRef.current.currentTime + 10
+            );
+          }
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setVolumeState((prev) => {
+            const next = Math.min(1, prev + 0.1);
+            if (audioRef.current) audioRef.current.volume = next;
+            return next;
+          });
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          setVolumeState((prev) => {
+            const next = Math.max(0, prev - 0.1);
+            if (audioRef.current) audioRef.current.volume = next;
+            return next;
+          });
+          break;
+        case 'm':
+        case 'M':
+          e.preventDefault();
+          setVolumeState((prev) => {
+            const next = prev > 0 ? 0 : 0.7;
+            if (audioRef.current) audioRef.current.volume = next;
+            return next;
+          });
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isPlaying]);
+
+  const play = useCallback(
+    (song?: Song) => {
+      if (song) {
+        if (playMode === 'radio') {
+          // In radio mode, find in radio queue or switch to normal
+          const idx = radioQueue.findIndex((s) => s.id === song.id);
+          if (idx >= 0) {
+            setRadioIndex(idx);
+          } else {
+            setPlayMode('normal');
+            const normalIdx = songs.findIndex((s) => s.id === song.id);
+            if (normalIdx >= 0) setCurrentIndex(normalIdx);
+          }
+        } else {
+          const idx = songs.findIndex((s) => s.id === song.id);
+          if (idx >= 0) setCurrentIndex(idx);
+        }
+      }
+      setIsPlaying(true);
+      setTimeout(() => audioRef.current?.play().catch(() => {}), 50);
+    },
+    [songs, playMode, radioQueue]
+  );
+
+  const pause = useCallback(() => {
+    setIsPlaying(false);
+    audioRef.current?.pause();
+  }, []);
+
+  const toggle = useCallback(() => {
+    if (isPlaying) pause();
+    else play();
+  }, [isPlaying, play, pause]);
+
+  const next = useCallback(() => {
+    advanceTrackRef.current();
+    if (isPlaying) {
+      setTimeout(() => audioRef.current?.play().catch(() => {}), 100);
+    }
+  }, [isPlaying]);
+
+  const prev = useCallback(() => {
+    if (audioRef.current && audioRef.current.currentTime > 3) {
+      audioRef.current.currentTime = 0;
+    } else {
+      if (playMode === 'radio') {
+        const prevIdx = radioIndex - 1 >= 0 ? radioIndex - 1 : radioQueue.length - 1;
+        setRadioIndex(prevIdx);
+      } else {
+        setCurrentIndex((p) => (p - 1 >= 0 ? p - 1 : songs.length - 1));
+      }
+      if (isPlaying) {
+        setTimeout(() => audioRef.current?.play().catch(() => {}), 100);
+      }
+    }
+  }, [songs.length, isPlaying, playMode, radioIndex, radioQueue.length]);
+
+  const seek = useCallback((time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
+  }, []);
+
+  const setVolume = useCallback((v: number) => {
+    setVolumeState(v);
+    if (audioRef.current) audioRef.current.volume = v;
+  }, []);
+
+  const playSongById = useCallback(
+    (id: string) => {
+      const idx = songs.findIndex((s) => s.id === id);
+      if (idx >= 0) {
+        if (playMode === 'radio') setPlayMode('normal');
+        setCurrentIndex(idx);
+        setIsPlaying(true);
+        prevSongIdRef.current = null; // Force reload
+        setTimeout(() => audioRef.current?.play().catch(() => {}), 100);
+      }
+    },
+    [songs, playMode]
+  );
+
+  const toggleShuffle = useCallback(() => {
+    setPlayMode((prev) => {
+      if (prev === 'shuffle') return 'normal';
+      return 'shuffle';
+    });
+  }, []);
+
+  const cycleRepeat = useCallback(() => {
+    setRepeatMode((prev) => {
+      if (prev === 'off') return 'all';
+      if (prev === 'all') return 'one';
+      return 'off';
+    });
+  }, []);
+
+  const startRadio = useCallback(() => {
+    const queue = weightedShuffle(allSongs, featuredIds);
+    setRadioQueue(queue);
+    setRadioIndex(0);
+    setPlayMode('radio');
+    setIsPlaying(true);
+    prevSongIdRef.current = null;
+    setTimeout(() => audioRef.current?.play().catch(() => {}), 150);
+  }, [allSongs, featuredIds]);
+
+  const stopRadio = useCallback(() => {
+    setPlayMode('normal');
+  }, []);
+
+  const value: MusicContextValue = {
+    brand: brandConfig,
+    songs,
+    featuredSongs,
+    allSongs,
+    currentSong,
+    currentIndex,
+    isPlaying,
+    volume,
+    currentTime,
+    duration,
+    playMode,
+    repeatMode,
+    stationName,
+    play,
+    pause,
+    toggle,
+    next,
+    prev,
+    seek,
+    setVolume,
+    playSongById,
+    setPlayMode,
+    setRepeatMode,
+    toggleShuffle,
+    cycleRepeat,
+    startRadio,
+    stopRadio,
+  };
+
+  return <MusicContext.Provider value={value}>{children}</MusicContext.Provider>;
+}
+
+// ─── SVG Icons (inline, no dependencies) ─────────────────────────────────────
+
+function IconPlay({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M8 5v14l11-7z" />
+    </svg>
+  );
+}
+
+function IconPause({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+    </svg>
+  );
+}
+
+function IconSkipNext({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+    </svg>
+  );
+}
+
+function IconSkipPrev({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+    </svg>
+  );
+}
+
+function IconVolume({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
+    </svg>
+  );
+}
+
+function IconVolumeMute({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z" />
+    </svg>
+  );
+}
+
+function IconMusic({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
+    </svg>
+  );
+}
+
+function IconChevronUp({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
+    </svg>
+  );
+}
+
+function IconChevronDown({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
+    </svg>
+  );
+}
+
+function IconExternalLink({ size = 16, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}>
+      <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
+    </svg>
+  );
+}
+
+function IconShuffle({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5" />
+    </svg>
+  );
+}
+
+function IconRepeat({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 1l4 4-4 4" />
+      <path d="M3 11V9a4 4 0 014-4h14" />
+      <path d="M7 23l-4-4 4-4" />
+      <path d="M21 13v2a4 4 0 01-4 4H3" />
+    </svg>
+  );
+}
+
+function IconRepeatOne({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 1l4 4-4 4" />
+      <path d="M3 11V9a4 4 0 014-4h14" />
+      <path d="M7 23l-4-4 4-4" />
+      <path d="M21 13v2a4 4 0 01-4 4H3" />
+      <text x="11" y="15" fontSize="8" fill={color} stroke="none" textAnchor="middle" fontWeight="bold">1</text>
+    </svg>
+  );
+}
+
+function IconRadio({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="2" fill={color} />
+      <path d="M16.24 7.76a6 6 0 010 8.49" />
+      <path d="M7.76 16.24a6 6 0 010-8.49" />
+      <path d="M19.07 4.93a10 10 0 010 14.14" />
+      <path d="M4.93 19.07a10 10 0 010-14.14" />
+    </svg>
+  );
+}
+
+function IconTV({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
+      <polyline points="17 2 12 7 7 2" />
+    </svg>
+  );
+}
+
+function IconClose({ size = 20, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round">
+      <path d="M18 6L6 18M6 6l12 12" />
+    </svg>
+  );
+}
+
+// ─── Now Playing Animated Bars ──────────────────────────────────────────────
+
+function NowPlayingBars({ color, size = 16 }: { color: string; size?: number }) {
+  const barWidth = Math.max(2, size / 6);
+  const gap = Math.max(1, size / 8);
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', height: size, gap }}>
+      {[1, 2, 3].map((i) => (
+        <div
+          key={i}
+          style={{
+            width: barWidth,
+            height: '100%',
+            backgroundColor: color,
+            borderRadius: 1,
+            animation: `admp-bar${i} ${0.6 + i * 0.15}s ease-in-out infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── Marquee Text ───────────────────────────────────────────────────────────
+
+function MarqueeText({
+  text,
+  style,
+}: {
+  text: string;
+  style: React.CSSProperties;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [shouldScroll, setShouldScroll] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      if (containerRef.current && textRef.current) {
+        setShouldScroll(textRef.current.scrollWidth > containerRef.current.clientWidth);
+      }
+    };
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, [text]);
+
+  if (!shouldScroll) {
+    return (
+      <div ref={containerRef} style={{ ...style, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+        <span ref={textRef}>{text}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      style={{ ...style, overflow: 'hidden', whiteSpace: 'nowrap', position: 'relative' }}
+    >
+      <span
+        ref={textRef}
+        style={{
+          display: 'inline-block',
+          animation: 'admp-marquee 12s linear infinite',
+          paddingRight: 60,
+        }}
+      >
+        {text}
+      </span>
+      <span
+        style={{
+          display: 'inline-block',
+          animation: 'admp-marquee 12s linear infinite',
+          paddingRight: 60,
+        }}
+      >
+        {text}
+      </span>
+    </div>
+  );
+}
+
+// ─── Radio Waves Animation ──────────────────────────────────────────────────
+
+function RadioWaves({ color, size = 16 }: { color: string; size?: number }) {
+  return (
+    <div style={{ position: 'relative', width: size, height: size }}>
+      {[0, 0.4, 0.8].map((delay, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            border: `1.5px solid ${color}`,
+            borderRadius: '50%',
+            animation: `admp-radio-wave 1.5s ease-out ${delay}s infinite`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function formatTime(seconds: number): string {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+}
+
+function extractYouTubeId(url: string): string | null {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([^?&]+)/);
+  return match ? match[1] : null;
+}
+
+// ─── MusicBar (persistent bottom bar) ────────────────────────────────────────
+
+export function MusicBar() {
+  const {
+    brand,
+    currentSong,
+    isPlaying,
+    toggle,
+    next,
+    prev,
+    currentTime,
+    duration,
+    seek,
+    volume,
+    setVolume,
+    playMode,
+    repeatMode,
+    stationName,
+    toggleShuffle,
+    cycleRepeat,
+    startRadio,
+    stopRadio,
+  } = useMusicContext();
+
+  const isMobile = useIsMobile();
+  const [expanded, setExpanded] = useState(false);
+  const [progressHover, setProgressHover] = useState(false);
+  const touchStartY = useRef<number>(0);
+
+  if (!currentSong) return null;
+
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    seek(Math.max(0, Math.min(duration, pct * duration)));
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const diff = touchStartY.current - e.changedTouches[0].clientY;
+    if (diff > 40) setExpanded(true);
+    if (diff < -40) setExpanded(false);
+  };
+
+  const barHeight = isMobile ? (expanded ? 200 : 56) : 64;
+  const glowColor = brand.primaryColor + '33';
+
+  const barStyle: React.CSSProperties = {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: barHeight,
+    backgroundColor: brand.surfaceColor,
+    borderTop: `1px solid ${brand.primaryColor}33`,
+    zIndex: 9999,
+    transition: 'height 0.3s ease',
+    fontFamily: brand.bodyFont,
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: isPlaying
+      ? `0 -4px 20px ${glowColor}`
+      : `0 -2px 10px ${brand.primaryColor}1A`,
+    ...(isPlaying ? { animation: 'admp-glow-pulse 3s ease-in-out infinite' } : {}),
+  };
+
+  const controlsRow: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    padding: isMobile ? '8px 12px' : '8px 24px',
+    gap: isMobile ? 8 : 12,
+    flex: '0 0 auto',
+    minHeight: isMobile ? 56 : 64,
+  };
+
+  const artStyle: React.CSSProperties = {
+    width: 48,
+    height: 48,
+    borderRadius: 6,
+    backgroundColor: brand.primaryColor + '33',
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+  };
+
+  const btnStyle: React.CSSProperties = {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: 6,
+    minWidth: 36,
+    minHeight: 36,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 4,
+    flexShrink: 0,
+  };
+
+  const mobileBtnStyle: React.CSSProperties = {
+    ...btnStyle,
+    minWidth: 44,
+    minHeight: 44,
+    padding: 8,
+  };
+
+  const progressHeight = progressHover ? 10 : 6;
+  const progressBarOuter: React.CSSProperties = {
+    flex: 1,
+    height: progressHeight,
+    backgroundColor: brand.textColor + '22',
+    borderRadius: progressHeight / 2,
+    cursor: 'pointer',
+    position: 'relative',
+    minWidth: 60,
+    transition: 'height 0.15s ease',
+  };
+
+  const progressBarInner: React.CSSProperties = {
+    height: '100%',
+    width: `${progress}%`,
+    backgroundColor: brand.primaryColor,
+    borderRadius: progressHeight / 2,
+    transition: 'width 0.1s linear',
+    position: 'relative',
+  };
+
+  const seekDotStyle: React.CSSProperties = {
+    position: 'absolute',
+    right: -6,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    width: 12,
+    height: 12,
+    borderRadius: '50%',
+    backgroundColor: brand.primaryColor,
+    boxShadow: `0 0 4px ${brand.primaryColor}88`,
+    opacity: progressHover ? 1 : 0,
+    transition: 'opacity 0.15s ease',
+  };
+
+  const isRadio = playMode === 'radio';
+
+  return (
+    <div style={barStyle} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      {/* Main controls row */}
+      <div style={controlsRow}>
+        {/* Album art */}
+        <div style={artStyle}>
+          {currentSong.image_url ? (
+            <img
+              src={currentSong.image_url}
+              alt={currentSong.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          ) : (
+            <IconMusic size={24} color={brand.primaryColor} />
+          )}
+        </div>
+
+        {/* Now Playing bars */}
+        {isPlaying && (
+          <div style={{ flexShrink: 0 }}>
+            <NowPlayingBars color={brand.primaryColor} size={16} />
+          </div>
+        )}
+
+        {/* Track info */}
+        <div style={{ flex: '1 1 0', minWidth: 0, overflow: 'hidden' }}>
+          {/* Radio station label */}
+          {isRadio && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+              <span style={{
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: 1,
+                color: brand.primaryColor,
+                padding: '1px 5px',
+                border: `1px solid ${brand.primaryColor}`,
+                borderRadius: 3,
+                lineHeight: '14px',
+              }}>
+                LIVE
+              </span>
+              <RadioWaves color={brand.primaryColor} size={10} />
+              <span style={{ fontSize: 10, color: brand.primaryColor, fontWeight: 600 }}>
+                {stationName}
+              </span>
+            </div>
+          )}
+          <MarqueeText
+            text={currentSong.title}
+            style={{
+              color: brand.textColor,
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          />
+          {(!isMobile || expanded) && (
+            <div
+              style={{
+                color: brand.textColor + 'AA',
+                fontSize: 12,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {currentSong.artist}
+            </div>
+          )}
+        </div>
+
+        {/* Shuffle button */}
+        {(!isMobile || expanded) && (
+          <button
+            style={{
+              ...btnStyle,
+              opacity: playMode === 'shuffle' ? 1 : 0.5,
+            }}
+            onClick={toggleShuffle}
+            aria-label="Toggle shuffle"
+          >
+            <IconShuffle
+              size={16}
+              color={playMode === 'shuffle' ? brand.primaryColor : brand.textColor}
+            />
+          </button>
+        )}
+
+        {/* Controls */}
+        {(!isMobile || expanded) && (
+          <button style={isMobile ? mobileBtnStyle : btnStyle} onClick={prev} aria-label="Previous track">
+            <IconSkipPrev size={20} color={brand.textColor} />
+          </button>
+        )}
+
+        <button
+          style={{
+            ...(isMobile ? mobileBtnStyle : btnStyle),
+            backgroundColor: brand.primaryColor,
+            borderRadius: '50%',
+            width: isMobile ? 44 : 40,
+            height: isMobile ? 44 : 40,
+          }}
+          onClick={toggle}
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+        >
+          {isPlaying ? (
+            <IconPause size={20} color={brand.backgroundColor} />
+          ) : (
+            <IconPlay size={20} color={brand.backgroundColor} />
+          )}
+        </button>
+
+        {(!isMobile || expanded) && (
+          <button style={isMobile ? mobileBtnStyle : btnStyle} onClick={next} aria-label="Next track">
+            <IconSkipNext size={20} color={brand.textColor} />
+          </button>
+        )}
+
+        {/* Repeat button */}
+        {(!isMobile || expanded) && (
+          <button
+            style={{
+              ...btnStyle,
+              opacity: repeatMode !== 'off' ? 1 : 0.5,
+            }}
+            onClick={cycleRepeat}
+            aria-label={`Repeat: ${repeatMode}`}
+          >
+            {repeatMode === 'one' ? (
+              <IconRepeatOne
+                size={16}
+                color={brand.primaryColor}
+              />
+            ) : (
+              <IconRepeat
+                size={16}
+                color={repeatMode === 'all' ? brand.primaryColor : brand.textColor}
+              />
+            )}
+          </button>
+        )}
+
+        {/* Radio button */}
+        {(!isMobile || expanded) && (
+          <button
+            style={{
+              ...btnStyle,
+              opacity: isRadio ? 1 : 0.5,
+            }}
+            onClick={isRadio ? stopRadio : startRadio}
+            aria-label={isRadio ? 'Stop radio' : 'Start radio'}
+          >
+            <IconRadio
+              size={16}
+              color={isRadio ? brand.primaryColor : brand.textColor}
+            />
+          </button>
+        )}
+
+        {/* Progress bar (desktop inline) */}
+        {!isMobile && (
+          <>
+            <span style={{ color: brand.textColor + 'AA', fontSize: 11, flexShrink: 0 }}>
+              {formatTime(currentTime)}
+            </span>
+            <div
+              style={progressBarOuter}
+              onClick={handleProgressClick}
+              onMouseEnter={() => setProgressHover(true)}
+              onMouseLeave={() => setProgressHover(false)}
+            >
+              <div style={progressBarInner}>
+                <div style={seekDotStyle} />
+              </div>
+            </div>
+            <span style={{ color: brand.textColor + 'AA', fontSize: 11, flexShrink: 0 }}>
+              {formatTime(duration)}
+            </span>
+          </>
+        )}
+
+        {/* Volume (desktop only) */}
+        {!isMobile && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+            <button
+              style={{ ...btnStyle, padding: 2, minWidth: 24, minHeight: 24 }}
+              onClick={() => setVolume(volume > 0 ? 0 : 0.7)}
+              aria-label={volume === 0 ? 'Unmute' : 'Mute'}
+            >
+              {volume === 0 ? (
+                <IconVolumeMute size={16} color={brand.textColor + 'AA'} />
+              ) : (
+                <IconVolume size={16} color={brand.textColor + 'AA'} />
+              )}
+            </button>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={volume}
+              onChange={(e) => setVolume(parseFloat(e.target.value))}
+              style={{ width: 80, accentColor: brand.primaryColor }}
+              aria-label="Volume"
+            />
+          </div>
+        )}
+
+        {/* Mobile expand toggle */}
+        {isMobile && (
+          <button style={mobileBtnStyle} onClick={() => setExpanded(!expanded)} aria-label="Expand player">
+            {expanded ? (
+              <IconChevronDown size={20} color={brand.textColor} />
+            ) : (
+              <IconChevronUp size={20} color={brand.textColor} />
+            )}
+          </button>
+        )}
+      </div>
+
+      {/* Mobile expanded: progress bar */}
+      {isMobile && expanded && (
+        <div style={{ padding: '0 16px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ color: brand.textColor + 'AA', fontSize: 11 }}>
+            {formatTime(currentTime)}
+          </span>
+          <div
+            style={{ ...progressBarOuter, height: 8 }}
+            onClick={handleProgressClick}
+          >
+            <div style={{ ...progressBarInner, height: '100%' }}>
+              <div style={{ ...seekDotStyle, opacity: 1 }} />
+            </div>
+          </div>
+          <span style={{ color: brand.textColor + 'AA', fontSize: 11 }}>
+            {formatTime(duration)}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── MusicPage (full page with track grid) ───────────────────────────────────
+
+export function MusicPage() {
+  const {
+    brand,
+    featuredSongs,
+    allSongs,
+    currentSong: _currentSong,
+    isPlaying: _isPlaying,
+    playMode,
+    stationName,
+    startRadio,
+    playSongById: _playSongById,
+  } = useMusicContext();
+
+  const isMobile = useIsMobile();
+  const [tab, setTab] = useState<'featured' | 'all'>('featured');
+  const [showChannel, setShowChannel] = useState(false);
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+
+  const displaySongs = tab === 'featured' ? featuredSongs : allSongs;
+  const hasFeatured = featuredSongs.length > 0 && featuredSongs.length !== allSongs.length;
+  const hasVideos = allSongs.some((s) => s.youtube_url);
+
+  // Check URL for ?song= param to open detail panel
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const songId = params.get('song');
+    if (songId) {
+      const song = allSongs.find(s => s.id === songId);
+      if (song) setSelectedSong(song);
+    }
+  }, [allSongs]);
+
+  if (showChannel) {
+    return <MusicVideoChannel onClose={() => setShowChannel(false)} />;
+  }
+
+  const pageStyle: React.CSSProperties = {
+    minHeight: '100vh',
+    backgroundColor: brand.backgroundColor,
+    padding: isMobile ? '24px 16px 120px' : '48px 32px 120px',
+    fontFamily: brand.bodyFont,
+  };
+
+  const headerStyle: React.CSSProperties = {
+    textAlign: 'center' as const,
+    marginBottom: 40,
+  };
+
+  const titleStyle: React.CSSProperties = {
+    fontFamily: brand.headingFont,
+    fontSize: isMobile ? 28 : 42,
+    fontWeight: 900,
+    color: brand.textColor,
+    margin: '0 0 8px',
+  };
+
+  const subtitleStyle: React.CSSProperties = {
+    color: brand.textColor + 'AA',
+    fontSize: 16,
+    margin: 0,
+  };
+
+  const tabBarStyle: React.CSSProperties = {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 32,
+  };
+
+  const tabBtnStyle = (active: boolean): React.CSSProperties => ({
+    padding: '10px 24px',
+    borderRadius: 24,
+    border: `1px solid ${active ? brand.primaryColor : brand.textColor + '33'}`,
+    backgroundColor: active ? brand.primaryColor + '22' : 'transparent',
+    color: active ? brand.primaryColor : brand.textColor + 'AA',
+    cursor: 'pointer',
+    fontFamily: brand.bodyFont,
+    fontSize: 14,
+    fontWeight: 600,
+    minHeight: 44,
+  });
+
+  const cardsRow: React.CSSProperties = {
+    display: 'flex',
+    gap: 16,
+    maxWidth: 1200,
+    margin: '0 auto 32px',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  };
+
+  const gridStyle: React.CSSProperties = {
+    display: 'grid',
+    gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: 20,
+    maxWidth: 1200,
+    margin: '0 auto',
+  };
+
+  return (
+    <div style={pageStyle}>
+      <div style={headerStyle}>
+        <h1 style={titleStyle}>
+          Music{' '}
+          <span style={{ color: brand.primaryColor }}>|</span>{' '}
+          {brand.siteName}
+        </h1>
+        <p style={subtitleStyle}>
+          The soundtrack of sovereignty. {allSongs.length} tracks.
+        </p>
+      </div>
+
+      {/* Radio + Channel Cards */}
+      <div style={cardsRow}>
+        <RadioCard brand={brand} stationName={stationName} onStart={startRadio} isActive={playMode === 'radio'} />
+        {hasVideos && (
+          <ChannelCard brand={brand} onOpen={() => setShowChannel(true)} />
+        )}
+      </div>
+
+      {hasFeatured && (
+        <div style={tabBarStyle}>
+          <button style={tabBtnStyle(tab === 'featured')} onClick={() => setTab('featured')}>
+            Featured ({featuredSongs.length})
+          </button>
+          <button style={tabBtnStyle(tab === 'all')} onClick={() => setTab('all')}>
+            All Songs ({allSongs.length})
+          </button>
+        </div>
+      )}
+
+      <div style={gridStyle}>
+        {displaySongs.map((song) => (
+          <SongCard key={song.id} song={song} onSelect={setSelectedSong} />
+        ))}
+      </div>
+
+      {/* Detail Panel Overlay */}
+      {selectedSong && (
+        <MusicDetailPanel
+          song={selectedSong}
+          brand={brand}
+          onClose={() => setSelectedSong(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Radio Card ─────────────────────────────────────────────────────────────
+
+function RadioCard({
+  brand,
+  stationName,
+  onStart,
+  isActive,
+}: {
+  brand: BrandConfig;
+  stationName: string;
+  onStart: () => void;
+  isActive: boolean;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      style={{
+        flex: '1 1 280px',
+        maxWidth: 380,
+        padding: 24,
+        borderRadius: 16,
+        backgroundColor: isActive ? brand.primaryColor + '1A' : brand.surfaceColor,
+        border: `1px solid ${isActive ? brand.primaryColor : brand.primaryColor + '44'}`,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        transform: hovered ? 'scale(1.02)' : 'none',
+        boxShadow: hovered ? `0 8px 24px ${brand.primaryColor}33` : 'none',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onStart}
+      role="button"
+      tabIndex={0}
+      aria-label={`Listen to ${stationName}`}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStart(); } }}
+    >
+      <div style={{
+        width: 56,
+        height: 56,
+        borderRadius: '50%',
+        backgroundColor: brand.primaryColor + '22',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        position: 'relative',
+      }}>
+        <IconRadio size={28} color={brand.primaryColor} />
+        {isActive && (
+          <div style={{ position: 'absolute', inset: -4 }}>
+            <RadioWaves color={brand.primaryColor} size={64} />
+          </div>
+        )}
+      </div>
+      <div>
+        <div style={{
+          fontSize: 11,
+          fontWeight: 800,
+          letterSpacing: 1.5,
+          color: isActive ? brand.primaryColor : brand.textColor + '88',
+          marginBottom: 4,
+        }}>
+          {isActive ? 'NOW PLAYING' : 'LISTEN TO'}
+        </div>
+        <div style={{
+          fontSize: 18,
+          fontWeight: 700,
+          color: brand.textColor,
+          fontFamily: brand.headingFont,
+        }}>
+          {stationName}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Channel Card ───────────────────────────────────────────────────────────
+
+function ChannelCard({ brand, onOpen }: { brand: BrandConfig; onOpen: () => void }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      style={{
+        flex: '1 1 280px',
+        maxWidth: 380,
+        padding: 24,
+        borderRadius: 16,
+        backgroundColor: brand.surfaceColor,
+        border: `1px solid ${brand.accentColor}44`,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+        transform: hovered ? 'scale(1.02)' : 'none',
+        boxShadow: hovered ? `0 8px 24px ${brand.accentColor}33` : 'none',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onOpen}
+      role="button"
+      tabIndex={0}
+      aria-label="Watch music video channel"
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } }}
+    >
+      <div style={{
+        width: 56,
+        height: 56,
+        borderRadius: '50%',
+        backgroundColor: brand.accentColor + '22',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <IconTV size={28} color={brand.accentColor} />
+      </div>
+      <div>
+        <div style={{
+          fontSize: 11,
+          fontWeight: 800,
+          letterSpacing: 1.5,
+          color: brand.textColor + '88',
+          marginBottom: 4,
+        }}>
+          WATCH
+        </div>
+        <div style={{
+          fontSize: 18,
+          fontWeight: 700,
+          color: brand.textColor,
+          fontFamily: brand.headingFont,
+        }}>
+          Music Video Channel
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── SongCard ────────────────────────────────────────────────────────────────
+
+function SongCard({ song, onSelect }: { song: Song; onSelect?: (song: Song) => void }) {
+  const { brand, currentSong, isPlaying, pause, playSongById } = useMusicContext();
+  const isCurrent = currentSong?.id === song.id;
+  const isThisPlaying = isCurrent && isPlaying;
+  const [hovered, setHovered] = useState(false);
+
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: brand.surfaceColor,
+    border: `1px solid ${isCurrent ? brand.primaryColor : brand.textColor + '1A'}`,
+    borderRadius: 12,
+    overflow: 'hidden',
+    cursor: 'pointer',
+    transition: 'border-color 0.15s, transform 0.15s, box-shadow 0.15s',
+    transform: hovered ? 'scale(1.02)' : 'none',
+    boxShadow: isCurrent
+      ? `0 0 16px ${brand.primaryColor}44, 0 4px 12px rgba(0,0,0,0.3)`
+      : hovered
+        ? '0 8px 20px rgba(0,0,0,0.3)'
+        : 'none',
+  };
+
+  const artContainerStyle: React.CSSProperties = {
+    width: '100%',
+    aspectRatio: '1',
+    backgroundColor: brand.primaryColor + '1A',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  };
+
+  const overlayStyle: React.CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    opacity: hovered || isThisPlaying ? 1 : 0,
+    transition: 'opacity 0.2s',
+  };
+
+  const playBtnStyle: React.CSSProperties = {
+    width: 56,
+    height: 56,
+    borderRadius: '50%',
+    backgroundColor: brand.primaryColor,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    border: 'none',
+    cursor: 'pointer',
+  };
+
+  const infoStyle: React.CSSProperties = {
+    padding: 16,
+  };
+
+  const handleClick = () => {
+    if (isThisPlaying) {
+      pause();
+    } else {
+      playSongById(song.id);
+    }
+  };
+
+  return (
+    <div
+      style={cardStyle}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={handleClick}
+      role="button"
+      tabIndex={0}
+      aria-label={`${isThisPlaying ? 'Pause' : 'Play'} ${song.title} by ${song.artist}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      }}
+    >
+      {/* Art */}
+      <div style={artContainerStyle}>
+        {song.image_url ? (
+          <img
+            src={song.image_url}
+            alt={song.title}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          <IconMusic size={48} color={brand.primaryColor + '66'} />
+        )}
+        <div style={overlayStyle}>
+          <div style={playBtnStyle}>
+            {isThisPlaying ? (
+              <IconPause size={28} color={brand.backgroundColor} />
+            ) : (
+              <IconPlay size={28} color={brand.backgroundColor} />
+            )}
+          </div>
+          {/* Now Playing bars on the card */}
+          {isThisPlaying && (
+            <NowPlayingBars color={brand.primaryColor} size={28} />
+          )}
+        </div>
+      </div>
+
+      {/* Info */}
+      <div style={infoStyle}>
+        <div
+          style={{
+            color: isCurrent ? brand.primaryColor : brand.textColor,
+            fontSize: 16,
+            fontWeight: 700,
+            fontFamily: brand.headingFont,
+            marginBottom: 4,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {song.title}
+        </div>
+        <div
+          style={{
+            color: brand.textColor + 'AA',
+            fontSize: 13,
+            marginBottom: 8,
+          }}
+        >
+          {song.artist}
+        </div>
+
+        {/* Star rating (compact) */}
+        <div style={{ marginBottom: 8 }} onClick={(e) => e.stopPropagation()}>
+          <StarRating songId={song.id} brand={brand} compact />
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ color: brand.textColor + '66', fontSize: 12 }}>{song.duration}</span>
+
+          {/* Comment count badge */}
+          <CommentCountBadge songId={song.id} brand={brand} />
+
+          {song.youtube_url && (
+            <a
+              href={song.youtube_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                color: brand.primaryColor,
+                fontSize: 12,
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              Watch Video <IconExternalLink size={12} color={brand.primaryColor} />
+            </a>
+          )}
+
+          {song.suno_url && (
+            <a
+              href={song.suno_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                color: brand.textColor + '66',
+                fontSize: 12,
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              Suno <IconExternalLink size={12} color={brand.textColor + '66'} />
+            </a>
+          )}
+        </div>
+
+        {/* Tags + Discuss link */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+          {song.tags.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+              {song.tags.map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    fontSize: 10,
+                    padding: '2px 8px',
+                    borderRadius: 10,
+                    backgroundColor: brand.primaryColor + '1A',
+                    color: brand.primaryColor,
+                    fontWeight: 500,
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          {onSelect && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onSelect(song); }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: brand.primaryColor,
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 600,
+                padding: '2px 0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                flexShrink: 0,
+              }}
+            >
+              <IconComment size={12} color={brand.primaryColor} />
+              Discuss
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Music Video Channel ────────────────────────────────────────────────────
+
+interface MusicVideoChannelProps {
+  onClose?: () => void;
+}
+
+export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
+  const { brand, allSongs } = useMusicContext();
+  const isMobile = useIsMobile();
+
+  // Songs with individual video URLs get their own channel entries
+  const videoSongs = useMemo(
+    () => allSongs.filter((s) => s.youtube_url),
+    [allSongs]
+  );
+
+  // If no individual video URLs, use the YouTube playlist as a single embed
+  const [playlistMode, _setPlaylistMode] = useState(videoSongs.length === 0);
+
+  const [videoIndex, setVideoIndex] = useState(0);
+  const [isInterstitial, setIsInterstitial] = useState(false);
+  const [countdown, setCountdown] = useState(5);
+  const [shuffleMode, setShuffleMode] = useState(false);
+  const [ytReady, setYtReady] = useState(false);
+  const playerRef = useRef<any>(null);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const countdownRef = useRef<number | null>(null);
+
+  const currentVideo = videoSongs[videoIndex] ?? null;
+
+  // Load YouTube IFrame API
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    if ((window as any).YT && (window as any).YT.Player) {
+      setYtReady(true);
+      return;
+    }
+
+    // Check if script already loading
+    if (document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const check = setInterval(() => {
+        if ((window as any).YT && (window as any).YT.Player) {
+          setYtReady(true);
+          clearInterval(check);
+        }
+      }, 100);
+      return () => clearInterval(check);
+    }
+
+    (window as any).onYouTubeIframeAPIReady = () => {
+      setYtReady(true);
+    };
+    const script = document.createElement('script');
+    script.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(script);
+
+    return () => {
+      (window as any).onYouTubeIframeAPIReady = undefined;
+    };
+  }, []);
+
+  // Create/update YouTube player
+  useEffect(() => {
+    if (!ytReady || !currentVideo || isInterstitial) return;
+    const ytId = extractYouTubeId(currentVideo.youtube_url!);
+    if (!ytId) return;
+
+    // Destroy old player
+    if (playerRef.current) {
+      try { playerRef.current.destroy(); } catch {}
+      playerRef.current = null;
+    }
+
+    // Small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      if (!playerContainerRef.current) return;
+
+      // Create a fresh div for the player
+      const el = document.createElement('div');
+      el.id = 'admp-yt-player';
+      playerContainerRef.current.innerHTML = '';
+      playerContainerRef.current.appendChild(el);
+
+      playerRef.current = new (window as any).YT.Player('admp-yt-player', {
+        videoId: ytId,
+        width: '100%',
+        height: '100%',
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+          fs: 0,
+        },
+        events: {
+          onStateChange: (event: any) => {
+            // 0 = ended
+            if (event.data === 0) {
+              showInterstitial();
+            }
+          },
+        },
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ytReady, videoIndex, isInterstitial, currentVideo?.id]);
+
+  const getNextIndex = useCallback(() => {
+    if (shuffleMode && videoSongs.length > 1) {
+      let next: number;
+      do {
+        next = Math.floor(Math.random() * videoSongs.length);
+      } while (next === videoIndex);
+      return next;
+    }
+    return videoIndex + 1 < videoSongs.length ? videoIndex + 1 : 0;
+  }, [shuffleMode, videoIndex, videoSongs.length]);
+
+  const showInterstitial = useCallback(() => {
+    setIsInterstitial(true);
+    setCountdown(5);
+  }, []);
+
+  // Countdown during interstitial
+  useEffect(() => {
+    if (!isInterstitial) return;
+
+    countdownRef.current = window.setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(countdownRef.current!);
+          setIsInterstitial(false);
+          setVideoIndex(getNextIndex());
+          return 5;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [isInterstitial, getNextIndex]);
+
+  // Cleanup player on unmount
+  useEffect(() => {
+    return () => {
+      if (playerRef.current) {
+        try { playerRef.current.destroy(); } catch {}
+      }
+    };
+  }, []);
+
+  // Playlist mode: embed the whole YouTube playlist as an iframe (no per-song control needed)
+  if (playlistMode || videoSongs.length === 0) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: brand.backgroundColor,
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: brand.bodyFont,
+      }}>
+        {/* Top bar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 24px',
+          backgroundColor: brand.surfaceColor,
+          borderBottom: `1px solid ${brand.primaryColor}33`,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <IconTV size={20} color={brand.primaryColor} />
+            <span style={{ color: brand.primaryColor, fontSize: 14, fontWeight: 700, letterSpacing: 1 }}>
+              {brand.siteName} MUSIC VIDEO CHANNEL
+            </span>
+            <span style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: brand.backgroundColor,
+              backgroundColor: '#FF0000',
+              padding: '2px 8px',
+              borderRadius: 4,
+              letterSpacing: 1,
+            }}>
+              LIVE
+            </span>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              style={{
+                background: 'none',
+                border: `1px solid ${brand.textColor}33`,
+                color: brand.textColor,
+                padding: '6px 16px',
+                borderRadius: 6,
+                cursor: 'pointer',
+                fontSize: 13,
+              }}
+            >
+              Close
+            </button>
+          )}
+        </div>
+
+        {/* YouTube playlist embed */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div style={{
+            width: '100%',
+            maxWidth: 1200,
+            aspectRatio: '16/9',
+            borderRadius: 12,
+            overflow: 'hidden',
+            boxShadow: `0 0 60px ${brand.primaryColor}22`,
+          }}>
+            <iframe
+              src="https://www.youtube.com/embed/videoseries?list=PLoi93vY6VsJ02vrz24BHHcW0iiPGShZqI&autoplay=1&loop=1"
+              width="100%"
+              height="100%"
+              style={{ border: 'none' }}
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+
+        {/* Bottom info */}
+        <div style={{
+          padding: '12px 24px',
+          backgroundColor: brand.surfaceColor,
+          borderTop: `1px solid ${brand.primaryColor}22`,
+          textAlign: 'center',
+        }}>
+          <span style={{ color: brand.textColor + '88', fontSize: 13 }}>
+            Playing from the Aaron Day Music Video playlist on YouTube
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  const upNextSong = videoSongs[getNextIndex()];
+
+  // Interstitial screen
+  if (isInterstitial && upNextSong) {
+    const circumference = 2 * Math.PI * 45; // r=45
+
+    return (
+      <div style={{
+        height: '100vh',
+        backgroundColor: brand.backgroundColor,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: brand.bodyFont,
+        position: 'relative',
+      }}>
+        {/* Close button */}
+        {onClose && (
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              background: 'rgba(0,0,0,0.5)',
+              border: 'none',
+              borderRadius: '50%',
+              width: 44,
+              height: 44,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10,
+            }}
+            aria-label="Close channel"
+          >
+            <IconClose size={20} color={brand.textColor} />
+          </button>
+        )}
+
+        {/* Dark overlay with branding */}
+        <div style={{
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: 3,
+          color: brand.primaryColor,
+          marginBottom: 32,
+          textTransform: 'uppercase',
+        }}>
+          UP NEXT
+        </div>
+
+        {/* Album art with countdown ring */}
+        <div style={{ position: 'relative', marginBottom: 24 }}>
+          <div style={{
+            width: 200,
+            height: 200,
+            borderRadius: 12,
+            overflow: 'hidden',
+            backgroundColor: brand.primaryColor + '22',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            {upNextSong.image_url ? (
+              <img
+                src={upNextSong.image_url}
+                alt={upNextSong.title}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              <IconMusic size={64} color={brand.primaryColor + '44'} />
+            )}
+          </div>
+
+          {/* Countdown ring */}
+          <svg
+            width={220}
+            height={220}
+            style={{
+              position: 'absolute',
+              top: -10,
+              left: -10,
+              transform: 'rotate(-90deg)',
+            }}
+          >
+            <circle
+              cx={110}
+              cy={110}
+              r={45}
+              fill="none"
+              stroke={brand.primaryColor + '22'}
+              strokeWidth={3}
+              transform="scale(2.2) translate(-60, -60)"
+            />
+            <circle
+              cx={110}
+              cy={110}
+              r={45}
+              fill="none"
+              stroke={brand.primaryColor}
+              strokeWidth={3}
+              strokeDasharray={circumference}
+              strokeLinecap="round"
+              style={{
+                animation: `admp-countdown-ring 5s linear forwards`,
+              }}
+              transform="scale(2.2) translate(-60, -60)"
+            />
+          </svg>
+
+          {/* Countdown number */}
+          <div style={{
+            position: 'absolute',
+            bottom: -12,
+            right: -12,
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            backgroundColor: brand.primaryColor,
+            color: brand.backgroundColor,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 16,
+            fontWeight: 800,
+          }}>
+            {countdown}
+          </div>
+        </div>
+
+        {/* Song info */}
+        <div style={{
+          fontSize: 24,
+          fontWeight: 700,
+          color: brand.textColor,
+          fontFamily: brand.headingFont,
+          textAlign: 'center',
+          marginBottom: 8,
+          maxWidth: 400,
+          padding: '0 16px',
+        }}>
+          {upNextSong.title}
+        </div>
+        <div style={{
+          fontSize: 16,
+          color: brand.textColor + 'AA',
+          textAlign: 'center',
+        }}>
+          {upNextSong.artist}
+        </div>
+
+        {/* Site branding */}
+        <div style={{
+          position: 'absolute',
+          bottom: 24,
+          fontSize: 14,
+          color: brand.textColor + '44',
+          fontFamily: brand.headingFont,
+          letterSpacing: 2,
+        }}>
+          {brand.siteName}
+        </div>
+      </div>
+    );
+  }
+
+  // Video player screen
+  return (
+    <div style={{
+      height: '100vh',
+      backgroundColor: brand.backgroundColor,
+      display: 'flex',
+      flexDirection: 'column',
+      fontFamily: brand.bodyFont,
+      position: 'relative',
+    }}>
+      {/* Top bar: close + shuffle */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 16px',
+        background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)',
+      }}>
+        {onClose ? (
+          <button
+            onClick={onClose}
+            style={{
+              background: 'rgba(0,0,0,0.5)',
+              border: 'none',
+              borderRadius: 8,
+              padding: '8px 16px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              color: brand.textColor,
+              fontSize: 14,
+            }}
+            aria-label="Close channel"
+          >
+            <IconClose size={16} color={brand.textColor} />
+            Back to Music
+          </button>
+        ) : <div />}
+
+        <button
+          onClick={() => setShuffleMode(!shuffleMode)}
+          style={{
+            background: 'rgba(0,0,0,0.5)',
+            border: 'none',
+            borderRadius: 8,
+            padding: '8px 12px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            color: shuffleMode ? brand.primaryColor : brand.textColor,
+            fontSize: 13,
+          }}
+          aria-label={shuffleMode ? 'Disable shuffle' : 'Enable shuffle'}
+        >
+          <IconShuffle size={16} color={shuffleMode ? brand.primaryColor : brand.textColor} />
+          {shuffleMode ? 'Shuffle On' : 'Shuffle Off'}
+        </button>
+      </div>
+
+      {/* YouTube Player */}
+      <div style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: isMobile ? '60px 0 80px' : '60px 32px 80px',
+      }}>
+        <div
+          ref={playerContainerRef}
+          style={{
+            width: '100%',
+            maxWidth: 1200,
+            aspectRatio: '16/9',
+            backgroundColor: '#000',
+            borderRadius: 8,
+            overflow: 'hidden',
+          }}
+        />
+      </div>
+
+      {/* Bottom overlay bar */}
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: isMobile ? '12px 16px' : '12px 32px',
+        background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+        display: 'flex',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        justifyContent: 'space-between',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: 8,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          {currentVideo?.image_url && (
+            <img
+              src={currentVideo.image_url}
+              alt=""
+              style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }}
+            />
+          )}
+          <div>
+            <div style={{ color: brand.textColor, fontSize: 14, fontWeight: 600 }}>
+              {currentVideo?.title}
+            </div>
+            <div style={{ color: brand.textColor + 'AA', fontSize: 12 }}>
+              {currentVideo?.artist}
+            </div>
+          </div>
+        </div>
+        {upNextSong && (
+          <div style={{ fontSize: 13, color: brand.textColor + '88' }}>
+            Up Next: <span style={{ color: brand.primaryColor }}>{upNextSong.title}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Supabase Helpers (self-contained, no external auth import) ─────────────
+
+const ECOSYSTEM_SUPABASE_URL = 'https://uefznzzkrzqxgxxwslox.supabase.co';
+
+// Lazy-loaded Supabase client for ratings/comments
+let _sbClient: any = null;
+function getMusicSupabase(anonKey?: string): any {
+  if (_sbClient) return _sbClient;
+  // Try to find the key from window or passed config
+  const key = anonKey
+    || (typeof window !== 'undefined' && (window as any).__ECOSYSTEM_ANON_KEY__)
+    || '';
+  if (!key) return null;
+  try {
+    // Dynamic import-like approach: use globalThis createClient if available
+    const g = typeof globalThis !== 'undefined' ? globalThis : window;
+    if ((g as any).__supabaseCreateClient__) {
+      _sbClient = (g as any).__supabaseCreateClient__(ECOSYSTEM_SUPABASE_URL, key);
+      return _sbClient;
+    }
+  } catch {}
+  return null;
+}
+
+// Initialize Supabase from external createClient
+export function initMusicSupabase(createClientFn: any, anonKey: string) {
+  if (_sbClient) return _sbClient;
+  _sbClient = createClientFn(ECOSYSTEM_SUPABASE_URL, anonKey, {
+    auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
+  });
+  return _sbClient;
+}
+
+// Get current auth user from the shared supabase client
+function useMusicAuth() {
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
+
+  useEffect(() => {
+    const sb = getMusicSupabase();
+    if (!sb) return;
+    sb.auth.getUser().then(({ data }: any) => {
+      if (data?.user) setUser({ id: data.user.id, email: data.user.email });
+    });
+    const { data: { subscription } } = sb.auth.onAuthStateChange((_: any, session: any) => {
+      if (session?.user) setUser({ id: session.user.id, email: session.user.email });
+      else setUser(null);
+    });
+    return () => subscription?.unsubscribe();
+  }, []);
+
+  return user;
+}
+
+// ─── Star Rating Icons ─────────────────────────────────────────────────────
+
+function IconStar({ size = 20, filled = false, color = '#D4AF37' }: { size?: number; filled?: boolean; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill={filled ? color : 'none'} stroke={color} strokeWidth={1.5}>
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+    </svg>
+  );
+}
+
+function IconComment({ size = 16, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+    </svg>
+  );
+}
+
+function IconShare({ size = 16, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" />
+    </svg>
+  );
+}
+
+// ─── Star Rating Widget ────────────────────────────────────────────────────
+
+function StarRating({
+  songId,
+  brand,
+  compact = false,
+}: {
+  songId: string;
+  brand: BrandConfig;
+  compact?: boolean;
+}) {
+  const user = useMusicAuth();
+  const [avgRating, setAvgRating] = useState(0);
+  const [totalRatings, setTotalRatings] = useState(0);
+  const [userRating, setUserRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [saving, setSaving] = useState(false);
+
+  // Load ratings
+  useEffect(() => {
+    const sb = getMusicSupabase();
+    if (!sb) return;
+
+    // Get average
+    sb.from('song_rating_stats')
+      .select('*')
+      .eq('song_id', songId)
+      .single()
+      .then(({ data }: any) => {
+        if (data) {
+          setAvgRating(parseFloat(data.avg_rating) || 0);
+          setTotalRatings(data.total_ratings || 0);
+        }
+      });
+
+    // Get user's rating
+    if (user) {
+      sb.from('song_ratings')
+        .select('rating')
+        .eq('song_id', songId)
+        .eq('user_id', user.id)
+        .single()
+        .then(({ data }: any) => {
+          if (data) setUserRating(data.rating);
+        });
+    }
+  }, [songId, user]);
+
+  const handleRate = async (rating: number) => {
+    const sb = getMusicSupabase();
+    if (!sb || !user) return;
+    setSaving(true);
+
+    const { error } = await sb
+      .from('song_ratings')
+      .upsert({
+        user_id: user.id,
+        song_id: songId,
+        site_key: brand.siteKey,
+        rating,
+      }, { onConflict: 'user_id,song_id' });
+
+    if (!error) {
+      setUserRating(rating);
+      // Re-fetch average
+      const { data } = await sb
+        .from('song_rating_stats')
+        .select('*')
+        .eq('song_id', songId)
+        .single();
+      if (data) {
+        setAvgRating(parseFloat(data.avg_rating) || 0);
+        setTotalRatings(data.total_ratings || 0);
+      }
+    }
+    setSaving(false);
+  };
+
+  const starSize = compact ? 14 : 20;
+  const displayRating = hoverRating || userRating || 0;
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: compact ? 4 : 8 }}>
+      <div
+        style={{ display: 'flex', gap: 2, cursor: user ? 'pointer' : 'default', opacity: saving ? 0.5 : 1 }}
+        onMouseLeave={() => setHoverRating(0)}
+      >
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            onMouseEnter={() => user && setHoverRating(star)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (user) handleRate(star);
+            }}
+            style={{ display: 'inline-flex' }}
+          >
+            <IconStar
+              size={starSize}
+              filled={star <= displayRating}
+              color={star <= displayRating ? brand.primaryColor : brand.textColor + '44'}
+            />
+          </span>
+        ))}
+      </div>
+      {!compact && totalRatings > 0 && (
+        <span style={{ fontSize: 12, color: brand.textColor + '88' }}>
+          {avgRating.toFixed(1)} ({totalRatings})
+        </span>
+      )}
+      {compact && totalRatings > 0 && (
+        <span style={{ fontSize: 11, color: brand.textColor + '66' }}>
+          {avgRating.toFixed(1)}
+        </span>
+      )}
+    </div>
+  );
+}
+
+// ─── Comment Section ───────────────────────────────────────────────────────
+
+interface SongComment {
+  id: string;
+  user_id: string;
+  song_id: string;
+  text: string;
+  parent_id: string | null;
+  created_at: string;
+  display_name?: string;
+  avatar_url?: string;
+}
+
+function SongCommentSection({
+  songId,
+  brand,
+}: {
+  songId: string;
+  brand: BrandConfig;
+}) {
+  const user = useMusicAuth();
+  const [comments, setComments] = useState<SongComment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [posting, setPosting] = useState(false);
+
+  // Load comments
+  const loadComments = useCallback(async () => {
+    const sb = getMusicSupabase();
+    if (!sb) { setLoading(false); return; }
+
+    const { data } = await sb
+      .from('song_comments')
+      .select(`
+        id, user_id, song_id, text, parent_id, created_at,
+        ecosystem_profiles!inner(display_name, avatar_url)
+      `)
+      .eq('song_id', songId)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: true });
+
+    if (data) {
+      setComments(data.map((c: any) => ({
+        ...c,
+        display_name: c.ecosystem_profiles?.display_name || 'Anonymous',
+        avatar_url: c.ecosystem_profiles?.avatar_url || null,
+      })));
+    }
+    setLoading(false);
+  }, [songId]);
+
+  useEffect(() => { loadComments(); }, [loadComments]);
+
+  const postComment = async (text: string, parentId?: string | null) => {
+    const sb = getMusicSupabase();
+    if (!sb || !user || !text.trim()) return;
+    setPosting(true);
+
+    const { error } = await sb.from('song_comments').insert({
+      user_id: user.id,
+      song_id: songId,
+      site_key: brand.siteKey,
+      text: text.trim(),
+      parent_id: parentId || null,
+    });
+
+    if (!error) {
+      setNewComment('');
+      setReplyTo(null);
+      setReplyText('');
+      await loadComments();
+    }
+    setPosting(false);
+  };
+
+  const rootComments = comments.filter(c => !c.parent_id);
+  const getReplies = (parentId: string) => comments.filter(c => c.parent_id === parentId);
+
+  const formatDate = (d: string) => {
+    const date = new Date(d);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    if (diff < 60000) return 'just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return date.toLocaleDateString();
+  };
+
+  const commentStyle: React.CSSProperties = {
+    padding: '12px 0',
+    borderBottom: `1px solid ${brand.textColor}11`,
+  };
+
+  const avatarStyle: React.CSSProperties = {
+    width: 28,
+    height: 28,
+    borderRadius: '50%',
+    backgroundColor: brand.primaryColor + '22',
+    flexShrink: 0,
+  };
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '10px 14px',
+    borderRadius: 8,
+    border: `1px solid ${brand.textColor}22`,
+    backgroundColor: brand.backgroundColor,
+    color: brand.textColor,
+    fontSize: 14,
+    fontFamily: brand.bodyFont,
+    resize: 'none' as const,
+  };
+
+  const submitBtnStyle: React.CSSProperties = {
+    padding: '8px 16px',
+    borderRadius: 8,
+    border: 'none',
+    backgroundColor: brand.primaryColor,
+    color: brand.backgroundColor,
+    cursor: 'pointer',
+    fontSize: 13,
+    fontWeight: 600,
+    opacity: posting ? 0.5 : 1,
+  };
+
+  const renderComment = (comment: SongComment, isReply = false) => (
+    <div key={comment.id} style={{ ...commentStyle, paddingLeft: isReply ? 36 : 0 }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+        {comment.avatar_url ? (
+          <img src={comment.avatar_url} alt="" style={avatarStyle} />
+        ) : (
+          <div style={{ ...avatarStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: brand.primaryColor }}>
+            {(comment.display_name || '?')[0].toUpperCase()}
+          </div>
+        )}
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: brand.textColor }}>
+              {comment.display_name || 'Anonymous'}
+            </span>
+            <span style={{ fontSize: 11, color: brand.textColor + '55' }}>
+              {formatDate(comment.created_at)}
+            </span>
+          </div>
+          <div style={{ fontSize: 14, color: brand.textColor + 'DD', lineHeight: 1.5 }}>
+            {comment.text}
+          </div>
+          {!isReply && user && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setReplyTo(replyTo === comment.id ? null : comment.id); }}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: brand.primaryColor,
+                cursor: 'pointer',
+                fontSize: 12,
+                marginTop: 4,
+                padding: 0,
+              }}
+            >
+              Reply
+            </button>
+          )}
+          {/* Reply input */}
+          {replyTo === comment.id && (
+            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+              <input
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Write a reply..."
+                style={{ ...inputStyle, flex: 1 }}
+                onClick={(e) => e.stopPropagation()}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === 'Enter') postComment(replyText, comment.id);
+                }}
+              />
+              <button
+                onClick={(e) => { e.stopPropagation(); postComment(replyText, comment.id); }}
+                style={submitBtnStyle}
+              >
+                Reply
+              </button>
+            </div>
+          )}
+          {/* Nested replies */}
+          {getReplies(comment.id).map(reply => renderComment(reply, true))}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ marginTop: 16 }} onClick={(e) => e.stopPropagation()}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+        <IconComment size={16} color={brand.primaryColor} />
+        <span style={{ fontSize: 14, fontWeight: 600, color: brand.textColor }}>
+          Comments ({comments.length})
+        </span>
+      </div>
+
+      {loading ? (
+        <div style={{ color: brand.textColor + '44', fontSize: 13, padding: 8 }}>Loading comments...</div>
+      ) : (
+        <>
+          {rootComments.map(c => renderComment(c))}
+
+          {rootComments.length === 0 && (
+            <div style={{ color: brand.textColor + '44', fontSize: 13, padding: '8px 0' }}>
+              No comments yet. Be the first to share your thoughts.
+            </div>
+          )}
+        </>
+      )}
+
+      {/* New comment input */}
+      {user ? (
+        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <textarea
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            placeholder="Share your thoughts on this track..."
+            rows={2}
+            style={inputStyle}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                postComment(newComment);
+              }
+            }}
+          />
+          <button
+            onClick={(e) => { e.stopPropagation(); postComment(newComment); }}
+            disabled={posting || !newComment.trim()}
+            style={{ ...submitBtnStyle, alignSelf: 'flex-end' }}
+          >
+            Post
+          </button>
+        </div>
+      ) : (
+        <div style={{ color: brand.textColor + '55', fontSize: 13, padding: '8px 0', fontStyle: 'italic' }}>
+          Sign in to comment
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Comment Count Badge ────────────────────────────────────────────────────
+
+function CommentCountBadge({ songId, brand }: { songId: string; brand: BrandConfig }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const sb = getMusicSupabase();
+    if (!sb) return;
+    sb.from('song_comment_counts')
+      .select('total_comments')
+      .eq('song_id', songId)
+      .single()
+      .then(({ data }: any) => {
+        if (data) setCount(data.total_comments || 0);
+      });
+  }, [songId]);
+
+  if (count === 0) return null;
+
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 3,
+      fontSize: 11,
+      color: brand.textColor + '88',
+    }}>
+      <IconComment size={12} color={brand.textColor + '66'} />
+      {count}
+    </span>
+  );
+}
+
+// ─── Music Detail Panel ─────────────────────────────────────────────────────
+
+function MusicDetailPanel({
+  song,
+  brand,
+  onClose,
+}: {
+  song: Song;
+  brand: BrandConfig;
+  onClose: () => void;
+}) {
+  const { currentSong, isPlaying, playSongById, pause } = useMusicContext();
+  const isMobile = useIsMobile();
+  const isCurrent = currentSong?.id === song.id;
+  const isThisPlaying = isCurrent && isPlaying;
+  const [copied, setCopied] = useState(false);
+
+  const handlePlay = () => {
+    if (isThisPlaying) pause();
+    else playSongById(song.id);
+  };
+
+  const handleShare = () => {
+    const url = `${window.location.origin}/music?song=${song.id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10000,
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: isMobile ? 16 : 32,
+        fontFamily: brand.bodyFont,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          backgroundColor: brand.surfaceColor,
+          borderRadius: 16,
+          maxWidth: 640,
+          width: '100%',
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          border: `1px solid ${brand.primaryColor}33`,
+          boxShadow: `0 0 60px ${brand.primaryColor}22`,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header with album art */}
+        <div style={{ position: 'relative' }}>
+          <div style={{
+            width: '100%',
+            aspectRatio: '16/9',
+            backgroundColor: brand.primaryColor + '11',
+            overflow: 'hidden',
+            borderRadius: '16px 16px 0 0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            {song.image_url ? (
+              <img src={song.image_url} alt={song.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <IconMusic size={64} color={brand.primaryColor + '44'} />
+            )}
+          </div>
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              background: 'rgba(0,0,0,0.6)',
+              border: 'none',
+              borderRadius: '50%',
+              width: 36,
+              height: 36,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <IconClose size={18} color="#fff" />
+          </button>
+
+          {/* Play button overlay */}
+          <button
+            onClick={handlePlay}
+            style={{
+              position: 'absolute',
+              bottom: -24,
+              right: 24,
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              backgroundColor: brand.primaryColor,
+              border: `3px solid ${brand.surfaceColor}`,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+            }}
+          >
+            {isThisPlaying ? (
+              <IconPause size={24} color={brand.backgroundColor} />
+            ) : (
+              <IconPlay size={24} color={brand.backgroundColor} />
+            )}
+          </button>
+        </div>
+
+        {/* Song info */}
+        <div style={{ padding: '32px 24px 24px' }}>
+          <h2 style={{
+            fontFamily: brand.headingFont,
+            fontSize: 24,
+            fontWeight: 800,
+            color: brand.textColor,
+            margin: '0 0 4px',
+          }}>
+            {song.title}
+          </h2>
+          <p style={{ color: brand.textColor + 'AA', fontSize: 15, margin: '0 0 16px' }}>
+            {song.artist} {song.duration && <span style={{ color: brand.textColor + '55' }}>/ {song.duration}</span>}
+          </p>
+
+          {/* Tags */}
+          {song.tags.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 16 }}>
+              {song.tags.map((tag) => (
+                <span
+                  key={tag}
+                  style={{
+                    fontSize: 11,
+                    padding: '3px 10px',
+                    borderRadius: 12,
+                    backgroundColor: brand.primaryColor + '1A',
+                    color: brand.primaryColor,
+                    fontWeight: 500,
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Star Rating */}
+          <div style={{ marginBottom: 16 }}>
+            <StarRating songId={song.id} brand={brand} />
+          </div>
+
+          {/* Action buttons */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+            {song.youtube_url && (
+              <a
+                href={song.youtube_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  backgroundColor: '#FF0000',
+                  color: '#fff',
+                  textDecoration: 'none',
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                <IconTV size={16} color="#fff" /> Watch Video
+              </a>
+            )}
+            {song.suno_url && (
+              <a
+                href={song.suno_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: `1px solid ${brand.textColor}33`,
+                  color: brand.textColor + 'CC',
+                  textDecoration: 'none',
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                Suno <IconExternalLink size={12} color={brand.textColor + 'CC'} />
+              </a>
+            )}
+            <button
+              onClick={handleShare}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: `1px solid ${brand.textColor}33`,
+                backgroundColor: 'transparent',
+                color: brand.textColor + 'CC',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 500,
+              }}
+            >
+              <IconShare size={14} color={brand.textColor + 'CC'} />
+              {copied ? 'Copied!' : 'Share'}
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div style={{ height: 1, backgroundColor: brand.textColor + '11', margin: '0 0 16px' }} />
+
+          {/* Comments */}
+          <SongCommentSection songId={song.id} brand={brand} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Default export for convenience ──────────────────────────────────────────
+
+export default {
+  MusicProvider,
+  MusicBar,
+  MusicPage,
+  MusicVideoChannel,
+  MusicDetailPanel,
+  StarRating,
+  SongCommentSection,
+  brandConfigs,
+  initMusicSupabase,
+};
