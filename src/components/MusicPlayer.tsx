@@ -2580,15 +2580,35 @@ const ECOSYSTEM_SUPABASE_URL = 'https://uefznzzkrzqxgxxwslox.supabase.co';
 
 // Lazy-loaded Supabase client for ratings/comments
 let _sbClient: any = null;
+// Public anon key for the ecosystem (FreedomForge) Supabase project where
+// song_ratings + song_rating_stats + song_comments live. Anon keys are
+// public by design (Supabase docs); embedding it in canonical removes the
+// per-site env wiring that was getting the WRONG key (each site's own
+// project anon key) and producing 401s on every rating read.
+const ECOSYSTEM_PROJECT_REF = 'uefznzzkrzqxgxxwslox';
+const ECOSYSTEM_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVlZnpuenprcnpxeGd4eHdzbG94Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYyNDIzODQsImV4cCI6MjA3MTgxODM4NH0.YmwwuEhG7Siv8zyL9XFjthNuqJrST3C4hs3qESb-grM';
+
+function pickEcosystemKey(maybeKey?: string): string {
+  // Validate that any caller-supplied key actually points at the ecosystem
+  // project. Sites previously passed VITE_SUPABASE_ANON_KEY which is their
+  // own project's key and produces 401 against the ecosystem URL.
+  if (!maybeKey) return ECOSYSTEM_SUPABASE_ANON_KEY;
+  try {
+    const payload = JSON.parse(
+      atob(maybeKey.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))
+    );
+    if (payload?.ref === ECOSYSTEM_PROJECT_REF) return maybeKey;
+  } catch {}
+  return ECOSYSTEM_SUPABASE_ANON_KEY;
+}
+
 function getMusicSupabase(anonKey?: string): any {
   if (_sbClient) return _sbClient;
-  // Try to find the key from window or passed config
-  const key = anonKey
-    || (typeof window !== 'undefined' && (window as any).__ECOSYSTEM_ANON_KEY__)
-    || '';
-  if (!key) return null;
+  const key = pickEcosystemKey(
+    anonKey || (typeof window !== 'undefined' && (window as any).__ECOSYSTEM_ANON_KEY__) || undefined
+  );
   try {
-    // Dynamic import-like approach: use globalThis createClient if available
     const g = typeof globalThis !== 'undefined' ? globalThis : window;
     if ((g as any).__supabaseCreateClient__) {
       _sbClient = (g as any).__supabaseCreateClient__(ECOSYSTEM_SUPABASE_URL, key);
@@ -2598,10 +2618,13 @@ function getMusicSupabase(anonKey?: string): any {
   return null;
 }
 
-// Initialize Supabase from external createClient
-export function initMusicSupabase(createClientFn: any, anonKey: string) {
+// Initialize Supabase from external createClient. anonKey is optional —
+// canonical will substitute the ecosystem anon key if the supplied one
+// doesn't match the ecosystem project ref.
+export function initMusicSupabase(createClientFn: any, anonKey?: string) {
   if (_sbClient) return _sbClient;
-  _sbClient = createClientFn(ECOSYSTEM_SUPABASE_URL, anonKey, {
+  const key = pickEcosystemKey(anonKey);
+  _sbClient = createClientFn(ECOSYSTEM_SUPABASE_URL, key, {
     auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
   });
   return _sbClient;
