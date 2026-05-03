@@ -33,6 +33,7 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
+import { createPortal } from 'react-dom';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -208,6 +209,10 @@ function injectGlobalStyles() {
       0% { stroke-dashoffset: 0; }
       100% { stroke-dashoffset: 283; }
     }
+    /* Reserve room at the bottom of the page so the fixed MusicBar
+       does not overlap content. Page wrappers must NOT lock the body
+       height; if they do, override --admp-bar-pad on the wrapper. */
+    body { padding-bottom: var(--admp-bar-pad, 88px); }
   `;
   document.head.appendChild(style);
 }
@@ -312,6 +317,10 @@ interface MusicProviderProps {
 export function MusicProvider({ brandConfig, catalog, children }: MusicProviderProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const consecutiveErrorsRef = useRef(0);
+  // Refs to next/prev callbacks so the Media Session handlers (set once
+  // at audio-creation) can reach the latest definitions without re-binding.
+  const nextRef = useRef<() => void>(() => {});
+  const prevRef = useRef<() => void>(() => {});
 
   useEffect(() => { injectGlobalStyles(); }, []);
 
@@ -385,6 +394,27 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
     audio.addEventListener('canplay', onCanPlay);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('error', onError);
+
+    // Media Session API: surface play/pause/skip on the OS lock-screen
+    // and hardware media keys. Set once; metadata is updated per-song below.
+    if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.setActionHandler('play', () => {
+          audioRef.current?.play().catch(() => {});
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+          audioRef.current?.pause();
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+          prevRef.current?.();
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+          nextRef.current?.();
+        });
+      } catch {
+        // setActionHandler can throw on older browsers — non-fatal
+      }
+    }
 
     return () => {
       audio.removeEventListener('timeupdate', onTime);
@@ -478,8 +508,38 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
     if (saved && song.id === saved.songId && currentTime === 0) {
       audio.currentTime = saved.time;
     }
+
+    // Surface track metadata to OS lock-screen / hardware media keys.
+    if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        navigator.mediaSession.metadata = new (window as any).MediaMetadata({
+          title: song.title,
+          artist: song.artist,
+          album: brandConfig.siteName,
+          artwork: song.image_url
+            ? [
+                { src: song.image_url, sizes: '256x256', type: 'image/jpeg' },
+                { src: song.image_url, sizes: '512x512', type: 'image/jpeg' },
+              ]
+            : [],
+        });
+      } catch {
+        // Older browsers — non-fatal
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioSourceSong?.id]);
+
+  // Mirror playback state to Media Session so OS UIs show correct play/pause.
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && 'mediaSession' in navigator) {
+      try {
+        (navigator.mediaSession as any).playbackState = isPlaying ? 'playing' : 'paused';
+      } catch {
+        // non-fatal
+      }
+    }
+  }, [isPlaying]);
 
   // Persist state periodically
   useEffect(() => {
@@ -596,6 +656,7 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
       setTimeout(() => audioRef.current?.play().catch(() => {}), 100);
     }
   }, [isPlaying]);
+  nextRef.current = next;
 
   const prev = useCallback(() => {
     if (audioRef.current && audioRef.current.currentTime > 3) {
@@ -612,6 +673,7 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
       }
     }
   }, [songs.length, isPlaying, playMode, radioIndex, radioQueue.length]);
+  prevRef.current = prev;
 
   const seek = useCallback((time: number) => {
     if (audioRef.current) {
@@ -1034,7 +1096,9 @@ export function MusicBar() {
     height: barHeight,
     backgroundColor: brand.surfaceColor,
     borderTop: `1px solid ${brand.primaryColor}33`,
-    zIndex: 9999,
+    zIndex: 2147483000,
+    pointerEvents: 'auto',
+    isolation: 'isolate',
     transition: 'height 0.3s ease',
     fontFamily: brand.bodyFont,
     display: 'flex',
@@ -1125,12 +1189,12 @@ export function MusicBar() {
 
   const isRadio = playMode === 'radio';
 
-  return (
+  const tree = (
     <div style={barStyle} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Main controls row */}
       <div style={controlsRow}>
-        {/* Album art */}
-        <div style={artStyle}>
+        {/* Album art (with hover tooltip showing track + artist) */}
+        <div style={artStyle} title={`Now playing: ${currentSong.title} — ${currentSong.artist}`}>
           {currentSong.image_url ? (
             <img
               src={currentSong.image_url}
@@ -1200,10 +1264,13 @@ export function MusicBar() {
           <button
             style={{
               ...btnStyle,
-              opacity: playMode === 'shuffle' ? 1 : 0.5,
+              opacity: playMode === 'shuffle' ? 1 : 0.6,
+              backgroundColor: playMode === 'shuffle' ? brand.primaryColor + '22' : 'transparent',
+              border: playMode === 'shuffle' ? `1px solid ${brand.primaryColor}66` : '1px solid transparent',
             }}
             onClick={toggleShuffle}
-            aria-label="Toggle shuffle"
+            aria-label={playMode === 'shuffle' ? 'Shuffle on (click to turn off)' : 'Shuffle off'}
+            aria-pressed={playMode === 'shuffle'}
           >
             <IconShuffle
               size={16}
@@ -1248,10 +1315,13 @@ export function MusicBar() {
           <button
             style={{
               ...btnStyle,
-              opacity: repeatMode !== 'off' ? 1 : 0.5,
+              opacity: repeatMode !== 'off' ? 1 : 0.6,
+              backgroundColor: repeatMode !== 'off' ? brand.primaryColor + '22' : 'transparent',
+              border: repeatMode !== 'off' ? `1px solid ${brand.primaryColor}66` : '1px solid transparent',
             }}
             onClick={cycleRepeat}
-            aria-label={`Repeat: ${repeatMode}`}
+            aria-label={`Repeat: ${repeatMode}. Click to cycle.`}
+            aria-pressed={repeatMode !== 'off'}
           >
             {repeatMode === 'one' ? (
               <IconRepeatOne
@@ -1366,6 +1436,12 @@ export function MusicBar() {
       )}
     </div>
   );
+
+  // Render via portal so the bar escapes any parent stacking context
+  // (banner overlays, transformed wrappers) and always sits on top.
+  return typeof document !== 'undefined'
+    ? createPortal(tree, document.body)
+    : tree;
 }
 
 // ─── MusicPage (full page with track grid) ───────────────────────────────────
@@ -1676,17 +1752,35 @@ function SongCard({ song, onSelect }: { song: Song; onSelect?: (song: Song) => v
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: brand.surfaceColor,
-    border: `1px solid ${isCurrent ? brand.primaryColor : brand.textColor + '1A'}`,
+    border: `${isCurrent ? '2px' : '1px'} solid ${isCurrent ? brand.primaryColor : brand.textColor + '1A'}`,
     borderRadius: 12,
     overflow: 'hidden',
     cursor: 'pointer',
     transition: 'border-color 0.15s, transform 0.15s, box-shadow 0.15s',
     transform: hovered ? 'scale(1.02)' : 'none',
     boxShadow: isCurrent
-      ? `0 0 16px ${brand.primaryColor}44, 0 4px 12px rgba(0,0,0,0.3)`
+      ? `0 0 16px ${brand.primaryColor}66, 0 4px 12px rgba(0,0,0,0.3)`
       : hovered
         ? '0 8px 20px rgba(0,0,0,0.3)'
         : 'none',
+    position: 'relative',
+  };
+
+  const nowPlayingPill: React.CSSProperties = {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    padding: '3px 8px',
+    backgroundColor: brand.primaryColor,
+    color: brand.backgroundColor,
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: 1,
+    borderRadius: 3,
+    textTransform: 'uppercase',
+    pointerEvents: 'none',
+    zIndex: 2,
+    boxShadow: `0 2px 6px ${brand.primaryColor}66`,
   };
 
   const artContainerStyle: React.CSSProperties = {
@@ -1752,6 +1846,11 @@ function SongCard({ song, onSelect }: { song: Song; onSelect?: (song: Song) => v
         }
       }}
     >
+      {/* NOW PLAYING pill (only when this card's song is the active playing one) */}
+      {isThisPlaying && (
+        <div style={nowPlayingPill}>Now Playing</div>
+      )}
+
       {/* Art */}
       <div style={artContainerStyle}>
         {song.image_url ? (
