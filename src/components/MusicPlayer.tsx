@@ -341,7 +341,15 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
 
   const featuredIds = useMemo(() => new Set(featuredSongs.map((s) => s.id)), [featuredSongs]);
 
-  const songs = featuredSongs.length > 0 ? featuredSongs : allSongs;
+  // Active playback queue. Defaults to featured; clicking a song that isn't
+  // in featured (e.g. from the "All" tab) flips this to 'all' so the click
+  // can resolve and the next/prev cycle traverses the full catalog.
+  const [activeQueue, setActiveQueue] = useState<'featured' | 'all'>('featured');
+
+  const songs = useMemo(() => {
+    if (activeQueue === 'all') return allSongs;
+    return featuredSongs.length > 0 ? featuredSongs : allSongs;
+  }, [activeQueue, featuredSongs, allSongs]);
   const stationName = STATION_NAMES[brandConfig.siteKey] || `${brandConfig.siteName} Radio`;
 
   const saved = useMemo(() => loadState(), []);
@@ -626,18 +634,33 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
             setRadioIndex(idx);
           } else {
             setPlayMode('normal');
-            const normalIdx = songs.findIndex((s) => s.id === song.id);
-            if (normalIdx >= 0) setCurrentIndex(normalIdx);
+            // Pick the right queue same way playSongById does.
+            const featIdx = featuredSongs.findIndex((s) => s.id === song.id);
+            const allIdx = allSongs.findIndex((s) => s.id === song.id);
+            if (featIdx >= 0) {
+              setActiveQueue('featured');
+              setCurrentIndex(featIdx);
+            } else if (allIdx >= 0) {
+              setActiveQueue('all');
+              setCurrentIndex(allIdx);
+            }
           }
         } else {
-          const idx = songs.findIndex((s) => s.id === song.id);
-          if (idx >= 0) setCurrentIndex(idx);
+          const featIdx = featuredSongs.findIndex((s) => s.id === song.id);
+          const allIdx = allSongs.findIndex((s) => s.id === song.id);
+          if (featIdx >= 0) {
+            setActiveQueue('featured');
+            setCurrentIndex(featIdx);
+          } else if (allIdx >= 0) {
+            setActiveQueue('all');
+            setCurrentIndex(allIdx);
+          }
         }
       }
       setIsPlaying(true);
       setTimeout(() => audioRef.current?.play().catch(() => {}), 50);
     },
-    [songs, playMode, radioQueue]
+    [allSongs, featuredSongs, playMode, radioQueue]
   );
 
   const pause = useCallback(() => {
@@ -689,16 +712,23 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
 
   const playSongById = useCallback(
     (id: string) => {
-      const idx = songs.findIndex((s) => s.id === id);
-      if (idx >= 0) {
-        if (playMode === 'radio') setPlayMode('normal');
-        setCurrentIndex(idx);
-        setIsPlaying(true);
-        prevSongIdRef.current = null; // Force reload
-        setTimeout(() => audioRef.current?.play().catch(() => {}), 100);
-      }
+      // Look up in allSongs first so a click from the "All" tab can resolve
+      // even when the song isn't in this site's featured playlist.
+      const allIdx = allSongs.findIndex((s) => s.id === id);
+      if (allIdx < 0) return;
+
+      const featIdx = featuredSongs.findIndex((s) => s.id === id);
+      const targetQueue: 'featured' | 'all' = featIdx >= 0 ? 'featured' : 'all';
+      const idxInTarget = targetQueue === 'featured' ? featIdx : allIdx;
+
+      if (playMode === 'radio') setPlayMode('normal');
+      setActiveQueue(targetQueue);
+      setCurrentIndex(idxInTarget);
+      setIsPlaying(true);
+      prevSongIdRef.current = null; // Force reload
+      setTimeout(() => audioRef.current?.play().catch(() => {}), 100);
     },
-    [songs, playMode]
+    [allSongs, featuredSongs, playMode]
   );
 
   const toggleShuffle = useCallback(() => {
