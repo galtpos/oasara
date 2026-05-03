@@ -28,7 +28,7 @@ const ConfirmEmail: React.FC = () => {
       }
 
       // Get redirect destination
-      const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/my-journey';
+      const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/';
 
       // Check if already logged in (Supabase auto-detects URL token)
       try {
@@ -66,7 +66,7 @@ const ConfirmEmail: React.FC = () => {
       console.log('[ConfirmEmail] Auth state change:', event);
       
       if (event === 'SIGNED_IN' && session) {
-        const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/my-journey';
+        const redirectTo = localStorage.getItem('oasara-auth-redirect') || '/';
         setStatus('success');
         localStorage.removeItem('oasara-auth-redirect');
         window.history.replaceState(null, '', window.location.pathname);
