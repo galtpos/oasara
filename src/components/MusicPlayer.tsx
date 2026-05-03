@@ -2968,6 +2968,7 @@ function SongCommentSection({
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
 
   // Load comments
   const loadComments = useCallback(async () => {
@@ -3185,8 +3186,26 @@ function SongCommentSection({
           </button>
         </div>
       ) : (
-        <div style={{ color: brand.textColor + '55', fontSize: 13, padding: '8px 0', fontStyle: 'italic' }}>
-          Sign in to comment
+        <div style={{ marginTop: 12 }}>
+          {showSignIn ? (
+            <MusicSignInPrompt brand={brand} onClose={() => setShowSignIn(false)} />
+          ) : (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowSignIn(true); }}
+              style={{
+                padding: '8px 14px',
+                fontSize: 13,
+                fontWeight: 600,
+                border: `1px solid ${brand.primaryColor}66`,
+                borderRadius: 6,
+                backgroundColor: 'transparent',
+                color: brand.primaryColor,
+                cursor: 'pointer',
+              }}
+            >
+              Sign in to comment
+            </button>
+          )}
         </div>
       )}
     </div>
