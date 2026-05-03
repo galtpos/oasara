@@ -146,6 +146,17 @@ export const brandConfigs: Record<string, BrandConfig> = {
     headingFont: 'Playfair Display, serif',
     bodyFont: 'Source Sans Pro, sans-serif',
   },
+  ditchthedollar: {
+    siteName: 'Ditch the Dollar',
+    siteKey: 'ditchthedollar',
+    primaryColor: '#A67C00',
+    accentColor: '#F4EFE6',
+    backgroundColor: '#0A0A0A',
+    surfaceColor: '#1F1A14',
+    textColor: '#F4EFE6',
+    headingFont: 'Playfair Display, serif',
+    bodyFont: 'Inter, sans-serif',
+  },
   oasara: {
     siteName: 'OASARA',
     siteKey: 'oasara',
