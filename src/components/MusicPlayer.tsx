@@ -2673,11 +2673,8 @@ async function signInToEcosystem(email: string): Promise<{ ok: boolean; error?: 
   return { ok: true };
 }
 
-async function signOutFromEcosystem(): Promise<void> {
-  const sb = getMusicSupabase();
-  if (!sb) return;
-  await sb.auth.signOut();
-}
+// (signOutFromEcosystem will be wired when a "Log out" surface is added.
+// Removed to satisfy strict-TS sites; reintroduce when needed.)
 
 // Inline prompt that appears when an unauthenticated user tries to vote or
 // comment. Sends a magic link to the ecosystem project.
