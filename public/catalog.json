@@ -1162,6 +1162,32 @@
         "deliberate pacing\nlyrics:"
       ],
       "suno_url": "https://suno.com/song/434b1e14-6464-41a6-969f-9e588566b90b"
+    },
+    {
+      "id": "3f5e9c43-8f1a-4d4a-a3c2-355ea12187e0",
+      "title": "Another head hangs lowly",
+      "artist": "Kaurma",
+      "audio_url": "https://cdn1.suno.ai/3f5e9c43-8f1a-4d4a-a3c2-355ea12187e0.mp3",
+      "image_url": "https://cdn2.suno.ai/image_3f5e9c43-8f1a-4d4a-a3c2-355ea12187e0.jpeg",
+      "video_url": null,
+      "youtube_url": null,
+      "rumble_url": null,
+      "duration": "5:59",
+      "tags": [],
+      "suno_url": "https://suno.com/song/3f5e9c43-8f1a-4d4a-a3c2-355ea12187e0"
+    },
+    {
+      "id": "f98f7cb3-0689-4767-92a4-4987dac3d55e",
+      "title": "Cantor Counter Grin",
+      "artist": "Kaurma",
+      "audio_url": "https://cdn1.suno.ai/f98f7cb3-0689-4767-92a4-4987dac3d55e.mp3",
+      "image_url": "https://cdn2.suno.ai/image_f98f7cb3-0689-4767-92a4-4987dac3d55e.jpeg",
+      "video_url": null,
+      "youtube_url": null,
+      "rumble_url": null,
+      "duration": "4:06",
+      "tags": [],
+      "suno_url": "https://suno.com/song/f98f7cb3-0689-4767-92a4-4987dac3d55e"
     }
   ],
   "playlists": {
@@ -1244,26 +1270,16 @@
       ]
     },
     "day2026": {
-      "name": "Enemies of the State by @kaurma | Suno",
+      "name": "Day2026 by @kaurma | Suno",
       "song_ids": [
         "5ebadf32-5861-4aed-99d0-74b135e59e1a",
         "596e6d24-5442-4449-b107-86b20fc8463c",
-        "e684ba87-9b0a-430d-af9f-4d53d6f81021",
-        "b0d9c23e-6ebf-4a41-949f-4bedcec1fb01",
-        "4f2fda02-8a40-455c-903a-c528b8dacc7b",
-        "9b1f50a4-d7a5-4334-b1fc-36815c0bcd13",
         "2c2e4e14-fc12-4661-94a8-a97a59602627",
-        "c865338e-ac69-485c-94ae-7179744b3fe3",
-        "b36878ab-eec4-479c-b418-fad3f00edd9a",
-        "de591132-fafc-4cd6-8699-e33cbf5645ce",
-        "b589bef4-a0b7-443b-9f56-bc4f3547e06a",
-        "b140b005-fda7-47f8-a870-55ddca4e4d11",
-        "0618c54d-3085-4194-aa12-197c24cf7f1b",
-        "06341063-da22-44b9-a2b4-25e971fbdd94",
-        "536c4340-1cf1-461b-b8e9-9a4bf7f65d63",
-        "c671976c-39b7-4c20-8441-5059a00e056d",
-        "977521f3-8d61-4f62-8e20-0fd6d1ce1973",
-        "04502eca-9c5d-4d88-bccd-ab09dbc137ba"
+        "04502eca-9c5d-4d88-bccd-ab09dbc137ba",
+        "3f5e9c43-8f1a-4d4a-a3c2-355ea12187e0",
+        "2ed97eb8-0b6c-43b9-8832-95800c90f2e7",
+        "8039bed7-b6b8-4f5b-ad03-e0a1ec620aa4",
+        "f98f7cb3-0689-4767-92a4-4987dac3d55e"
       ]
     }
   },
