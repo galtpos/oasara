@@ -61,6 +61,12 @@ export interface BrandConfig {
   textColor: string;
   headingFont: string;
   bodyFont: string;
+  // Visibility Floor (Ecosystem Player Board, ratified 2026-05-03):
+  // separator + glow tokens are mandatory — bar must be unmistakably present
+  // on every brand. Opaque hex only on separatorBorderColor (no alpha suffix).
+  separatorBorderColor: string;   // opaque hex, ≥40% contrast vs surfaceColor
+  separatorBorderWidth: string;   // CSS length, default '3px'
+  glowIntensity: number;          // 0.0–1.0, ≥0.40 floor
 }
 
 interface Playlist {
@@ -90,6 +96,9 @@ export const brandConfigs: Record<string, BrandConfig> = {
     textColor: '#FFFFFF',
     headingFont: 'Montserrat, sans-serif',
     bodyFont: 'Inter, sans-serif',
+    separatorBorderColor: '#E8B923',
+    separatorBorderWidth: '3px',
+    glowIntensity: 0.50,
   },
   day2026: {
     // Direction 5 (Field Notes Tour) — locked 2026-05-03 by Day2026 Design Board (Burns chair).
@@ -104,6 +113,9 @@ export const brandConfigs: Record<string, BrandConfig> = {
     textColor: '#EFE6D2',         // Cream type on Granite
     headingFont: 'Oswald, sans-serif',
     bodyFont: '"Roboto Slab", Georgia, serif',
+    separatorBorderColor: '#A8352B', // Old Glory Red separator on Granite — high contrast
+    separatorBorderWidth: '3px',
+    glowIntensity: 0.45,
   },
   ownnothing: {
     siteName: 'Own Nothing',
@@ -115,6 +127,9 @@ export const brandConfigs: Record<string, BrandConfig> = {
     textColor: '#FFFFFF',
     headingFont: 'Archivo Black, sans-serif',
     bodyFont: 'Work Sans, sans-serif',
+    separatorBorderColor: '#8B5CF6',
+    separatorBorderWidth: '3px',
+    glowIntensity: 0.50,
   },
   technocracyatlas: {
     siteName: 'Technocracy Atlas',
@@ -126,6 +141,9 @@ export const brandConfigs: Record<string, BrandConfig> = {
     textColor: '#FFFFFF',
     headingFont: 'Bebas Neue, sans-serif',
     bodyFont: 'Share Tech Mono, monospace',
+    separatorBorderColor: '#00CC6F',
+    separatorBorderWidth: '3px',
+    glowIntensity: 0.55,
   },
   freedomforge: {
     siteName: 'Freedom Forge',
@@ -137,6 +155,9 @@ export const brandConfigs: Record<string, BrandConfig> = {
     textColor: '#FFFFFF',
     headingFont: 'Poppins, sans-serif',
     bodyFont: 'Inter, sans-serif',
+    separatorBorderColor: '#FF6B35',
+    separatorBorderWidth: '3px',
+    glowIntensity: 0.50,
   },
   daylightfreedom: {
     siteName: 'Daylight Freedom',
@@ -148,6 +169,9 @@ export const brandConfigs: Record<string, BrandConfig> = {
     textColor: '#FFFFFF',
     headingFont: 'Playfair Display, serif',
     bodyFont: 'Source Sans Pro, sans-serif',
+    separatorBorderColor: '#FFD93D',
+    separatorBorderWidth: '3px',
+    glowIntensity: 0.55,
   },
   ditchthedollar: {
     siteName: 'Ditch the Dollar',
@@ -159,6 +183,9 @@ export const brandConfigs: Record<string, BrandConfig> = {
     textColor: '#F4EFE6',
     headingFont: 'Playfair Display, serif',
     bodyFont: 'Inter, sans-serif',
+    separatorBorderColor: '#A67C00',
+    separatorBorderWidth: '3px',
+    glowIntensity: 0.45,
   },
   oasara: {
     siteName: 'OASARA',
@@ -170,8 +197,46 @@ export const brandConfigs: Record<string, BrandConfig> = {
     textColor: '#FFFFFF',
     headingFont: 'Nunito, sans-serif',
     bodyFont: 'Open Sans, sans-serif',
+    separatorBorderColor: '#4ECDC4',
+    separatorBorderWidth: '3px',
+    glowIntensity: 0.50,
   },
 };
+
+// ─── BrandConfig validation (Fu, ratified 2026-05-03) ───────────────────────
+//
+// Throws at module init if a brand config is missing any visibility-floor token.
+// Catches the silent-fallback class of bugs where a consumer site ships an
+// outdated brandConfig and the bar renders broken in prod with no error.
+
+const REQUIRED_VISIBILITY_FIELDS: (keyof BrandConfig)[] = [
+  'separatorBorderColor',
+  'separatorBorderWidth',
+  'glowIntensity',
+];
+
+export function validateBrandConfig(brand: BrandConfig): void {
+  for (const f of REQUIRED_VISIBILITY_FIELDS) {
+    if (brand[f] === undefined || brand[f] === null) {
+      throw new Error(
+        `[ecosystem-player] BrandConfig "${brand.siteKey ?? '?'}" missing required ` +
+        `visibility-floor field: ${String(f)}. Required by Ecosystem Player Board ` +
+        `(2026-05-03). See _standards/ECOSYSTEM_PLAYER_PROCESS.md.`
+      );
+    }
+  }
+  if (typeof brand.glowIntensity === 'number' && (brand.glowIntensity < 0 || brand.glowIntensity > 1)) {
+    throw new Error(
+      `[ecosystem-player] BrandConfig "${brand.siteKey}" glowIntensity must be 0.0–1.0 ` +
+      `(got ${brand.glowIntensity}).`
+    );
+  }
+}
+
+// Validate every preset at module load — fail loud if a preset is malformed.
+for (const cfg of Object.values(brandConfigs)) {
+  validateBrandConfig(cfg);
+}
 
 // ─── Station Names ──────────────────────────────────────────────────────────
 
@@ -226,7 +291,20 @@ function injectGlobalStyles() {
     /* Reserve room at the bottom of the page so the fixed MusicBar
        does not overlap content. Page wrappers must NOT lock the body
        height; if they do, override --admp-bar-pad on the wrapper. */
-    body { padding-bottom: var(--admp-bar-pad, 88px); }
+    body { padding-bottom: var(--admp-bar-pad, 96px); }
+
+    /* Photosensitivity / migraine accessibility (Khan, 2026-05-03).
+       Kills the glow pulse and bar height transitions for users with
+       prefers-reduced-motion. WCAG 2.3 — no exceptions. */
+    @media (prefers-reduced-motion: reduce) {
+      [data-admp-bar] {
+        animation: none !important;
+        transition: none !important;
+      }
+      [data-admp-bar] [data-admp-bars] > span {
+        animation: none !important;
+      }
+    }
   `;
   document.head.appendChild(style);
 }
@@ -1129,8 +1207,31 @@ export function MusicBar() {
     if (diff < -40) setExpanded(false);
   };
 
-  const barHeight = isMobile ? (expanded ? 200 : 56) : 64;
-  const glowColor = brand.primaryColor + '33';
+  // P1 height floor (van Schneider + Khan, 2026-05-03):
+  //   mobile collapsed = 64 (was 56), expanded = 200, desktop = 72 (was 64).
+  const barHeight = isMobile ? (expanded ? 200 : 64) : 72;
+
+  // P0 visibility floor (Jina + Shear, 2026-05-03): glow alpha is no longer a
+  // hardcoded 1A/33 hex suffix — it's a per-brand intensity token, floor 0.40.
+  const glowAlphaHex = Math.round(brand.glowIntensity * 255)
+    .toString(16)
+    .padStart(2, '0')
+    .toUpperCase();
+  const glowColor = brand.primaryColor + glowAlphaHex;
+
+  // P0 #3 Shear+Pelly compromise: backdrop-blur ONLY when playing. Always-on
+  // separator keeps bar locatable; glass-depth signals "active." When paused,
+  // bar is fully solid surfaceColor — no editorial overreach on quiet pages.
+  // Fu's @supports fallback: 95% opacity solid for browsers without filter.
+  const supportsBackdropFilter =
+    typeof CSS !== 'undefined' &&
+    typeof CSS.supports === 'function' &&
+    CSS.supports('backdrop-filter', 'blur(1px)');
+  const playingBackground =
+    supportsBackdropFilter
+      ? brand.surfaceColor + 'E0' // ~88% opacity (E0 / FF)
+      : brand.surfaceColor + 'F2'; // ~95% opacity fallback
+  const barBackground = isPlaying ? playingBackground : brand.surfaceColor;
 
   const barStyle: React.CSSProperties = {
     position: 'fixed',
@@ -1138,28 +1239,36 @@ export function MusicBar() {
     left: 0,
     right: 0,
     height: barHeight,
-    backgroundColor: brand.surfaceColor,
-    borderTop: `1px solid ${brand.primaryColor}33`,
+    backgroundColor: barBackground,
+    // P0 #1: opaque hex separator, default 3px — replaces 1px@20% near-invisible line.
+    borderTop: `${brand.separatorBorderWidth} solid ${brand.separatorBorderColor}`,
     zIndex: 2147483000,
     pointerEvents: 'auto',
     isolation: 'isolate',
-    transition: 'height 0.3s ease',
+    transition: 'height 0.3s ease, background-color 0.25s ease',
     fontFamily: brand.bodyFont,
     display: 'flex',
     flexDirection: 'column',
+    // P0 #2: glow alpha now driven by brand.glowIntensity (≥0.40 floor enforced
+    // by validateBrandConfig). Both states use the brand-controlled alpha so
+    // the bar's visual presence is consistent and brand-tuned.
     boxShadow: isPlaying
-      ? `0 -4px 20px ${glowColor}`
-      : `0 -2px 10px ${brand.primaryColor}1A`,
+      ? `0 -6px 24px ${glowColor}, 0 -1px 0 ${brand.separatorBorderColor}`
+      : `0 -3px 12px ${brand.primaryColor}33`,
+    // P0 #3: backdrop-blur only when actively playing (Pelly compromise).
+    ...(isPlaying && supportsBackdropFilter
+      ? { backdropFilter: 'blur(12px) saturate(180%)', WebkitBackdropFilter: 'blur(12px) saturate(180%)' }
+      : {}),
     ...(isPlaying ? { animation: 'admp-glow-pulse 3s ease-in-out infinite' } : {}),
   };
 
   const controlsRow: React.CSSProperties = {
     display: 'flex',
     alignItems: 'center',
-    padding: isMobile ? '8px 12px' : '8px 24px',
-    gap: isMobile ? 8 : 12,
+    padding: isMobile ? '10px 12px' : '10px 24px',
+    gap: isMobile ? 10 : 12,
     flex: '0 0 auto',
-    minHeight: isMobile ? 56 : 64,
+    minHeight: isMobile ? 64 : 72,
   };
 
   const artStyle: React.CSSProperties = {
@@ -1234,7 +1343,7 @@ export function MusicBar() {
   const isRadio = playMode === 'radio';
 
   const tree = (
-    <div style={barStyle} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+    <div data-admp-bar style={barStyle} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       {/* Main controls row */}
       <div style={controlsRow}>
         {/* Album art (with hover tooltip showing track + artist) */}
