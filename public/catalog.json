@@ -1188,6 +1188,97 @@
       "duration": "4:06",
       "tags": [],
       "suno_url": "https://suno.com/song/f98f7cb3-0689-4767-92a4-4987dac3d55e"
+    },
+    {
+      "id": "ab9c4d15-50cc-40f4-8fe0-a2f9e8c6b335",
+      "title": "They want to own you",
+      "artist": "Kaurma",
+      "audio_url": "https://cdn1.suno.ai/ab9c4d15-50cc-40f4-8fe0-a2f9e8c6b335.mp3",
+      "image_url": "https://cdn2.suno.ai/image_ab9c4d15-50cc-40f4-8fe0-a2f9e8c6b335.jpeg",
+      "video_url": null,
+      "youtube_url": null,
+      "rumble_url": null,
+      "duration": "4:24",
+      "tags": [],
+      "suno_url": "https://suno.com/song/ab9c4d15-50cc-40f4-8fe0-a2f9e8c6b335"
+    },
+    {
+      "id": "e9d2dcd6-7c6b-4e82-a247-05805c11383c",
+      "title": "Sovereign Ground",
+      "artist": "Kaurma",
+      "audio_url": "https://cdn1.suno.ai/e9d2dcd6-7c6b-4e82-a247-05805c11383c.mp3",
+      "image_url": "https://cdn2.suno.ai/image_e9d2dcd6-7c6b-4e82-a247-05805c11383c.jpeg",
+      "video_url": null,
+      "youtube_url": null,
+      "rumble_url": null,
+      "duration": "3:54",
+      "tags": [],
+      "suno_url": "https://suno.com/song/e9d2dcd6-7c6b-4e82-a247-05805c11383c"
+    },
+    {
+      "id": "570f4f92-339b-4cca-bfec-3f60aeb6da92",
+      "title": "\"Taking Back Tomorrow",
+      "artist": "Kaurma",
+      "audio_url": "https://cdn1.suno.ai/570f4f92-339b-4cca-bfec-3f60aeb6da92.mp3",
+      "image_url": "https://cdn2.suno.ai/image_570f4f92-339b-4cca-bfec-3f60aeb6da92.jpeg",
+      "video_url": null,
+      "youtube_url": null,
+      "rumble_url": null,
+      "duration": "5:52",
+      "tags": [],
+      "suno_url": "https://suno.com/song/570f4f92-339b-4cca-bfec-3f60aeb6da92"
+    },
+    {
+      "id": "4bbe3fc5-22e9-45a0-b761-4f81a6f8a674",
+      "title": "I woke up with my chains on, didn't know",
+      "artist": "Kaurma",
+      "audio_url": "https://cdn1.suno.ai/4bbe3fc5-22e9-45a0-b761-4f81a6f8a674.mp3",
+      "image_url": "https://cdn2.suno.ai/image_4bbe3fc5-22e9-45a0-b761-4f81a6f8a674.jpeg",
+      "video_url": null,
+      "youtube_url": null,
+      "rumble_url": null,
+      "duration": "4:37",
+      "tags": [],
+      "suno_url": "https://suno.com/song/4bbe3fc5-22e9-45a0-b761-4f81a6f8a674"
+    },
+    {
+      "id": "f1b3c974-4f23-4040-abe1-3b386e22954b",
+      "title": "Turning the Page",
+      "artist": "Kaurma",
+      "audio_url": "https://cdn1.suno.ai/f1b3c974-4f23-4040-abe1-3b386e22954b.mp3",
+      "image_url": "https://cdn2.suno.ai/image_f1b3c974-4f23-4040-abe1-3b386e22954b.jpeg",
+      "video_url": null,
+      "youtube_url": null,
+      "rumble_url": null,
+      "duration": "4:02",
+      "tags": [],
+      "suno_url": "https://suno.com/song/f1b3c974-4f23-4040-abe1-3b386e22954b"
+    },
+    {
+      "id": "dec14fe9-3a33-495e-af51-f9da40089dab",
+      "title": "They told us we were number one",
+      "artist": "Kaurma",
+      "audio_url": "https://cdn1.suno.ai/dec14fe9-3a33-495e-af51-f9da40089dab.mp3",
+      "image_url": "https://cdn2.suno.ai/image_dec14fe9-3a33-495e-af51-f9da40089dab.jpeg",
+      "video_url": null,
+      "youtube_url": null,
+      "rumble_url": null,
+      "duration": "3:18",
+      "tags": [],
+      "suno_url": "https://suno.com/song/dec14fe9-3a33-495e-af51-f9da40089dab"
+    },
+    {
+      "id": "9865e17a-5be6-4af8-9f6b-4a2099174e71",
+      "title": "They told us we were number one",
+      "artist": "Kaurma",
+      "audio_url": "https://cdn1.suno.ai/9865e17a-5be6-4af8-9f6b-4a2099174e71.mp3",
+      "image_url": "https://cdn2.suno.ai/image_9865e17a-5be6-4af8-9f6b-4a2099174e71.jpeg",
+      "video_url": null,
+      "youtube_url": null,
+      "rumble_url": null,
+      "duration": "3:44",
+      "tags": [],
+      "suno_url": "https://suno.com/song/9865e17a-5be6-4af8-9f6b-4a2099174e71"
     }
   ],
   "playlists": {
@@ -1280,6 +1371,19 @@
         "2ed97eb8-0b6c-43b9-8832-95800c90f2e7",
         "8039bed7-b6b8-4f5b-ad03-e0a1ec620aa4",
         "f98f7cb3-0689-4767-92a4-4987dac3d55e"
+      ]
+    },
+    "ownnothing": {
+      "name": "Own Nothing by @kaurma | Suno",
+      "song_ids": [
+        "1a905cfc-a750-4bf1-b0bd-b8576b08eb7f",
+        "ab9c4d15-50cc-40f4-8fe0-a2f9e8c6b335",
+        "e9d2dcd6-7c6b-4e82-a247-05805c11383c",
+        "570f4f92-339b-4cca-bfec-3f60aeb6da92",
+        "4bbe3fc5-22e9-45a0-b761-4f81a6f8a674",
+        "f1b3c974-4f23-4040-abe1-3b386e22954b",
+        "dec14fe9-3a33-495e-af51-f9da40089dab",
+        "9865e17a-5be6-4af8-9f6b-4a2099174e71"
       ]
     }
   },
