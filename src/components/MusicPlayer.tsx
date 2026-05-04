@@ -339,6 +339,9 @@ interface MusicContextValue {
   cycleRepeat: () => void;
   startRadio: () => void;
   stopRadio: () => void;
+  bufferedFrac: number;        // 0–1, fraction of track buffered ahead
+  skipNotice: string | null;   // title of last auto-skipped track (or null)
+  dismissSkipNotice: () => void;
 }
 
 const MusicContext = createContext<MusicContextValue | null>(null);
@@ -409,6 +412,9 @@ interface MusicProviderProps {
 export function MusicProvider({ brandConfig, catalog, children }: MusicProviderProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const consecutiveErrorsRef = useRef(0);
+  // Mirrors `audioSourceSong` so the onError handler (registered once at mount)
+  // can name the track that just failed in the skipNotice toast.
+  const audioSourceSongRef = useRef<Song | null>(null);
   // Refs to next/prev callbacks so the Media Session handlers (set once
   // at audio-creation) can reach the latest definitions without re-binding.
   const nextRef = useRef<() => void>(() => {});
@@ -456,6 +462,11 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
   const [radioQueue, setRadioQueue] = useState<Song[]>([]);
   const [radioIndex, setRadioIndex] = useState(0);
+  // Buffer fraction (0–1) shown as a paler bar behind the progress fill (Shear, 2026-05-04).
+  const [bufferedFrac, setBufferedFrac] = useState(0);
+  // Last skipped track surface — displays a brief "Skipped <title>" toast above
+  // the bar when a track 403s or otherwise fails to load. Auto-clears.
+  const [skipNotice, setSkipNotice] = useState<string | null>(null);
 
   const currentSong = playMode === 'radio'
     ? (radioQueue[radioIndex] ?? songs[currentIndex] ?? null)
@@ -475,11 +486,26 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
       // Handled by advanceTrack
       advanceTrackRef.current();
     };
+    // Buffered fraction (Shear, 2026-05-04): shaded buffer-ahead bar behind
+    // the progress fill, like YouTube's grey-bar-behind-red.
+    const onProgress = () => {
+      try {
+        if (!audio.buffered.length || !audio.duration) {
+          setBufferedFrac(0); return;
+        }
+        const end = audio.buffered.end(audio.buffered.length - 1);
+        setBufferedFrac(Math.min(1, end / audio.duration));
+      } catch {
+        // some browsers throw on .end() before any buffer
+      }
+    };
     const onError = () => {
       consecutiveErrorsRef.current += 1;
+      // Surface the skipped track to the user (van Schneider, 2026-05-04).
+      // Replaces silent skip-cascade with a brief, dismissable toast.
+      const skipped = audioSourceSongRef.current;
+      if (skipped) setSkipNotice(skipped.title);
       if (consecutiveErrorsRef.current >= 3) {
-        // Stop after 3 consecutive load failures so a stretch of bad URLs
-        // does not cascade through the entire catalog.
         console.warn('Audio: 3 consecutive load errors, stopping playback');
         setIsPlaying(false);
         consecutiveErrorsRef.current = 0;
@@ -494,6 +520,8 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
     audio.addEventListener('canplay', onCanPlay);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('error', onError);
+    audio.addEventListener('progress', onProgress);
+    audio.addEventListener('timeupdate', onProgress);
 
     // Media Session API: surface play/pause/skip on the OS lock-screen
     // and hardware media keys. Set once; metadata is updated per-song below.
@@ -522,6 +550,8 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
       audio.removeEventListener('canplay', onCanPlay);
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('error', onError);
+      audio.removeEventListener('progress', onProgress);
+      audio.removeEventListener('timeupdate', onProgress);
       audio.pause();
       audio.src = '';
     };
@@ -656,6 +686,53 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
       if (isPlaying && currentSong) document.title = original;
     };
   }, [isPlaying, currentSong]);
+
+  // Mirror audioSourceSong into a ref so the once-mounted onError handler
+  // can read the current value when surfacing a skip notice.
+  const audioSourceSong0 = audioSourceSong;
+  useEffect(() => {
+    audioSourceSongRef.current = audioSourceSong0 ?? null;
+  }, [audioSourceSong0]);
+
+  // Auto-clear the skipNotice toast after 4s.
+  useEffect(() => {
+    if (!skipNotice) return;
+    const t = setTimeout(() => setSkipNotice(null), 4000);
+    return () => clearTimeout(t);
+  }, [skipNotice]);
+
+  // Cross-tab playback sync (Shear, 2026-05-04): if the user opens multiple
+  // tabs of any ecosystem site, only one should be playing at a time. When
+  // this tab starts playing, broadcast a 'play' message; other tabs see it
+  // and pause themselves. Uses a per-tab UUID so the tab that broadcasts
+  // doesn't pause itself.
+  const tabIdRef = useRef<string>('');
+  if (!tabIdRef.current && typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    tabIdRef.current = crypto.randomUUID();
+  }
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('BroadcastChannel' in window)) return;
+    const ch = new BroadcastChannel('admp-cross-tab-playback');
+    const onMsg = (e: MessageEvent) => {
+      if (!e.data || e.data.tabId === tabIdRef.current) return;
+      if (e.data.type === 'play' && audioRef.current && !audioRef.current.paused) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
+    };
+    ch.addEventListener('message', onMsg);
+    return () => {
+      ch.removeEventListener('message', onMsg);
+      ch.close();
+    };
+  }, []);
+  // Broadcast 'play' whenever this tab transitions to playing.
+  useEffect(() => {
+    if (!isPlaying || typeof window === 'undefined' || !('BroadcastChannel' in window)) return;
+    const ch = new BroadcastChannel('admp-cross-tab-playback');
+    ch.postMessage({ type: 'play', tabId: tabIdRef.current });
+    ch.close();
+  }, [isPlaying]);
 
   // Persist state periodically
   useEffect(() => {
@@ -896,6 +973,9 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
     cycleRepeat,
     startRadio,
     stopRadio,
+    bufferedFrac,
+    skipNotice,
+    dismissSkipNotice: () => setSkipNotice(null),
   };
 
   return <MusicContext.Provider value={value}>{children}</MusicContext.Provider>;
@@ -979,6 +1059,18 @@ function IconExternalLink({ size = 16, color = '#fff' }: { size?: number; color?
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}>
       <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
+    </svg>
+  );
+}
+
+function IconShare({ size = 16, color = '#fff' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
     </svg>
   );
 }
@@ -1196,14 +1288,55 @@ export function MusicBar() {
     cycleRepeat,
     startRadio,
     stopRadio,
+    bufferedFrac,
+    skipNotice,
+    dismissSkipNotice,
   } = useMusicContext();
 
   const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(false);
   const [progressHover, setProgressHover] = useState(false);
+  const [shareToast, setShareToast] = useState<string | null>(null);
   const touchStartY = useRef<number>(0);
 
   if (!currentSong) return null;
+
+  // Share handler (Aaron 2026-05-04): native share API on mobile, clipboard
+  // fallback on desktop. Deep-links to THIS site's /music page with ?song=<id>
+  // so the recipient lands on Aaron's ecosystem (where they can vote/comment),
+  // not on Suno.
+  const handleShare = async () => {
+    if (!currentSong || typeof window === 'undefined') return;
+    const url = `${window.location.origin}/music?song=${currentSong.id}`;
+    const shareData = {
+      title: `${currentSong.title} — ${currentSong.artist}`,
+      text: `Listen to "${currentSong.title}" by ${currentSong.artist}`,
+      url,
+    };
+    try {
+      if (typeof navigator !== 'undefined' && 'share' in navigator) {
+        await (navigator as any).share(shareData);
+        setShareToast('Shared');
+      } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        setShareToast('Link copied');
+      } else {
+        // Last-ditch fallback: open X intent
+        window.open(`https://x.com/intent/post?text=${encodeURIComponent(shareData.text)}&url=${encodeURIComponent(url)}`, '_blank');
+      }
+    } catch (e: any) {
+      // AbortError = user cancelled native share — silent
+      if (e?.name !== 'AbortError') {
+        try {
+          await navigator.clipboard.writeText(url);
+          setShareToast('Link copied');
+        } catch {
+          setShareToast('Share failed');
+        }
+      }
+    }
+    setTimeout(() => setShareToast(null), 2000);
+  };
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
@@ -1342,6 +1475,22 @@ export function MusicBar() {
     borderRadius: progressHeight / 2,
     transition: 'width 0.1s linear',
     position: 'relative',
+    zIndex: 2,
+  };
+
+  // Buffer-ahead indicator (Shear, 2026-05-04): paler bar between background
+  // and progress fill, like YouTube's grey-bar-behind-red.
+  const bufferBarStyle: React.CSSProperties = {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    height: '100%',
+    width: `${Math.min(100, bufferedFrac * 100)}%`,
+    backgroundColor: brand.primaryColor + '40', // 25% alpha
+    borderRadius: progressHeight / 2,
+    transition: 'width 0.3s linear',
+    zIndex: 1,
+    pointerEvents: 'none',
   };
 
   const seekDotStyle: React.CSSProperties = {
@@ -1362,6 +1511,63 @@ export function MusicBar() {
 
   const tree = (
     <div data-admp-bar style={barStyle} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      {/* Toasts above the bar (skip notice + share confirmation). Stacked
+          right, dismissable, auto-clear. */}
+      {(skipNotice || shareToast) && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: barHeight + 8,
+            right: isMobile ? 12 : 24,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        >
+          {skipNotice && (
+            <div
+              role="status"
+              onClick={dismissSkipNotice}
+              style={{
+                pointerEvents: 'auto',
+                cursor: 'pointer',
+                background: brand.surfaceColor,
+                color: brand.textColor,
+                border: `1px solid ${brand.primaryColor}88`,
+                borderLeft: `3px solid ${brand.primaryColor}`,
+                padding: '8px 12px',
+                borderRadius: 6,
+                fontSize: 12,
+                fontFamily: brand.bodyFont,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                maxWidth: 320,
+              }}
+            >
+              Skipped <strong style={{ color: brand.primaryColor }}>{skipNotice}</strong> — track unavailable
+            </div>
+          )}
+          {shareToast && (
+            <div
+              role="status"
+              style={{
+                background: brand.primaryColor,
+                color: brand.backgroundColor,
+                padding: '6px 12px',
+                borderRadius: 6,
+                fontSize: 12,
+                fontFamily: brand.bodyFont,
+                fontWeight: 600,
+                boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                alignSelf: 'flex-end',
+              }}
+            >
+              {shareToast}
+            </div>
+          )}
+        </div>
+      )}
       {/* Main controls row */}
       <div style={controlsRow}>
         {/* Album art (with hover tooltip showing track + artist) */}
@@ -1528,6 +1734,20 @@ export function MusicBar() {
           </button>
         )}
 
+        {/* Share button (Aaron 2026-05-04). Native share on mobile, clipboard
+            on desktop. Deep-links to <site>/music?song=<id>. Always shown. */}
+        <button
+          style={{
+            ...(isMobile ? mobileBtnStyle : btnStyle),
+            opacity: 0.85,
+          }}
+          onClick={handleShare}
+          aria-label="Share this song"
+          title="Share"
+        >
+          <IconShare size={16} color={brand.textColor} />
+        </button>
+
         {/* Progress bar (desktop inline) */}
         {!isMobile && (
           <>
@@ -1540,6 +1760,7 @@ export function MusicBar() {
               onMouseEnter={() => setProgressHover(true)}
               onMouseLeave={() => setProgressHover(false)}
             >
+              <div style={bufferBarStyle} />
               <div style={progressBarInner}>
                 <div style={seekDotStyle} />
               </div>
@@ -1599,6 +1820,7 @@ export function MusicBar() {
             style={{ ...progressBarOuter, height: 8 }}
             onClick={handleProgressClick}
           >
+            <div style={{ ...bufferBarStyle, height: '100%' }} />
             <div style={{ ...progressBarInner, height: '100%' }}>
               <div style={{ ...seekDotStyle, opacity: 1 }} />
             </div>
