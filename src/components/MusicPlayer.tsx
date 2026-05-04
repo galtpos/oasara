@@ -92,15 +92,18 @@ export const brandConfigs: Record<string, BrandConfig> = {
     bodyFont: 'Inter, sans-serif',
   },
   day2026: {
+    // Direction 5 (Field Notes Tour) — locked 2026-05-03 by Day2026 Design Board (Burns chair).
+    // Spec: ~/Documents/CTO/_standards/DAY2026_BRAND_SYSTEM.md
+    // Daylight Freedom alignment: 84/100 (target 75/100).
     siteName: 'Day 2026',
     siteKey: 'day2026',
-    primaryColor: '#D4AF37',
-    accentColor: '#FAF3E0',
-    backgroundColor: '#0A0A0A',
-    surfaceColor: '#1A1A1A',
-    textColor: '#FAF3E0',
-    headingFont: 'Playfair Display, serif',
-    bodyFont: 'Inter, sans-serif',
+    primaryColor: '#A8352B',      // Old Glory Red
+    accentColor: '#EFE6D2',       // Cream
+    backgroundColor: '#3E3933',   // Granite (player keeps dark register on the Field Notes patch)
+    surfaceColor: '#48433D',      // lighter Granite for elevated surfaces
+    textColor: '#EFE6D2',         // Cream type on Granite
+    headingFont: 'Oswald, sans-serif',
+    bodyFont: '"Roboto Slab", Georgia, serif',
   },
   ownnothing: {
     siteName: 'Own Nothing',
