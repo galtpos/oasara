@@ -144,19 +144,6 @@
       "suno_url": "https://suno.com/song/b589bef4-a0b7-443b-9f56-bc4f3547e06a"
     },
     {
-      "id": "b140b005-fda7-47f8-a870-55ddca4e4d11",
-      "title": "Corrido de los Siete",
-      "artist": "Kaurma",
-      "audio_url": "https://cdn1.suno.ai/b140b005-fda7-47f8-a870-55ddca4e4d11.mp3",
-      "image_url": "https://cdn2.suno.ai/image_b140b005-fda7-47f8-a870-55ddca4e4d11.jpeg",
-      "video_url": null,
-      "youtube_url": null,
-      "rumble_url": null,
-      "duration": "3:08",
-      "tags": [],
-      "suno_url": "https://suno.com/song/b140b005-fda7-47f8-a870-55ddca4e4d11"
-    },
-    {
       "id": "0618c54d-3085-4194-aa12-197c24cf7f1b",
       "title": "Corrido de los Siete",
       "artist": "Kaurma",
@@ -168,32 +155,6 @@
       "duration": "3:17",
       "tags": [],
       "suno_url": "https://suno.com/song/0618c54d-3085-4194-aa12-197c24cf7f1b"
-    },
-    {
-      "id": "06341063-da22-44b9-a2b4-25e971fbdd94",
-      "title": "Corrido de los Siete",
-      "artist": "Kaurma",
-      "audio_url": "https://cdn1.suno.ai/06341063-da22-44b9-a2b4-25e971fbdd94.mp3",
-      "image_url": "https://cdn2.suno.ai/image_06341063-da22-44b9-a2b4-25e971fbdd94.jpeg",
-      "video_url": null,
-      "youtube_url": null,
-      "rumble_url": null,
-      "duration": "3:19",
-      "tags": [],
-      "suno_url": "https://suno.com/song/06341063-da22-44b9-a2b4-25e971fbdd94"
-    },
-    {
-      "id": "536c4340-1cf1-461b-b8e9-9a4bf7f65d63",
-      "title": "Corrido de los Siete",
-      "artist": "Kaurma",
-      "audio_url": "https://cdn1.suno.ai/536c4340-1cf1-461b-b8e9-9a4bf7f65d63.mp3",
-      "image_url": "https://cdn2.suno.ai/image_536c4340-1cf1-461b-b8e9-9a4bf7f65d63.jpeg",
-      "video_url": null,
-      "youtube_url": null,
-      "rumble_url": null,
-      "duration": "3:33",
-      "tags": [],
-      "suno_url": "https://suno.com/song/536c4340-1cf1-461b-b8e9-9a4bf7f65d63"
     },
     {
       "id": "c671976c-39b7-4c20-8441-5059a00e056d",
@@ -1296,10 +1257,7 @@
         "b36878ab-eec4-479c-b418-fad3f00edd9a",
         "de591132-fafc-4cd6-8699-e33cbf5645ce",
         "b589bef4-a0b7-443b-9f56-bc4f3547e06a",
-        "b140b005-fda7-47f8-a870-55ddca4e4d11",
         "0618c54d-3085-4194-aa12-197c24cf7f1b",
-        "06341063-da22-44b9-a2b4-25e971fbdd94",
-        "536c4340-1cf1-461b-b8e9-9a4bf7f65d63",
         "c671976c-39b7-4c20-8441-5059a00e056d",
         "977521f3-8d61-4f62-8e20-0fd6d1ce1973",
         "04502eca-9c5d-4d88-bccd-ab09dbc137ba"
