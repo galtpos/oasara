@@ -301,7 +301,7 @@ function injectGlobalStyles() {
         animation: none !important;
         transition: none !important;
       }
-      [data-admp-bar] [data-admp-bars] > span {
+      [data-admp-bar] [data-admp-bars] > * {
         animation: none !important;
       }
     }
@@ -1271,9 +1271,11 @@ export function MusicBar() {
     minHeight: isMobile ? 64 : 72,
   };
 
+  // P1 #6 (van Schneider, 2026-05-03): mobile collapsed art = 36x36, desktop = 48x48.
+  const artSize = isMobile && !expanded ? 36 : 48;
   const artStyle: React.CSSProperties = {
-    width: 48,
-    height: 48,
+    width: artSize,
+    height: artSize,
     borderRadius: 6,
     backgroundColor: brand.primaryColor + '33',
     flexShrink: 0,
@@ -1359,9 +1361,10 @@ export function MusicBar() {
           )}
         </div>
 
-        {/* Now Playing bars */}
+        {/* Now Playing bars — wrapper carries data-admp-bars so prefers-reduced-motion
+            CSS can kill the per-span height animation (Khan, 2026-05-03). */}
         {isPlaying && (
-          <div style={{ flexShrink: 0 }}>
+          <div data-admp-bars style={{ flexShrink: 0 }}>
             <NowPlayingBars color={brand.primaryColor} size={16} />
           </div>
         )}
@@ -1397,7 +1400,9 @@ export function MusicBar() {
               fontWeight: 600,
             }}
           />
-          {(!isMobile || expanded) && (
+          {/* Artist line — always shown (van Schneider 2026-05-03: mobile collapsed
+              = 2-line title+artist instead of single-line truncated title). */}
+          {true && (
             <div
               style={{
                 color: brand.textColor + 'AA',
