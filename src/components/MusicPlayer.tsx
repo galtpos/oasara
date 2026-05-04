@@ -641,6 +641,22 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
     }
   }, [isPlaying]);
 
+  // Tab title now-playing (van Schneider, 2026-05-04): when a track is
+  // playing, prefix the browser tab title with "♪ Title — Artist". Lets
+  // the user locate which tab is making sound when multitasking. Restores
+  // the original title on pause / stop / unmount.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const original = document.title;
+    if (isPlaying && currentSong) {
+      document.title = `♪ ${currentSong.title} — ${currentSong.artist}`;
+    }
+    return () => {
+      // Only revert if we changed it
+      if (isPlaying && currentSong) document.title = original;
+    };
+  }, [isPlaying, currentSong]);
+
   // Persist state periodically
   useEffect(() => {
     const song = audioSourceSong;
