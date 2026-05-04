@@ -1303,12 +1303,13 @@ export function MusicBar() {
       text: `Listen to "${currentSong.title}" by ${currentSong.artist}`,
       url,
     };
+    const nav: any = typeof navigator !== 'undefined' ? navigator : null;
     try {
-      if (typeof navigator !== 'undefined' && 'share' in navigator) {
-        await (navigator as any).share(shareData);
+      if (nav && typeof nav.share === 'function') {
+        await nav.share(shareData);
         setShareToast('Shared');
-      } else if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(url);
+      } else if (nav && nav.clipboard) {
+        await nav.clipboard.writeText(url);
         setShareToast('Link copied');
       } else {
         // Last-ditch fallback: open X intent
@@ -1318,8 +1319,10 @@ export function MusicBar() {
       // AbortError = user cancelled native share — silent
       if (e?.name !== 'AbortError') {
         try {
-          await navigator.clipboard.writeText(url);
-          setShareToast('Link copied');
+          if (nav?.clipboard) {
+            await nav.clipboard.writeText(url);
+            setShareToast('Link copied');
+          }
         } catch {
           setShareToast('Share failed');
         }
