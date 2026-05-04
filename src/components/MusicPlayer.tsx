@@ -101,19 +101,22 @@ export const brandConfigs: Record<string, BrandConfig> = {
     glowIntensity: 0.50,
   },
   day2026: {
-    // Direction 5 (Field Notes Tour) — locked 2026-05-03 by Day2026 Design Board (Burns chair).
-    // Spec: ~/Documents/CTO/_standards/DAY2026_BRAND_SYSTEM.md
-    // Daylight Freedom alignment: 84/100 (target 75/100).
+    // Cream-ground brand register — flipped 2026-05-04 by Day2026 Design Board
+    // (Burns chair) to match the updated Day2026 brand spec at
+    // _standards/DAY2026_BRAND_SYSTEM.md §2 (Cream `#EFE6D2` page ground,
+    // Bond Cream `#D9CFB7` elevated surface, Granite `#3E3933` ink, Old Glory
+    // Red `#A8352B` CTA + separator). Schema contract preserved (Ecosystem
+    // Player Board).
     siteName: 'Day 2026',
     siteKey: 'day2026',
-    primaryColor: '#A8352B',      // Old Glory Red
-    accentColor: '#EFE6D2',       // Cream
-    backgroundColor: '#3E3933',   // Granite (player keeps dark register on the Field Notes patch)
-    surfaceColor: '#48433D',      // lighter Granite for elevated surfaces
-    textColor: '#EFE6D2',         // Cream type on Granite
+    primaryColor: '#A8352B',      // Old Glory Red — CTA / accent
+    accentColor: '#3E3933',       // Granite — secondary
+    backgroundColor: '#EFE6D2',   // Cream — page ground
+    surfaceColor: '#D9CFB7',      // Bond Cream — elevated surface (player bar)
+    textColor: '#3E3933',         // Granite type on Cream
     headingFont: 'Oswald, sans-serif',
     bodyFont: '"Roboto Slab", Georgia, serif',
-    separatorBorderColor: '#A8352B', // Old Glory Red separator on Granite — high contrast
+    separatorBorderColor: '#A8352B', // Old Glory Red separator on Bond Cream — high contrast
     separatorBorderWidth: '3px',
     glowIntensity: 0.45,
   },
