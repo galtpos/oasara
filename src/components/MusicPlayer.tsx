@@ -110,15 +110,15 @@ export const brandConfigs: Record<string, BrandConfig> = {
     siteName: 'Day 2026',
     siteKey: 'day2026',
     primaryColor: '#A8352B',      // Old Glory Red — CTA / accent
-    accentColor: '#3E3933',       // Granite — secondary
-    backgroundColor: '#EFE6D2',   // Cream — page ground
-    surfaceColor: '#D9CFB7',      // Bond Cream — elevated surface (player bar)
-    textColor: '#3E3933',         // Granite type on Cream
+    accentColor: '#7D7468',       // Mountain — secondary type / dividers / halftone (§2.1)
+    backgroundColor: '#EFE6D2',   // Cream — page ground (§2.1)
+    surfaceColor: '#E8DFC9',      // Bond Cream lighter — elevated cream-patch surface (avoids §2.5 halftone-fill conflict)
+    textColor: '#3E3933',         // Granite type on Cream — AAA 9.6:1 (§2.6)
     headingFont: 'Oswald, sans-serif',
     bodyFont: '"Roboto Slab", Georgia, serif',
-    separatorBorderColor: '#A8352B', // Old Glory Red separator on Bond Cream — high contrast
+    separatorBorderColor: '#A8352B', // Old Glory Red separator (§2.3 8% accent zone)
     separatorBorderWidth: '3px',
-    glowIntensity: 0.45,
+    glowIntensity: 0.10,          // soft halo only — cream-ground requires near-flat motion (Bass call)
   },
   ownnothing: {
     siteName: 'Own Nothing',
