@@ -2405,13 +2405,29 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
   const { brand, allSongs, catalog } = useMusicContext() as any;
   const isMobile = useIsMobile();
 
-  // Songs in the catalog with a hand-curated youtube_url get individual tiles.
-  const videoSongs = useMemo(
-    () => allSongs.filter((s: Song) => !!s.youtube_url),
-    [allSongs]
-  );
+  // Source of truth for the channel: catalog.videos[] (poller fetches the
+  // configured YouTube playlists every 5 min). Falls back to filtering
+  // catalog.songs by youtube_url if videos[] is empty (legacy mode).
+  type ChannelVideo = { id: string; title: string; thumbnail_url?: string; youtube_url: string };
+  const videos: ChannelVideo[] = useMemo(() => {
+    const fromCatalog = (catalog as any)?.videos as ChannelVideo[] | undefined;
+    if (fromCatalog && fromCatalog.length > 0) return fromCatalog;
+    return allSongs
+      .filter((s: Song) => !!s.youtube_url)
+      .map((s: Song): ChannelVideo | null => {
+        const id = extractYouTubeId(s.youtube_url!);
+        if (!id) return null;
+        return {
+          id,
+          title: s.title,
+          thumbnail_url: `https://i.ytimg.com/vi/${id}/mqdefault.jpg`,
+          youtube_url: s.youtube_url!,
+        };
+      })
+      .filter(Boolean) as ChannelVideo[];
+  }, [allSongs, catalog]);
 
-  // YouTube playlist (full Aaron Day Music Videos playlist) — single tile.
+  // YouTube playlist (full Aaron Day Music Videos playlist) — single "Play All" tile.
   const playlistInfo = (catalog as any)?.youtube_playlist as { id?: string; name?: string } | undefined;
   const playlistId = playlistInfo?.id || '';
 
@@ -2420,12 +2436,10 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
     | { kind: 'playlist'; playlistId: string }
     | null;
 
-  // Auto-pick first individual video so the player isn't empty on mount.
+  // Auto-pick first video so the player isn't empty on mount.
   const [selected, setSelected] = useState<Selection>(() => {
-    if (videoSongs.length > 0) {
-      const first = videoSongs[0];
-      const id = extractYouTubeId(first.youtube_url!);
-      return id ? { kind: 'video', videoId: id, title: first.title } : null;
+    if (videos.length > 0) {
+      return { kind: 'video', videoId: videos[0].id, title: videos[0].title };
     }
     if (playlistId) return { kind: 'playlist', playlistId };
     return null;
@@ -2450,60 +2464,38 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '60vh',
         backgroundColor: brand.backgroundColor,
         display: 'flex',
         flexDirection: 'column',
         fontFamily: brand.bodyFont,
+        position: 'relative',
       }}
     >
-      {/* Top bar */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: isMobile ? '10px 14px' : '14px 24px',
-          backgroundColor: brand.surfaceColor,
-          borderBottom: `1px solid ${brand.primaryColor}33`,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <IconTV size={20} color={brand.primaryColor} />
-          <span style={{ color: brand.primaryColor, fontSize: 13, fontWeight: 700, letterSpacing: 1 }}>
-            {brand.siteName.toUpperCase()} MUSIC VIDEO CHANNEL
-          </span>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: '#fff',
-              backgroundColor: '#FF0000',
-              padding: '2px 8px',
-              borderRadius: 4,
-              letterSpacing: 1,
-            }}
-          >
-            LIVE
-          </span>
-        </div>
-        {onClose && (
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: `1px solid ${brand.textColor}33`,
-              color: brand.textColor,
-              padding: '6px 16px',
-              borderRadius: 6,
-              cursor: 'pointer',
-              fontSize: 13,
-            }}
-          >
-            Close
-          </button>
-        )}
-      </div>
+      {/* Floating close button — no fixed top bar so we don't collide with
+          site nav chrome (Aaron 2026-05-04: LIVE badge was overlapping
+          Day2026 logo because the site nav is position:fixed). */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 5,
+            background: brand.surfaceColor,
+            border: `1px solid ${brand.textColor}33`,
+            color: brand.textColor,
+            padding: '6px 14px',
+            borderRadius: 6,
+            cursor: 'pointer',
+            fontSize: 13,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          Close
+        </button>
+      )}
 
       {/* Player */}
       <div
@@ -2566,16 +2558,23 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
       >
         <div
           style={{
-            color: brand.textColor + 'AA',
-            fontSize: 12,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            color: brand.primaryColor,
+            fontSize: 13,
             fontWeight: 700,
             letterSpacing: 1.5,
             textTransform: 'uppercase',
-            marginBottom: 12,
+            marginBottom: 14,
             paddingTop: 8,
           }}
         >
-          {videoSongs.length > 0 ? `Pick a video (${videoSongs.length})` : 'Watch the full playlist'}
+          <IconTV size={18} color={brand.primaryColor} />
+          <span>Music Video Channel</span>
+          <span style={{ color: brand.textColor + '88', fontWeight: 400, letterSpacing: 0 }}>
+            {videos.length > 0 ? `· ${videos.length} videos · click to play` : '· full playlist below'}
+          </span>
         </div>
         <div
           style={{
@@ -2586,15 +2585,13 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
             gap: isMobile ? 10 : 14,
           }}
         >
-          {videoSongs.map((s: Song) => {
-            const ytId = extractYouTubeId(s.youtube_url!);
-            if (!ytId) return null;
-            const sel: Selection = { kind: 'video', videoId: ytId, title: s.title };
+          {videos.map((v: ChannelVideo) => {
+            const sel: Selection = { kind: 'video', videoId: v.id, title: v.title };
             const active = isActive(sel);
-            const thumbUrl = `https://i.ytimg.com/vi/${ytId}/mqdefault.jpg`;
+            const thumbUrl = v.thumbnail_url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`;
             return (
               <button
-                key={s.id}
+                key={v.id}
                 onClick={() => setSelected(sel)}
                 style={{
                   cursor: 'pointer',
@@ -2609,7 +2606,7 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
                   transform: active ? 'translateY(-2px)' : 'translateY(0)',
                   boxShadow: active ? `0 6px 20px ${brand.primaryColor}44` : 'none',
                 }}
-                aria-label={`Play "${s.title}"`}
+                aria-label={`Play "${v.title}"`}
               >
                 <div
                   style={{
@@ -2634,7 +2631,7 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
                     WebkitBoxOrient: 'vertical',
                   }}
                 >
-                  {s.title}
+                  {v.title}
                 </div>
               </button>
             );
