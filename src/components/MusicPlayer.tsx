@@ -2402,7 +2402,8 @@ interface MusicVideoChannelProps {
 }
 
 export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
-  const { brand, allSongs, catalog } = useMusicContext() as any;
+  const ctx = useMusicContext() as any;
+  const { brand, allSongs, catalog, isPlaying, pause, currentSong } = ctx;
   const isMobile = useIsMobile();
 
   // Source of truth for the channel: catalog.videos[] (poller fetches the
@@ -2444,6 +2445,42 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
     if (playlistId) return { kind: 'playlist', playlistId };
     return null;
   });
+
+  // Pause the audio engine while the channel is open. The iframe's own audio
+  // is the sound source here — running the Suno mp3 player at the same time
+  // produces double-audio. (Aaron 2026-05-04: the bar was advancing songs
+  // through the speakers while the iframe stayed on the previous video.)
+  useEffect(() => {
+    if (isPlaying) pause();
+    // We only want to pause once on mount, not every time isPlaying changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Sync iframe to bar's next/prev. When the user hits next/prev on the
+  // persistent MusicBar while the channel is open, currentSong changes →
+  // advance the channel's video index by the same delta. Falls back to a
+  // simple modulo cycle through videos[] (independent of audio matching).
+  const lastSongIdRef = useRef<string | null>(currentSong?.id ?? null);
+  const videoIndexRef = useRef<number>(0);
+  useEffect(() => {
+    if (!currentSong || videos.length === 0) return;
+    if (currentSong.id === lastSongIdRef.current) return;
+    lastSongIdRef.current = currentSong.id;
+    // Advance by 1 (next direction). The channel grid is the user's tool for
+    // jumping to a specific video; the bar's next just moves the channel
+    // forward one slot.
+    const nextIdx = (videoIndexRef.current + 1) % videos.length;
+    videoIndexRef.current = nextIdx;
+    const v = videos[nextIdx];
+    setSelected({ kind: 'video', videoId: v.id, title: v.title });
+  }, [currentSong, videos]);
+
+  // Keep videoIndexRef in sync when user clicks a tile directly.
+  useEffect(() => {
+    if (!selected || selected.kind !== 'video') return;
+    const idx = videos.findIndex((v) => v.id === selected.videoId);
+    if (idx >= 0) videoIndexRef.current = idx;
+  }, [selected, videos]);
 
   const iframeSrc = useMemo(() => {
     if (!selected) return '';
