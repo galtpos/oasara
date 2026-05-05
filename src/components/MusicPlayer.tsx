@@ -67,6 +67,12 @@ export interface BrandConfig {
   separatorBorderColor: string;   // opaque hex, ≥40% contrast vs surfaceColor
   separatorBorderWidth: string;   // CSS length, default '3px'
   glowIntensity: number;          // 0.0–1.0, ≥0.40 floor
+  // Bar-specific surface overrides (Aaron 2026-05-04). Optional; if unset,
+  // the persistent bar inherits surfaceColor + textColor. Set these when the
+  // page ground and the bar need different registers — e.g. Day2026 has a
+  // cream page ground but the bar reads as a dark "Field Notes module patch."
+  barSurfaceColor?: string;
+  barTextColor?: string;
 }
 
 interface Playlist {
@@ -119,6 +125,11 @@ export const brandConfigs: Record<string, BrandConfig> = {
     separatorBorderColor: '#A8352B', // Old Glory Red separator (§2.3 8% accent zone)
     separatorBorderWidth: '3px',
     glowIntensity: 0.10,          // soft halo only — cream-ground requires near-flat motion (Bass call)
+    // Persistent bar overrides — page stays cream, but the bar reads as a
+    // dark "Field Notes module patch" so it's visible against the cream
+    // ground (Aaron 2026-05-04: Bond-Cream-on-Cream was hard to see).
+    barSurfaceColor: '#3E3933',   // Granite — bar background
+    barTextColor:    '#EFE6D2',   // Cream type on Granite bar
   },
   ownnothing: {
     siteName: 'Own Nothing',
@@ -346,6 +357,11 @@ interface MusicContextValue {
   skipNotice: string | null;   // title of last auto-skipped track (or null)
   dismissSkipNotice: () => void;
   catalog: Catalog;            // exposed for MusicVideoChannel (youtube_playlist)
+  // Channel-active flag: when MusicVideoChannel is mounted it sets this true.
+  // MusicBar reads it and self-hides so the audio bar doesn't compete with
+  // the video's own audio + controls. (Aaron 2026-05-04.)
+  channelActive: boolean;
+  setChannelActive: (v: boolean) => void;
 }
 
 const MusicContext = createContext<MusicContextValue | null>(null);
@@ -471,6 +487,10 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
   // Last skipped track surface — displays a brief "Skipped <title>" toast above
   // the bar when a track 403s or otherwise fails to load. Auto-clears.
   const [skipNotice, setSkipNotice] = useState<string | null>(null);
+  // Channel-active flag — true while MusicVideoChannel is mounted; MusicBar
+  // self-hides when set so the audio bar doesn't compete with the video's
+  // own audio + controls.
+  const [channelActive, setChannelActive] = useState(false);
 
   const currentSong = playMode === 'radio'
     ? (radioQueue[radioIndex] ?? songs[currentIndex] ?? null)
@@ -981,6 +1001,8 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
     skipNotice,
     dismissSkipNotice: () => setSkipNotice(null),
     catalog,
+    channelActive,
+    setChannelActive,
   };
 
   return <MusicContext.Provider value={value}>{children}</MusicContext.Provider>;
@@ -1286,7 +1308,18 @@ export function MusicBar() {
     bufferedFrac,
     skipNotice,
     dismissSkipNotice,
+    channelActive,
   } = useMusicContext();
+
+  // Self-hide while the Music Video Channel is open — its iframe carries its
+  // own audio + controls; the bar would only confuse things (Aaron 2026-05-04).
+  if (channelActive) return null;
+
+  // Per-brand bar overrides — Day2026 sets barSurfaceColor=Granite +
+  // barTextColor=Cream so the bar reads as a dark module patch on the cream
+  // page ground. Other sites fall back to surfaceColor / textColor.
+  const barSurface = (brand as any).barSurfaceColor || brand.surfaceColor;
+  const barText    = (brand as any).barTextColor    || brand.textColor;
 
   const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(false);
@@ -1376,9 +1409,9 @@ export function MusicBar() {
     CSS.supports('backdrop-filter', 'blur(1px)');
   const playingBackground =
     supportsBackdropFilter
-      ? brand.surfaceColor + 'E0' // ~88% opacity (E0 / FF)
-      : brand.surfaceColor + 'F2'; // ~95% opacity fallback
-  const barBackground = isPlaying ? playingBackground : brand.surfaceColor;
+      ? barSurface + 'E0' // ~88% opacity (E0 / FF)
+      : barSurface + 'F2'; // ~95% opacity fallback
+  const barBackground = isPlaying ? playingBackground : barSurface;
 
   const barStyle: React.CSSProperties = {
     position: 'fixed',
@@ -1458,7 +1491,7 @@ export function MusicBar() {
   const progressBarOuter: React.CSSProperties = {
     flex: 1,
     height: progressHeight,
-    backgroundColor: brand.textColor + '22',
+    backgroundColor: barText + '22',
     borderRadius: progressHeight / 2,
     cursor: 'pointer',
     position: 'relative',
@@ -1531,8 +1564,8 @@ export function MusicBar() {
               style={{
                 pointerEvents: 'auto',
                 cursor: 'pointer',
-                background: brand.surfaceColor,
-                color: brand.textColor,
+                background: barSurface,
+                color: barText,
                 border: `1px solid ${brand.primaryColor}88`,
                 borderLeft: `3px solid ${brand.primaryColor}`,
                 padding: '8px 12px',
@@ -1615,7 +1648,7 @@ export function MusicBar() {
           <MarqueeText
             text={currentSong.title}
             style={{
-              color: brand.textColor,
+              color: barText,
               fontSize: 14,
               fontWeight: 600,
             }}
@@ -1625,7 +1658,7 @@ export function MusicBar() {
           {true && (
             <div
               style={{
-                color: brand.textColor + 'AA',
+                color: barText + 'AA',
                 fontSize: 12,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
@@ -1652,7 +1685,7 @@ export function MusicBar() {
           >
             <IconShuffle
               size={16}
-              color={playMode === 'shuffle' ? brand.primaryColor : brand.textColor}
+              color={playMode === 'shuffle' ? brand.primaryColor : barText}
             />
           </button>
         )}
@@ -1660,7 +1693,7 @@ export function MusicBar() {
         {/* Controls */}
         {(!isMobile || expanded) && (
           <button style={isMobile ? mobileBtnStyle : btnStyle} onClick={prev} aria-label="Previous track">
-            <IconSkipPrev size={20} color={brand.textColor} />
+            <IconSkipPrev size={20} color={barText} />
           </button>
         )}
 
@@ -1684,7 +1717,7 @@ export function MusicBar() {
 
         {(!isMobile || expanded) && (
           <button style={isMobile ? mobileBtnStyle : btnStyle} onClick={next} aria-label="Next track">
-            <IconSkipNext size={20} color={brand.textColor} />
+            <IconSkipNext size={20} color={barText} />
           </button>
         )}
 
@@ -1709,7 +1742,7 @@ export function MusicBar() {
             ) : (
               <IconRepeat
                 size={16}
-                color={repeatMode === 'all' ? brand.primaryColor : brand.textColor}
+                color={repeatMode === 'all' ? brand.primaryColor : barText}
               />
             )}
           </button>
@@ -1727,7 +1760,7 @@ export function MusicBar() {
           >
             <IconRadio
               size={16}
-              color={isRadio ? brand.primaryColor : brand.textColor}
+              color={isRadio ? brand.primaryColor : barText}
             />
           </button>
         )}
@@ -1743,13 +1776,13 @@ export function MusicBar() {
           aria-label="Share this song"
           title="Share"
         >
-          <IconShare size={16} color={brand.textColor} />
+          <IconShare size={16} color={barText} />
         </button>
 
         {/* Progress bar (desktop inline) */}
         {!isMobile && (
           <>
-            <span style={{ color: brand.textColor + 'AA', fontSize: 11, flexShrink: 0 }}>
+            <span style={{ color: barText + 'AA', fontSize: 11, flexShrink: 0 }}>
               {formatTime(currentTime)}
             </span>
             <div
@@ -1763,7 +1796,7 @@ export function MusicBar() {
                 <div style={seekDotStyle} />
               </div>
             </div>
-            <span style={{ color: brand.textColor + 'AA', fontSize: 11, flexShrink: 0 }}>
+            <span style={{ color: barText + 'AA', fontSize: 11, flexShrink: 0 }}>
               {formatTime(duration)}
             </span>
           </>
@@ -1778,9 +1811,9 @@ export function MusicBar() {
               aria-label={volume === 0 ? 'Unmute' : 'Mute'}
             >
               {volume === 0 ? (
-                <IconVolumeMute size={16} color={brand.textColor + 'AA'} />
+                <IconVolumeMute size={16} color={barText + 'AA'} />
               ) : (
-                <IconVolume size={16} color={brand.textColor + 'AA'} />
+                <IconVolume size={16} color={barText + 'AA'} />
               )}
             </button>
             <input
@@ -1800,9 +1833,9 @@ export function MusicBar() {
         {isMobile && (
           <button style={mobileBtnStyle} onClick={() => setExpanded(!expanded)} aria-label="Expand player">
             {expanded ? (
-              <IconChevronDown size={20} color={brand.textColor} />
+              <IconChevronDown size={20} color={barText} />
             ) : (
-              <IconChevronUp size={20} color={brand.textColor} />
+              <IconChevronUp size={20} color={barText} />
             )}
           </button>
         )}
@@ -1811,7 +1844,7 @@ export function MusicBar() {
       {/* Mobile expanded: progress bar */}
       {isMobile && expanded && (
         <div style={{ padding: '0 16px 8px', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ color: brand.textColor + 'AA', fontSize: 11 }}>
+          <span style={{ color: barText + 'AA', fontSize: 11 }}>
             {formatTime(currentTime)}
           </span>
           <div
@@ -1823,7 +1856,7 @@ export function MusicBar() {
               <div style={{ ...seekDotStyle, opacity: 1 }} />
             </div>
           </div>
-          <span style={{ color: brand.textColor + 'AA', fontSize: 11 }}>
+          <span style={{ color: barText + 'AA', fontSize: 11 }}>
             {formatTime(duration)}
           </span>
         </div>
@@ -2446,13 +2479,12 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
     return null;
   });
 
-  // Pause the audio engine while the channel is open. The iframe's own audio
-  // is the sound source here — running the Suno mp3 player at the same time
-  // produces double-audio. (Aaron 2026-05-04: the bar was advancing songs
-  // through the speakers while the iframe stayed on the previous video.)
+  // Pause the audio engine + hide the persistent bar while the channel is
+  // open. The iframe's own audio is the sound source here. (Aaron 2026-05-04.)
   useEffect(() => {
     if (isPlaying) pause();
-    // We only want to pause once on mount, not every time isPlaying changes.
+    ctx.setChannelActive(true);
+    return () => ctx.setChannelActive(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
