@@ -345,6 +345,7 @@ interface MusicContextValue {
   bufferedFrac: number;        // 0–1, fraction of track buffered ahead
   skipNotice: string | null;   // title of last auto-skipped track (or null)
   dismissSkipNotice: () => void;
+  catalog: Catalog;            // exposed for MusicVideoChannel (youtube_playlist)
 }
 
 const MusicContext = createContext<MusicContextValue | null>(null);
@@ -979,6 +980,7 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
     bufferedFrac,
     skipNotice,
     dismissSkipNotice: () => setSkipNotice(null),
+    catalog,
   };
 
   return <MusicContext.Provider value={value}>{children}</MusicContext.Provider>;
@@ -2400,537 +2402,306 @@ interface MusicVideoChannelProps {
 }
 
 export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
-  const { brand, allSongs } = useMusicContext();
+  const { brand, allSongs, catalog } = useMusicContext() as any;
   const isMobile = useIsMobile();
 
-  // Songs with individual video URLs get their own channel entries
+  // Songs in the catalog with a hand-curated youtube_url get individual tiles.
   const videoSongs = useMemo(
-    () => allSongs.filter((s) => s.youtube_url),
+    () => allSongs.filter((s: Song) => !!s.youtube_url),
     [allSongs]
   );
 
-  // If no individual video URLs, use the YouTube playlist as a single embed
-  const [playlistMode, _setPlaylistMode] = useState(videoSongs.length === 0);
+  // YouTube playlist (full Aaron Day Music Videos playlist) — single tile.
+  const playlistInfo = (catalog as any)?.youtube_playlist as { id?: string; name?: string } | undefined;
+  const playlistId = playlistInfo?.id || '';
 
-  const [videoIndex, setVideoIndex] = useState(0);
-  const [isInterstitial, setIsInterstitial] = useState(false);
-  const [countdown, setCountdown] = useState(5);
-  const [shuffleMode, setShuffleMode] = useState(false);
-  const [ytReady, setYtReady] = useState(false);
-  const playerRef = useRef<any>(null);
-  const playerContainerRef = useRef<HTMLDivElement>(null);
-  const countdownRef = useRef<number | null>(null);
+  type Selection =
+    | { kind: 'video'; videoId: string; title: string }
+    | { kind: 'playlist'; playlistId: string }
+    | null;
 
-  const currentVideo = videoSongs[videoIndex] ?? null;
-
-  // Load YouTube IFrame API
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    if ((window as any).YT && (window as any).YT.Player) {
-      setYtReady(true);
-      return;
+  // Auto-pick first individual video so the player isn't empty on mount.
+  const [selected, setSelected] = useState<Selection>(() => {
+    if (videoSongs.length > 0) {
+      const first = videoSongs[0];
+      const id = extractYouTubeId(first.youtube_url!);
+      return id ? { kind: 'video', videoId: id, title: first.title } : null;
     }
+    if (playlistId) return { kind: 'playlist', playlistId };
+    return null;
+  });
 
-    // Check if script already loading
-    if (document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-      const check = setInterval(() => {
-        if ((window as any).YT && (window as any).YT.Player) {
-          setYtReady(true);
-          clearInterval(check);
-        }
-      }, 100);
-      return () => clearInterval(check);
+  const iframeSrc = useMemo(() => {
+    if (!selected) return '';
+    if (selected.kind === 'video') {
+      return `https://www.youtube.com/embed/${selected.videoId}?autoplay=1&modestbranding=1&rel=0&playsinline=1`;
     }
+    return `https://www.youtube.com/embed/videoseries?list=${selected.playlistId}&autoplay=1&modestbranding=1&rel=0&playsinline=1`;
+  }, [selected]);
 
-    (window as any).onYouTubeIframeAPIReady = () => {
-      setYtReady(true);
-    };
-    const script = document.createElement('script');
-    script.src = 'https://www.youtube.com/iframe_api';
-    document.head.appendChild(script);
+  const isActive = (s: Selection): boolean => {
+    if (!selected || !s) return false;
+    if (selected.kind !== s.kind) return false;
+    if (s.kind === 'video' && selected.kind === 'video') return s.videoId === selected.videoId;
+    if (s.kind === 'playlist' && selected.kind === 'playlist') return s.playlistId === selected.playlistId;
+    return false;
+  };
 
-    return () => {
-      (window as any).onYouTubeIframeAPIReady = undefined;
-    };
-  }, []);
-
-  // Create/update YouTube player
-  useEffect(() => {
-    if (!ytReady || !currentVideo || isInterstitial) return;
-    const ytId = extractYouTubeId(currentVideo.youtube_url!);
-    if (!ytId) return;
-
-    // Destroy old player
-    if (playerRef.current) {
-      try { playerRef.current.destroy(); } catch {}
-      playerRef.current = null;
-    }
-
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(() => {
-      if (!playerContainerRef.current) return;
-
-      // Create a fresh div for the player
-      const el = document.createElement('div');
-      el.id = 'admp-yt-player';
-      playerContainerRef.current.innerHTML = '';
-      playerContainerRef.current.appendChild(el);
-
-      playerRef.current = new (window as any).YT.Player('admp-yt-player', {
-        videoId: ytId,
-        width: '100%',
-        height: '100%',
-        playerVars: {
-          autoplay: 1,
-          controls: 1,
-          modestbranding: 1,
-          rel: 0,
-          fs: 0,
-        },
-        events: {
-          onStateChange: (event: any) => {
-            // 0 = ended
-            if (event.data === 0) {
-              showInterstitial();
-            }
-          },
-        },
-      });
-    }, 100);
-
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ytReady, videoIndex, isInterstitial, currentVideo?.id]);
-
-  const getNextIndex = useCallback(() => {
-    if (shuffleMode && videoSongs.length > 1) {
-      let next: number;
-      do {
-        next = Math.floor(Math.random() * videoSongs.length);
-      } while (next === videoIndex);
-      return next;
-    }
-    return videoIndex + 1 < videoSongs.length ? videoIndex + 1 : 0;
-  }, [shuffleMode, videoIndex, videoSongs.length]);
-
-  const showInterstitial = useCallback(() => {
-    setIsInterstitial(true);
-    setCountdown(5);
-  }, []);
-
-  // Countdown during interstitial
-  useEffect(() => {
-    if (!isInterstitial) return;
-
-    countdownRef.current = window.setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(countdownRef.current!);
-          setIsInterstitial(false);
-          setVideoIndex(getNextIndex());
-          return 5;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => {
-      if (countdownRef.current) clearInterval(countdownRef.current);
-    };
-  }, [isInterstitial, getNextIndex]);
-
-  // Cleanup player on unmount
-  useEffect(() => {
-    return () => {
-      if (playerRef.current) {
-        try { playerRef.current.destroy(); } catch {}
-      }
-    };
-  }, []);
-
-  // Playlist mode: embed the whole YouTube playlist as an iframe (no per-song control needed)
-  if (playlistMode || videoSongs.length === 0) {
-    return (
-      <div style={{
+  return (
+    <div
+      style={{
         minHeight: '100vh',
         backgroundColor: brand.backgroundColor,
         display: 'flex',
         flexDirection: 'column',
         fontFamily: brand.bodyFont,
-      }}>
-        {/* Top bar */}
-        <div style={{
+      }}
+    >
+      {/* Top bar */}
+      <div
+        style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '12px 24px',
+          padding: isMobile ? '10px 14px' : '14px 24px',
           backgroundColor: brand.surfaceColor,
           borderBottom: `1px solid ${brand.primaryColor}33`,
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <IconTV size={20} color={brand.primaryColor} />
-            <span style={{ color: brand.primaryColor, fontSize: 14, fontWeight: 700, letterSpacing: 1 }}>
-              {brand.siteName} MUSIC VIDEO CHANNEL
-            </span>
-            <span style={{
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <IconTV size={20} color={brand.primaryColor} />
+          <span style={{ color: brand.primaryColor, fontSize: 13, fontWeight: 700, letterSpacing: 1 }}>
+            {brand.siteName.toUpperCase()} MUSIC VIDEO CHANNEL
+          </span>
+          <span
+            style={{
               fontSize: 10,
               fontWeight: 700,
-              color: brand.backgroundColor,
+              color: '#fff',
               backgroundColor: '#FF0000',
               padding: '2px 8px',
               borderRadius: 4,
               letterSpacing: 1,
-            }}>
-              LIVE
-            </span>
-          </div>
-          {onClose && (
-            <button
-              onClick={onClose}
-              style={{
-                background: 'none',
-                border: `1px solid ${brand.textColor}33`,
-                color: brand.textColor,
-                padding: '6px 16px',
-                borderRadius: 6,
-                cursor: 'pointer',
-                fontSize: 13,
-              }}
-            >
-              Close
-            </button>
-          )}
-        </div>
-
-        {/* YouTube playlist embed */}
-        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
-          <div style={{
-            width: '100%',
-            maxWidth: 1200,
-            aspectRatio: '16/9',
-            borderRadius: 12,
-            overflow: 'hidden',
-            boxShadow: `0 0 60px ${brand.primaryColor}22`,
-          }}>
-            <iframe
-              src="https://www.youtube.com/embed/videoseries?list=PLoi93vY6VsJ02vrz24BHHcW0iiPGShZqI&autoplay=1&loop=1"
-              width="100%"
-              height="100%"
-              style={{ border: 'none' }}
-              allow="autoplay; encrypted-media; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
-
-        {/* Bottom info */}
-        <div style={{
-          padding: '12px 24px',
-          backgroundColor: brand.surfaceColor,
-          borderTop: `1px solid ${brand.primaryColor}22`,
-          textAlign: 'center',
-        }}>
-          <span style={{ color: brand.textColor + '88', fontSize: 13 }}>
-            Playing from the Aaron Day Music Video playlist on YouTube
+            }}
+          >
+            LIVE
           </span>
         </div>
-      </div>
-    );
-  }
-
-  const upNextSong = videoSongs[getNextIndex()];
-
-  // Interstitial screen
-  if (isInterstitial && upNextSong) {
-    const circumference = 2 * Math.PI * 45; // r=45
-
-    return (
-      <div style={{
-        height: '100vh',
-        backgroundColor: brand.backgroundColor,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: brand.bodyFont,
-        position: 'relative',
-      }}>
-        {/* Close button */}
         {onClose && (
           <button
             onClick={onClose}
             style={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              background: 'rgba(0,0,0,0.5)',
-              border: 'none',
-              borderRadius: '50%',
-              width: 44,
-              height: 44,
+              background: 'none',
+              border: `1px solid ${brand.textColor}33`,
+              color: brand.textColor,
+              padding: '6px 16px',
+              borderRadius: 6,
               cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 10,
+              fontSize: 13,
             }}
-            aria-label="Close channel"
           >
-            <IconClose size={20} color={brand.textColor} />
+            Close
           </button>
         )}
-
-        {/* Dark overlay with branding */}
-        <div style={{
-          fontSize: 12,
-          fontWeight: 800,
-          letterSpacing: 3,
-          color: brand.primaryColor,
-          marginBottom: 32,
-          textTransform: 'uppercase',
-        }}>
-          UP NEXT
-        </div>
-
-        {/* Album art with countdown ring */}
-        <div style={{ position: 'relative', marginBottom: 24 }}>
-          <div style={{
-            width: 200,
-            height: 200,
-            borderRadius: 12,
-            overflow: 'hidden',
-            backgroundColor: brand.primaryColor + '22',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}>
-            {upNextSong.image_url ? (
-              <img
-                src={upNextSong.image_url}
-                alt={upNextSong.title}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
-            ) : (
-              <IconMusic size={64} color={brand.primaryColor + '44'} />
-            )}
-          </div>
-
-          {/* Countdown ring */}
-          <svg
-            width={220}
-            height={220}
-            style={{
-              position: 'absolute',
-              top: -10,
-              left: -10,
-              transform: 'rotate(-90deg)',
-            }}
-          >
-            <circle
-              cx={110}
-              cy={110}
-              r={45}
-              fill="none"
-              stroke={brand.primaryColor + '22'}
-              strokeWidth={3}
-              transform="scale(2.2) translate(-60, -60)"
-            />
-            <circle
-              cx={110}
-              cy={110}
-              r={45}
-              fill="none"
-              stroke={brand.primaryColor}
-              strokeWidth={3}
-              strokeDasharray={circumference}
-              strokeLinecap="round"
-              style={{
-                animation: `admp-countdown-ring 5s linear forwards`,
-              }}
-              transform="scale(2.2) translate(-60, -60)"
-            />
-          </svg>
-
-          {/* Countdown number */}
-          <div style={{
-            position: 'absolute',
-            bottom: -12,
-            right: -12,
-            width: 36,
-            height: 36,
-            borderRadius: '50%',
-            backgroundColor: brand.primaryColor,
-            color: brand.backgroundColor,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: 16,
-            fontWeight: 800,
-          }}>
-            {countdown}
-          </div>
-        </div>
-
-        {/* Song info */}
-        <div style={{
-          fontSize: 24,
-          fontWeight: 700,
-          color: brand.textColor,
-          fontFamily: brand.headingFont,
-          textAlign: 'center',
-          marginBottom: 8,
-          maxWidth: 400,
-          padding: '0 16px',
-        }}>
-          {upNextSong.title}
-        </div>
-        <div style={{
-          fontSize: 16,
-          color: brand.textColor + 'AA',
-          textAlign: 'center',
-        }}>
-          {upNextSong.artist}
-        </div>
-
-        {/* Site branding */}
-        <div style={{
-          position: 'absolute',
-          bottom: 24,
-          fontSize: 14,
-          color: brand.textColor + '44',
-          fontFamily: brand.headingFont,
-          letterSpacing: 2,
-        }}>
-          {brand.siteName}
-        </div>
-      </div>
-    );
-  }
-
-  // Video player screen
-  return (
-    <div style={{
-      height: '100vh',
-      backgroundColor: brand.backgroundColor,
-      display: 'flex',
-      flexDirection: 'column',
-      fontFamily: brand.bodyFont,
-      position: 'relative',
-    }}>
-      {/* Top bar: close + shuffle */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 10,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 16px',
-        background: 'linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)',
-      }}>
-        {onClose ? (
-          <button
-            onClick={onClose}
-            style={{
-              background: 'rgba(0,0,0,0.5)',
-              border: 'none',
-              borderRadius: 8,
-              padding: '8px 16px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              color: brand.textColor,
-              fontSize: 14,
-            }}
-            aria-label="Close channel"
-          >
-            <IconClose size={16} color={brand.textColor} />
-            Back to Music
-          </button>
-        ) : <div />}
-
-        <button
-          onClick={() => setShuffleMode(!shuffleMode)}
-          style={{
-            background: 'rgba(0,0,0,0.5)',
-            border: 'none',
-            borderRadius: 8,
-            padding: '8px 12px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            color: shuffleMode ? brand.primaryColor : brand.textColor,
-            fontSize: 13,
-          }}
-          aria-label={shuffleMode ? 'Disable shuffle' : 'Enable shuffle'}
-        >
-          <IconShuffle size={16} color={shuffleMode ? brand.primaryColor : brand.textColor} />
-          {shuffleMode ? 'Shuffle On' : 'Shuffle Off'}
-        </button>
       </div>
 
-      {/* YouTube Player */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: isMobile ? '60px 0 80px' : '60px 32px 80px',
-      }}>
+      {/* Player */}
+      <div
+        style={{
+          flex: '0 0 auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: isMobile ? 12 : 20,
+          backgroundColor: brand.backgroundColor,
+        }}
+      >
         <div
-          ref={playerContainerRef}
           style={{
             width: '100%',
-            maxWidth: 1200,
+            maxWidth: 1100,
             aspectRatio: '16/9',
-            backgroundColor: '#000',
-            borderRadius: 8,
+            backgroundColor: brand.surfaceColor,
+            borderRadius: 12,
             overflow: 'hidden',
+            boxShadow: `0 0 60px ${brand.primaryColor}33`,
+            border: `1px solid ${brand.primaryColor}44`,
           }}
-        />
+        >
+          {iframeSrc ? (
+            <iframe
+              key={iframeSrc}
+              src={iframeSrc}
+              width="100%"
+              height="100%"
+              style={{ border: 'none', display: 'block' }}
+              allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              title="Music video player"
+            />
+          ) : (
+            <div
+              style={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: brand.textColor + '88',
+                fontSize: 14,
+              }}
+            >
+              No videos available yet — check back soon.
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Bottom overlay bar */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: isMobile ? '12px 16px' : '12px 32px',
-        background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
-        display: 'flex',
-        alignItems: isMobile ? 'flex-start' : 'center',
-        justifyContent: 'space-between',
-        flexDirection: isMobile ? 'column' : 'row',
-        gap: 8,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {currentVideo?.image_url && (
-            <img
-              src={currentVideo.image_url}
-              alt=""
-              style={{ width: 40, height: 40, borderRadius: 4, objectFit: 'cover' }}
-            />
-          )}
-          <div>
-            <div style={{ color: brand.textColor, fontSize: 14, fontWeight: 600 }}>
-              {currentVideo?.title}
-            </div>
-            <div style={{ color: brand.textColor + 'AA', fontSize: 12 }}>
-              {currentVideo?.artist}
-            </div>
-          </div>
+      {/* Selection grid */}
+      <div
+        style={{
+          flex: 1,
+          padding: isMobile ? '0 12px 24px' : '0 24px 32px',
+          backgroundColor: brand.backgroundColor,
+        }}
+      >
+        <div
+          style={{
+            color: brand.textColor + 'AA',
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: 1.5,
+            textTransform: 'uppercase',
+            marginBottom: 12,
+            paddingTop: 8,
+          }}
+        >
+          {videoSongs.length > 0 ? `Pick a video (${videoSongs.length})` : 'Watch the full playlist'}
         </div>
-        {upNextSong && (
-          <div style={{ fontSize: 13, color: brand.textColor + '88' }}>
-            Up Next: <span style={{ color: brand.primaryColor }}>{upNextSong.title}</span>
-          </div>
-        )}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile
+              ? 'repeat(auto-fill, minmax(140px, 1fr))'
+              : 'repeat(auto-fill, minmax(180px, 1fr))',
+            gap: isMobile ? 10 : 14,
+          }}
+        >
+          {videoSongs.map((s: Song) => {
+            const ytId = extractYouTubeId(s.youtube_url!);
+            if (!ytId) return null;
+            const sel: Selection = { kind: 'video', videoId: ytId, title: s.title };
+            const active = isActive(sel);
+            const thumbUrl = `https://i.ytimg.com/vi/${ytId}/mqdefault.jpg`;
+            return (
+              <button
+                key={s.id}
+                onClick={() => setSelected(sel)}
+                style={{
+                  cursor: 'pointer',
+                  background: brand.surfaceColor,
+                  border: active ? `2px solid ${brand.primaryColor}` : `1px solid ${brand.textColor}1A`,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  padding: 0,
+                  textAlign: 'left',
+                  fontFamily: brand.bodyFont,
+                  transition: 'transform 0.15s ease, border-color 0.15s ease',
+                  transform: active ? 'translateY(-2px)' : 'translateY(0)',
+                  boxShadow: active ? `0 6px 20px ${brand.primaryColor}44` : 'none',
+                }}
+                aria-label={`Play "${s.title}"`}
+              >
+                <div
+                  style={{
+                    aspectRatio: '16/9',
+                    width: '100%',
+                    backgroundImage: `url(${thumbUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundColor: brand.primaryColor + '22',
+                  }}
+                />
+                <div
+                  style={{
+                    padding: '8px 10px 10px',
+                    color: brand.textColor,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    lineHeight: 1.3,
+                    overflow: 'hidden',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                  }}
+                >
+                  {s.title}
+                </div>
+              </button>
+            );
+          })}
+
+          {/* Play All — full YouTube playlist */}
+          {playlistId && (() => {
+            const sel: Selection = { kind: 'playlist', playlistId };
+            const active = isActive(sel);
+            return (
+              <button
+                key="__playlist__"
+                onClick={() => setSelected(sel)}
+                style={{
+                  cursor: 'pointer',
+                  background: active ? brand.primaryColor : brand.surfaceColor,
+                  border: active ? `2px solid ${brand.primaryColor}` : `1px solid ${brand.primaryColor}66`,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                  padding: 0,
+                  textAlign: 'center',
+                  fontFamily: brand.bodyFont,
+                  transition: 'transform 0.15s ease',
+                  transform: active ? 'translateY(-2px)' : 'translateY(0)',
+                  boxShadow: active ? `0 6px 20px ${brand.primaryColor}66` : 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+                aria-label="Play full music video playlist"
+              >
+                <div
+                  style={{
+                    aspectRatio: '16/9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: active ? brand.backgroundColor : brand.primaryColor,
+                    fontSize: 36,
+                  }}
+                >
+                  <IconTV size={48} color={active ? brand.backgroundColor : brand.primaryColor} />
+                </div>
+                <div
+                  style={{
+                    padding: '8px 10px 12px',
+                    color: active ? brand.backgroundColor : brand.textColor,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  PLAY ALL
+                  <div
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 400,
+                      opacity: 0.8,
+                      marginTop: 2,
+                    }}
+                  >
+                    Full playlist
+                  </div>
+                </div>
+              </button>
+            );
+          })()}
+        </div>
       </div>
     </div>
   );
