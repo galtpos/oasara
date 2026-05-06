@@ -1333,24 +1333,24 @@
   },
   "videos": [
     {
+      "id": "6eZxE1wz8AA",
+      "title": "Hear the Seven Calling \u2014 Free the Cypherpunks | 4K AI Music Video",
+      "youtube_url": "https://www.youtube.com/watch?v=6eZxE1wz8AA",
+      "thumbnail_url": "https://i.ytimg.com/vi/6eZxE1wz8AA/mqdefault.jpg",
+      "playlist_key": "aaron_day_music_videos"
+    },
+    {
+      "id": "VwOy6nngF2s",
+      "title": "6AM in Keene (Free Ian)",
+      "youtube_url": "https://www.youtube.com/watch?v=VwOy6nngF2s",
+      "thumbnail_url": "https://i.ytimg.com/vi/VwOy6nngF2s/mqdefault.jpg",
+      "playlist_key": "aaron_day_music_videos"
+    },
+    {
       "id": "605EACU9Aj0",
       "title": "The Land Don't Breathe - When Freedom Dies | Official Music Video",
       "youtube_url": "https://www.youtube.com/watch?v=605EACU9Aj0",
       "thumbnail_url": "https://i.ytimg.com/vi/605EACU9Aj0/mqdefault.jpg",
-      "playlist_key": "aaron_day_music_videos"
-    },
-    {
-      "id": "5CwP0wgzE9s",
-      "title": "The Confidential Layer - Bitcoin Privacy Anthem | Official Music Video",
-      "youtube_url": "https://www.youtube.com/watch?v=5CwP0wgzE9s",
-      "thumbnail_url": "https://i.ytimg.com/vi/5CwP0wgzE9s/mqdefault.jpg",
-      "playlist_key": "aaron_day_music_videos"
-    },
-    {
-      "id": "u0JVHQUWXp0",
-      "title": "Live Free or Die (We Fan the Flame) | Aaron Day for U.S. Senate 2026",
-      "youtube_url": "https://www.youtube.com/watch?v=u0JVHQUWXp0",
-      "thumbnail_url": "https://i.ytimg.com/vi/u0JVHQUWXp0/mqdefault.jpg",
       "playlist_key": "aaron_day_music_videos"
     },
     {
@@ -1365,6 +1365,13 @@
       "title": "WE DON'T BOW - Freedom Anthem | Official Music Video",
       "youtube_url": "https://www.youtube.com/watch?v=fdVRd2FUC9M",
       "thumbnail_url": "https://i.ytimg.com/vi/fdVRd2FUC9M/mqdefault.jpg",
+      "playlist_key": "aaron_day_music_videos"
+    },
+    {
+      "id": "5CwP0wgzE9s",
+      "title": "The Confidential Layer - Bitcoin Privacy Anthem | Official Music Video",
+      "youtube_url": "https://www.youtube.com/watch?v=5CwP0wgzE9s",
+      "thumbnail_url": "https://i.ytimg.com/vi/5CwP0wgzE9s/mqdefault.jpg",
       "playlist_key": "aaron_day_music_videos"
     },
     {
@@ -1389,17 +1396,24 @@
       "playlist_key": "aaron_day_music_videos"
     },
     {
-      "id": "VwOy6nngF2s",
-      "title": "6AM in Keene (Free Ian)",
-      "youtube_url": "https://www.youtube.com/watch?v=VwOy6nngF2s",
-      "thumbnail_url": "https://i.ytimg.com/vi/VwOy6nngF2s/mqdefault.jpg",
+      "id": "N0Fb3SNpCrA",
+      "title": "Trap in DIsguise | 4K AI Music Video",
+      "youtube_url": "https://www.youtube.com/watch?v=N0Fb3SNpCrA",
+      "thumbnail_url": "https://i.ytimg.com/vi/N0Fb3SNpCrA/mqdefault.jpg",
       "playlist_key": "aaron_day_music_videos"
     },
     {
-      "id": "6eZxE1wz8AA",
-      "title": "Hear the Seven Calling \u2014 Free the Cypherpunks | 4K AI Music Video",
-      "youtube_url": "https://www.youtube.com/watch?v=6eZxE1wz8AA",
-      "thumbnail_url": "https://i.ytimg.com/vi/6eZxE1wz8AA/mqdefault.jpg",
+      "id": "Wo68MNCqm6o",
+      "title": "Move Your Money | The Cantor Counter | 4K AI Music Video",
+      "youtube_url": "https://www.youtube.com/watch?v=Wo68MNCqm6o",
+      "thumbnail_url": "https://i.ytimg.com/vi/Wo68MNCqm6o/mqdefault.jpg",
+      "playlist_key": "aaron_day_music_videos"
+    },
+    {
+      "id": "Npv-2j595VA",
+      "title": "DITCH THE DOLLAR - The Anthem They Don't Want You to Hear | AI-Generated Music Video 4K",
+      "youtube_url": "https://www.youtube.com/watch?v=Npv-2j595VA",
+      "thumbnail_url": "https://i.ytimg.com/vi/Npv-2j595VA/mqdefault.jpg",
       "playlist_key": "aaron_day_music_videos"
     }
   ],
@@ -1407,6 +1421,6 @@
     "id": "PLoi93vY6VsJ02vrz24BHHcW0iiPGShZqI",
     "name": "Aaron Day Music Videos",
     "url": "https://www.youtube.com/playlist?list=PLoi93vY6VsJ02vrz24BHHcW0iiPGShZqI",
-    "first_video": "605EACU9Aj0"
+    "first_video": "6eZxE1wz8AA"
   }
 }
