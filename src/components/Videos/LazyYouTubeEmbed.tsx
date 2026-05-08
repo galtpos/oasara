@@ -19,7 +19,7 @@ const LazyYouTubeEmbed: React.FC<LazyYouTubeEmbedProps> = ({ videoId, title, cla
   if (isLoaded) {
     return (
       <iframe
-        src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+        src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
         title={title}
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
