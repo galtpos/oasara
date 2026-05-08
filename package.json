@@ -5,6 +5,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
     "@emailjs/browser": "^4.4.1",
+    "@fontsource/cinzel": "^5.2.8",
+    "@fontsource/inter": "^5.2.8",
     "@huggingface/inference": "^4.13.4",
     "@mapbox/mapbox-gl-geocoder": "^5.1.2",
     "@netlify/functions": "^5.1.2",

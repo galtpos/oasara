@@ -1,3 +1,10 @@
+/* Self-hosted fonts (sovereignty: zero requests to fonts.googleapis.com)
+   Bundled via @fontsource/* npm packages — see _standards/STANDARD_DEGOOGLED.md */
+@import '@fontsource/cinzel/400.css';
+@import '@fontsource/cinzel/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/600.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
