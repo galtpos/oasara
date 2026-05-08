@@ -2517,9 +2517,9 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
   const iframeSrc = useMemo(() => {
     if (!selected) return '';
     if (selected.kind === 'video') {
-      return `https://www.youtube.com/embed/${selected.videoId}?autoplay=1&modestbranding=1&rel=0&playsinline=1`;
+      return `https://www.youtube-nocookie.com/embed/${selected.videoId}?autoplay=1&modestbranding=1&rel=0&playsinline=1`;
     }
-    return `https://www.youtube.com/embed/videoseries?list=${selected.playlistId}&autoplay=1&modestbranding=1&rel=0&playsinline=1`;
+    return `https://www.youtube-nocookie.com/embed/videoseries?list=${selected.playlistId}&autoplay=1&modestbranding=1&rel=0&playsinline=1`;
   }, [selected]);
 
   const isActive = (s: Selection): boolean => {
