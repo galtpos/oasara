@@ -45,7 +45,7 @@ const SiteHeader: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             {/* Logo */}
-            <Link to="/">
+            <Link to="/" data-umami-event="oasara-header-logo">
               <h1 className="logo-gradient text-4xl">OASARA</h1>
             </Link>
 
@@ -126,11 +126,22 @@ const SiteHeader: React.FC = () => {
                 Bounty
               </Link>
 
+              {/* Music */}
+              <Link
+                to="/music"
+                className={`nav-link ${isActive('/music') ? 'text-gold-500' : ''}`}
+              >
+                Music
+              </Link>
+
               {/* Auth buttons */}
               {!loading && (
                 user ? (
                   <div className="flex items-center gap-4">
                     <span className="text-ocean-600 text-sm">{user.email?.split('@')[0]}</span>
+                    <Link to="/settings" className="text-sm text-ocean-500 hover:text-ocean-700 transition-colors">
+                      Settings
+                    </Link>
                     <button
                       onClick={handleLogout}
                       className="text-sm text-ocean-500 hover:text-ocean-700 transition-colors"
@@ -140,7 +151,7 @@ const SiteHeader: React.FC = () => {
                   </div>
                 ) : (
                   <Link to="/auth" className="btn-gold">
-                    Join
+                    Sign In
                   </Link>
                 )
               )}
@@ -229,20 +240,40 @@ const SiteHeader: React.FC = () => {
                   Bounty Board
                 </Link>
 
+                {/* Music */}
+                <Link
+                  to="/music"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isActive('/music') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
+                  }`}
+                >
+                  Music
+                </Link>
+
                 {/* Auth buttons */}
                 {!loading && (
                   user ? (
-                    <div className="mx-4 mt-2 flex items-center justify-between p-3 bg-sage-50 rounded-lg">
+                    <div className="mx-4 mt-2 flex flex-col gap-2 p-3 bg-sage-50 rounded-lg">
                       <span className="text-ocean-600 text-sm">{user.email?.split('@')[0]}</span>
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setMobileMenuOpen(false);
-                        }}
-                        className="text-sm text-ocean-500 hover:text-ocean-700 transition-colors"
-                      >
-                        Sign Out
-                      </button>
+                      <div className="flex items-center justify-between">
+                        <Link
+                          to="/settings"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="text-sm text-ocean-500 hover:text-ocean-700 transition-colors min-h-[44px] flex items-center"
+                        >
+                          Settings
+                        </Link>
+                        <button
+                          onClick={() => {
+                            handleLogout();
+                            setMobileMenuOpen(false);
+                          }}
+                          className="text-sm text-ocean-500 hover:text-ocean-700 transition-colors min-h-[44px] flex items-center"
+                        >
+                          Sign Out
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <Link
@@ -250,7 +281,7 @@ const SiteHeader: React.FC = () => {
                       onClick={() => setMobileMenuOpen(false)}
                       className="mx-4 mt-2 btn-gold text-center"
                     >
-                      Join
+                      Sign In
                     </Link>
                   )
                 )}
