@@ -131,3 +131,18 @@ code {
 button.bg-accent {
   color: #1a1a1a !important;  /* dark text on vibrant gold #f59e0b — AA 8.1:1 */
 }
+
+/* Oasara Round 4 (Ive) — .text-gold-300 inside dark teal gradient cards
+   (from-ocean-500 to-ocean-600) needs the original light gold, not R2's
+   darkened version. Scope by gradient parent. */
+[class*="from-ocean"] .text-gold-300,
+[class*="bg-gradient"] .text-gold-300,
+[class*="to-ocean"] .text-gold-300 {
+  color: #FCD34D !important;  /* original tailwind gold-300 — AA 7+:1 on dark teal */
+}
+/* SAVE 70-90% badge: .bg-gold-500 with .text-white at same element (R3 missed
+   compound selector). Dark text on bright gold instead. */
+.bg-gold-500.text-white,
+.bg-gold-500 > .text-white {
+  color: #1a1a1a !important;  /* AA 8.1:1 on #f59e0b */
+}
