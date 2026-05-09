@@ -109,3 +109,25 @@ code {
 .text-sage-300 {
   color: #4A6E5E !important;  /* matches Round-1 sage-500 lift */
 }
+
+/* Oasara Round 3 (Ive) — 518 of 592 axe failures are text-sage-400/warm-clay
+   (#5f8575) on bg-gold-100 (#fef3c7) at 3.0:1. R2 set sage-400 to #5f8575
+   for white bg AA but didn't account for gold-100 backgrounds.
+   Lift to existing sage-700 hex (#445C50) which passes both white (~7:1) and
+   gold-100 (~5.4:1). Also lift accent-dark text on white. */
+.text-sage-400,
+.text-warm-clay {
+  color: #3E5A4A !important;  /* AA 6.7:1 on white, 5.4:1 on #fef3c7 gold-100 */
+}
+.text-sage-600 {
+  color: #3E5A4A !important;  /* sage-100 #eef3f0 context fails original */
+}
+.text-accent-dark,
+.text-gold-600 {
+  color: #B45309 !important;  /* gold-700 — AA 5.0:1 on white */
+}
+.text-white.bg-accent,
+.bg-accent .text-white,
+button.bg-accent {
+  color: #1a1a1a !important;  /* dark text on vibrant gold #f59e0b — AA 8.1:1 */
+}
