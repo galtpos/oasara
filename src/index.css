@@ -133,11 +133,19 @@ button.bg-accent {
 }
 
 /* Oasara Round 4 (Ive) — .text-gold-300 inside dark teal gradient cards
-   (from-ocean-500 to-ocean-600) needs the original light gold, not R2's
-   darkened version. Scope by gradient parent. */
+   (from-ocean-500 to-ocean-600) and solid ocean-bg sections (LandingGate
+   stats bar) needs the original light gold, not R2's darkened version. */
 [class*="from-ocean"] .text-gold-300,
 [class*="bg-gradient"] .text-gold-300,
-[class*="to-ocean"] .text-gold-300 {
+[class*="to-ocean"] .text-gold-300,
+.bg-ocean-500 .text-gold-300,
+.bg-ocean-600 .text-gold-300,
+.bg-ocean-700 .text-gold-300,
+.bg-ocean-800 .text-gold-300,
+.bg-ocean-900 .text-gold-300,
+.bg-deep-teal .text-gold-300,
+.bg-primary .text-gold-300,
+.bg-primary-dark .text-gold-300 {
   color: #FCD34D !important;  /* original tailwind gold-300 — AA 7+:1 on dark teal */
 }
 /* SAVE 70-90% badge: .bg-gold-500 with .text-white at same element (R3 missed
