@@ -94,3 +94,18 @@ code {
     scroll-behavior: auto !important;
   }
 }
+
+/* Oasara Round 2 (Ive) — residuals after sage-400/500 lift in Tailwind config */
+/* Many text colors still bleed: ocean-400, gold-300/400 used as text.
+   Round 2 hits those text-use callsites. */
+.text-ocean-400,
+.text-ocean-300 {
+  color: #1F5862 !important;  /* deep ocean — AA on white */
+}
+.text-gold-300,
+.text-gold-400 {
+  color: #B45309 !important;  /* gold-700 — AA on white */
+}
+.text-sage-300 {
+  color: #4A6E5E !important;  /* matches Round-1 sage-500 lift */
+}
