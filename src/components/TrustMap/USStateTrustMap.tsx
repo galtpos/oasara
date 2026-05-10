@@ -3,8 +3,9 @@ import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simp
 import { StateTrustLaw, CriteriaKey, getScoreColor } from '../../types/trustLaws';
 import { stateTrustLaws, getStateByCode, calculateFilteredScore } from '../../data/stateTrustLaws';
 
-// US states TopoJSON from public CDN
-const GEO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json';
+// US states TopoJSON self-hosted (CSP-compliant, sovereignty: no external CDN).
+// Source: https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json (vendored to public/).
+const GEO_URL = '/us-states-10m.json';
 
 // State FIPS to two-letter code mapping
 const FIPS_TO_STATE: Record<string, string> = {
