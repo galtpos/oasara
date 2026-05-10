@@ -51,6 +51,21 @@
         ]
       }
     </script>
+      <script>
+      // Outbound link tracking - fires umami event for any anchor click leaving this origin.
+      // Closes ops dashboard outbound_link_tracking probe.
+      document.addEventListener("click", function(e) {
+        var a = e.target.closest && e.target.closest("a");
+        if (!a || !a.href) return;
+        try {
+          var u = new URL(a.href, location.origin);
+          if (u.host === location.host) return;
+          if (window.umami && typeof umami.track === "function") {
+            umami.track("outbound-link-click", { url: a.href, host: u.host });
+          }
+        } catch (err) {}
+      });
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
