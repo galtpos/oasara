@@ -30,9 +30,7 @@ function getSupabaseClient(): SupabaseClient {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      storageKey: 'oasara.auth.token',
-      detectSessionInUrl: true, // Let Supabase handle URL tokens automatically
-      flowType: 'implicit',
+      detectSessionInUrl: true,
     }
   });
 

@@ -1,14 +1,13 @@
 import { useState, useMemo, useEffect, Suspense, lazy } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import SiteHeader from '../components/Layout/SiteHeader';
-import ChatHero from '../components/Chat/ChatHero';
+import PledgeBlock from '../components/Pledge/PledgeBlock';
 import FacilityCard from '../components/Cards/FacilityCard';
 import ProcedureSearch from '../components/Search/ProcedureSearch';
 import CountryFilter from '../components/Filters/CountryFilter';
 import SpecialtyFilter from '../components/Filters/SpecialtyFilter';
 import ZanoFilter from '../components/Filters/ZanoFilter';
-import AnimatedCounter from '../components/PriceComparison/AnimatedCounter';
-import { getFacilities, getCountries, getSpecialties, Facility, supabase } from '../lib/supabase';
+import { getFacilities, getCountries, getSpecialties, Facility } from '../lib/supabase';
 import { getUSStats } from '../lib/usHospitalApi';
 
 // LAZY LOAD ALL HEAVY COMPONENTS - fixes Chrome freeze on low-RAM PCs
@@ -21,12 +20,6 @@ const TestimonialsSection = lazy(() => import('../components/Trust/TestimonialsS
 const SuccessMetrics = lazy(() => import('../components/Trust/SuccessMetrics'));
 const SavingsCalculator = lazy(() => import('../components/Calculator/SavingsCalculator'));
 
-interface PledgeCounts {
-  medical_trust: number;
-  cancel_insurance: number;
-  try_medical_tourism: number;
-}
-
 type SortOption = 'rating' | 'reviews' | 'name' | 'country';
 
 const PublicSite: React.FC = () => {
@@ -36,11 +29,6 @@ const PublicSite: React.FC = () => {
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([]);
   const [showZanoOnly, setShowZanoOnly] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>('rating');
-  const [pledgeCounts, setPledgeCounts] = useState<PledgeCounts>({
-    medical_trust: 0,
-    cancel_insurance: 0,
-    try_medical_tourism: 0,
-  });
   const [usHospitalCount, setUsHospitalCount] = useState<number>(6000);
 
   // Mobile detection for performance optimization - uses matchMedia for Lighthouse compatibility
@@ -58,37 +46,6 @@ const PublicSite: React.FC = () => {
     // Listen for changes
     mediaQuery.addEventListener('change', checkMobile);
     return () => mediaQuery.removeEventListener('change', checkMobile);
-  }, []);
-
-  // Fetch pledge counts
-  useEffect(() => {
-    const fetchPledgeCounts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('pledges')
-          .select('pledge_type');
-
-        if (error) throw error;
-
-        const counts: PledgeCounts = {
-          medical_trust: 0,
-          cancel_insurance: 0,
-          try_medical_tourism: 0,
-        };
-
-        data?.forEach((pledge: { pledge_type: string }) => {
-          if (pledge.pledge_type in counts) {
-            counts[pledge.pledge_type as keyof PledgeCounts]++;
-          }
-        });
-
-        setPledgeCounts(counts);
-      } catch (err) {
-        console.error('Error fetching pledge counts:', err);
-      }
-    };
-
-    fetchPledgeCounts();
   }, []);
 
   // Fetch US hospital stats (for price comparison feature)
@@ -241,63 +198,23 @@ const PublicSite: React.FC = () => {
     setShowZanoOnly(false);
   };
 
-  const totalPledges = pledgeCounts.medical_trust + pledgeCounts.cancel_insurance + pledgeCounts.try_medical_tourism;
-
   return (
     <div className="min-h-screen bg-white">
       <SiteHeader />
 
       <main>
-      {/* Hero Section - Chatbot First */}
-      <ChatHero />
+      {/* HERO - Pledge first (sovereignty-first, board decision 2026-05-10) */}
+      <PledgeBlock variant="full" />
 
-      {/* Stats Bar - Simplified Social Proof */}
-      <div className="bg-ocean-600 border-t-4 border-gold-500 py-4 px-6">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center gap-6 justify-center md:justify-start">
-          <div className="flex flex-col items-center px-4">
-            <AnimatedCounter end={filteredFacilities.length} className="text-3xl font-display font-bold text-white" />
-            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Facilities</span>
-          </div>
-          <div className="flex flex-col items-center px-4">
-            <AnimatedCounter end={countries.length} className="text-3xl font-display font-bold text-white" />
-            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Countries</span>
-          </div>
-          <div className="flex flex-col items-center px-4">
-            <AnimatedCounter end={totalPledges} className="text-3xl font-display font-bold text-white" />
-            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Total Pledges</span>
-          </div>
-          <div className="flex flex-col items-center px-4">
-            <AnimatedCounter end={pledgeCounts.medical_trust} className="text-3xl font-display font-bold text-white" />
-            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Medical Trusts</span>
-          </div>
-          <div className="flex flex-col items-center px-4">
-            <AnimatedCounter end={pledgeCounts.try_medical_tourism} className="text-3xl font-display font-bold text-white" />
-            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Medical Tourists</span>
-          </div>
-          <div className="flex flex-col items-center px-4">
-            <AnimatedCounter end={pledgeCounts.cancel_insurance} className="text-3xl font-display font-bold text-white" />
-            <span className="text-xs text-ocean-100 uppercase tracking-wide mt-1">Cancelled Insurance</span>
-          </div>
-          <div className="flex flex-col items-center px-4 bg-ocean-700/50 rounded-lg py-2">
-            <AnimatedCounter end={usHospitalCount} suffix="+" className="text-3xl font-display font-bold text-gold-300" />
-            <span className="text-xs text-gold-200 uppercase tracking-wide mt-1">US Hospitals Compared</span>
-          </div>
-          {/* Pledge CTA */}
-          <a 
-            href="/action" 
-            className="ml-auto flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-gold-500 to-gold-600 rounded-full text-white font-bold text-sm hover:scale-105 hover:shadow-lg hover:shadow-gold-500/30 transition-all"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-            </svg>
-            Take The Pledge
-          </a>
-          <div className="flex items-center gap-2 text-white/80 text-sm">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-            <span className="font-medium">JCI Accredited Healthcare</span>
-          </div>
+      {/* Marketplace section header */}
+      <div className="bg-ocean-600 border-t-4 border-gold-500 py-6 px-6">
+        <div className="max-w-7xl mx-auto text-center">
+          <h2 className="font-display text-3xl md:text-4xl text-white mb-2">
+            Browse {filteredFacilities.length} JCI-Accredited Facilities
+          </h2>
+          <p className="text-ocean-100">
+            {countries.length} countries · Save 60-90% on world-class care · {usHospitalCount.toLocaleString()}+ US hospitals compared
+          </p>
         </div>
       </div>
 

@@ -220,7 +220,7 @@ const UnifiedChatbot: React.FC<UnifiedChatbotProps> = ({
       console.error('Chat error:', error);
       const errorMessage: Message = {
         role: 'assistant',
-        content: "I'm sorry, I'm having trouble connecting right now. Please try again in a moment.",
+        content: "I'm having trouble connecting right now. While I get back online, you can [take the pledge](/) directly, [browse 518 facilities](/), or [email a human](mailto:hello@oasara.com) — we'll get back to you within 24 hours.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -510,5 +510,39 @@ const UnifiedChatbot: React.FC<UnifiedChatbotProps> = ({
 };
 
 export default UnifiedChatbot;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

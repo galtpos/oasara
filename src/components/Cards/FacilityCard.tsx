@@ -28,11 +28,33 @@ const FacilityCard: React.FC<FacilityCardProps> = memo(({ facility, onClick }) =
     (facility.procedure_pricing?.length || 0) > 0 ||
     (facility.testimonials?.length || 0) > 0;
 
+  const tier: 'gold' | 'silver' | 'bronze' =
+    (facility.doctors?.length || 0) > 0 ? 'gold'
+    : (facility.testimonials?.length || 0) > 0 ? 'silver'
+    : 'bronze';
+
+  const tierConfig = {
+    gold: { label: 'Verified', className: 'bg-gradient-to-r from-gold-500 to-gold-600 text-white border-gold-700', dotClass: 'bg-white' },
+    silver: { label: 'Reviewed', className: 'bg-ocean-100 text-ocean-700 border-ocean-300', dotClass: 'bg-ocean-500' },
+    bronze: { label: 'Listed', className: 'bg-sage-100 text-sage-600 border-sage-300', dotClass: 'bg-sage-400' },
+  }[tier];
+
   return (
     <div
       onClick={onClick}
       className="card cursor-pointer"
     >
+      {/* Tier Badge - top accent */}
+      <div className="flex items-center gap-2 mb-3">
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${tierConfig.className}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${tierConfig.dotClass}`} />
+          {tierConfig.label}
+        </span>
+        {tier === 'gold' && (
+          <span className="text-xs text-sage-500">Doctor profiles confirmed</span>
+        )}
+      </div>
+
       {/* Header */}
       <div className="flex justify-between items-start gap-2 mb-4">
         <div className="flex-1 min-w-0">
