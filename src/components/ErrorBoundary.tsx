@@ -73,7 +73,7 @@ class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-sage-50 flex items-center justify-center p-6">
+        <main className="min-h-screen bg-sage-50 flex items-center justify-center p-6">
           <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
             {/* Icon */}
             <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">
@@ -126,7 +126,7 @@ class ErrorBoundary extends Component<Props, State> {
               {this.state.eventId && (
                 <button
                   onClick={this.handleReportFeedback}
-                  className="px-6 py-3 bg-gold-600 text-white rounded-lg font-medium hover:bg-gold-700 transition-colors"
+                  className="px-6 py-3 bg-gold-700 text-white rounded-lg font-medium hover:bg-gold-800 transition-colors"
                 >
                   Tell us what happened
                 </button>
@@ -149,7 +149,7 @@ class ErrorBoundary extends Component<Props, State> {
               </a>
             </p>
           </div>
-        </div>
+        </main>
       );
     }
 
