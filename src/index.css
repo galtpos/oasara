@@ -164,11 +164,3 @@ button.bg-accent {
 body { font-family: var(--font-sans); }
 h1, h2, h3, h4 { font-family: var(--font-display); }
 code, pre, kbd, samp { font-family: var(--font-mono); }
-
-/* Dark-mode parity (ops dashboard dark_mode_parity probe).
-   Site is light-default; honor user pref via @media. */
-:root { color-scheme: light dark; }
-@media (prefers-color-scheme: dark) {
-  :root { color-scheme: dark; }
-  body { background: #0a0a0a; color: #f5f5f5; }
-}
