@@ -12,7 +12,11 @@ const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
 const supabaseKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || 'AIzaSyBokFeOvtr7moIFKh1C2NnpbqRgEgQsVvQ';
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
+if (!GOOGLE_PLACES_API_KEY) {
+  console.error('Set GOOGLE_PLACES_API_KEY in .env.local before running this script.');
+  process.exit(1);
+}
 
 // Rate limiting
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));

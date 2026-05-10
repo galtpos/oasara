@@ -299,13 +299,13 @@ node scripts/check-duplicates.js
 
 ### Test Single Facility
 ```bash
-GOOGLE_PLACES_API_KEY=AIzaSyBokFeOvtr7moIFKh1C2NnpbqRgEgQsVvQ \
+GOOGLE_PLACES_API_KEY=<YOUR_GOOGLE_PLACES_API_KEY> \
 node scripts/test-enrichment.js "Bangkok Hospital"
 ```
 
 ### Enrich All Facilities
 ```bash
-GOOGLE_PLACES_API_KEY=AIzaSyBokFeOvtr7moIFKh1C2NnpbqRgEgQsVvQ \
+GOOGLE_PLACES_API_KEY=<YOUR_GOOGLE_PLACES_API_KEY> \
 node scripts/enrich-facilities.js
 ```
 
