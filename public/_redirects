@@ -1,3 +1,10 @@
+# Legacy URL fixes (must come before the SPA prefixes below).
+# DB has stored links pointing at /facility/<uuid> (singular) but the route
+# is /facilities/:id (plural). Pre-existing data drift — was masked when
+# the SPA catch-all returned 200 for everything; exposed by the new explicit
+# 404 fallback. Redirect old → canonical.
+/facility/*                 /facilities/:splat   301!
+
 # SPA route prefixes (explicit so unknown paths fall through to /404.html
 # below — required to satisfy the ops dashboard `error_pages` rubric item).
 # When adding a new top-level route in src/AppRoutes.tsx, add a matching entry here.
