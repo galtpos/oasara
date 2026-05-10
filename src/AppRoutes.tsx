@@ -5,34 +5,39 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './pages/Auth';
 import ConfirmEmail from './pages/ConfirmEmail';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
+import { AuthPage, SettingsPage, brandConfigs } from './components/AuthComponents';
+import { useOasaraAuth } from './hooks/useEcosystemAuthInit';
 
-// Main pages
+// Main pages — homepage stays eager (instant first paint), all others lazy
 import PublicSite from './pages/PublicSite';
-import MedicalTourismHub from './pages/MedicalTourismHub';
-import FacilityDetail from './pages/FacilityDetail';
-import WhyZano from './pages/WhyZano';
-import ActionCenter from './pages/ActionCenter';
-import Feedback from './pages/Feedback';
-import MedicalTrusts from './pages/MedicalTrusts';
-import BountyBoard from './pages/BountyBoard';
-import MyJourney from './pages/MyJourney';
-import Guide from './pages/Guide';
-import AIOnboarding from './pages/AIOnboarding';
-import ConversationalJourneyPage from './pages/ConversationalJourneyPage';
-import AcceptInvite from './pages/AcceptInvite';
-import SharedJourneyPage from './pages/SharedJourneyPage';
-import Stories from './pages/Stories';
-import StoryDetail from './pages/StoryDetail';
-import ShareStory from './pages/ShareStory';
 
-// Admin pages
-import AdminLogin from './admin/pages/AdminLogin';
-import AdminLayout from './admin/layouts/AdminLayout';
-import Dashboard from './admin/pages/Dashboard';
-import FacilitiesList from './admin/pages/FacilitiesList';
-import FacilityEditor from './admin/pages/FacilityEditor';
-import DoctorsList from './admin/pages/DoctorsList';
-import FeedbackManagement from './admin/pages/FeedbackManagement';
+// Lazy: non-homepage public pages
+const MedicalTourismHub = lazy(() => import('./pages/MedicalTourismHub'));
+const FacilityDetail = lazy(() => import('./pages/FacilityDetail'));
+const WhyZano = lazy(() => import('./pages/WhyZano'));
+const ActionCenter = lazy(() => import('./pages/ActionCenter'));
+const Feedback = lazy(() => import('./pages/Feedback'));
+const MedicalTrusts = lazy(() => import('./pages/MedicalTrusts'));
+const BountyBoard = lazy(() => import('./pages/BountyBoard'));
+const MyJourney = lazy(() => import('./pages/MyJourney'));
+const Guide = lazy(() => import('./pages/Guide'));
+const AIOnboarding = lazy(() => import('./pages/AIOnboarding'));
+const ConversationalJourneyPage = lazy(() => import('./pages/ConversationalJourneyPage'));
+const AcceptInvite = lazy(() => import('./pages/AcceptInvite'));
+const SharedJourneyPage = lazy(() => import('./pages/SharedJourneyPage'));
+const Stories = lazy(() => import('./pages/Stories'));
+const StoryDetail = lazy(() => import('./pages/StoryDetail'));
+const ShareStory = lazy(() => import('./pages/ShareStory'));
+const MusicRoute = lazy(() => import('./pages/MusicRoute'));
+
+// Lazy: admin pages (entire admin tree should never block main bundle)
+const AdminLogin = lazy(() => import('./admin/pages/AdminLogin'));
+const AdminLayout = lazy(() => import('./admin/layouts/AdminLayout'));
+const Dashboard = lazy(() => import('./admin/pages/Dashboard'));
+const FacilitiesList = lazy(() => import('./admin/pages/FacilitiesList'));
+const FacilityEditor = lazy(() => import('./admin/pages/FacilityEditor'));
+const DoctorsList = lazy(() => import('./admin/pages/DoctorsList'));
+const FeedbackManagement = lazy(() => import('./admin/pages/FeedbackManagement'));
 
 // US Hospital Transparency Pages - LAZY LOADED to prevent blocking main bundle
 const USHospitals = lazy(() => import('./pages/USHospitals'));
@@ -50,6 +55,12 @@ const PageLoader = () => (
   </div>
 );
 
+const oaBrand = brandConfigs.oasara;
+function EcoAuthPage() { const auth = useOasaraAuth(); return <AuthPage auth={auth} brand={oaBrand} onSuccess={() => window.location.href = '/'} />; }
+function EcoSettingsPage() { const auth = useOasaraAuth(); return <SettingsPage auth={auth} brand={oaBrand} />; }
+
+const L = (Comp: React.FC<any>) => <Suspense fallback={<PageLoader />}><Comp /></Suspense>;
+
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
@@ -57,25 +68,28 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<PublicSite />} />
       <Route path="/app" element={<PublicSite />} />
       <Route path="/welcome" element={<PublicSite />} />
-      <Route path="/start" element={<AIOnboarding />} />
-      <Route path="/hub" element={<MedicalTourismHub />} />
-      <Route path="/facilities/:id" element={<FacilityDetail />} />
-      <Route path="/why-zano" element={<WhyZano />} />
-      <Route path="/action" element={<ActionCenter />} />
-      <Route path="/feedback" element={<Feedback />} />
-      <Route path="/medical-trusts" element={<MedicalTrusts />} />
-      <Route path="/bounty" element={<BountyBoard />} />
-      <Route path="/my-journey" element={<ProtectedRoute><MyJourney /></ProtectedRoute>} />
-      <Route path="/my-journey/chat" element={<ProtectedRoute><ConversationalJourneyPage /></ProtectedRoute>} />
-      <Route path="/journey/accept-invite/:token" element={<AcceptInvite />} />
-      <Route path="/journey/shared/:journeyId" element={<SharedJourneyPage />} />
-      <Route path="/guide" element={<Guide />} />
+      <Route path="/start" element={L(AIOnboarding)} />
+      <Route path="/hub" element={L(MedicalTourismHub)} />
+      <Route path="/facilities/:id" element={L(FacilityDetail)} />
+      <Route path="/why-zano" element={L(WhyZano)} />
+      <Route path="/action" element={L(ActionCenter)} />
+      <Route path="/feedback" element={L(Feedback)} />
+      <Route path="/medical-trusts" element={L(MedicalTrusts)} />
+      <Route path="/bounty" element={L(BountyBoard)} />
+      <Route path="/my-journey" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MyJourney /></Suspense></ProtectedRoute>} />
+      <Route path="/my-journey/chat" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ConversationalJourneyPage /></Suspense></ProtectedRoute>} />
+      <Route path="/journey/accept-invite/:token" element={L(AcceptInvite)} />
+      <Route path="/journey/shared/:journeyId" element={L(SharedJourneyPage)} />
+      <Route path="/guide" element={L(Guide)} />
       <Route path="/help" element={<Navigate to="/guide" replace />} />
-      
+
       {/* Stories / Community Routes */}
-      <Route path="/stories" element={<Stories />} />
-      <Route path="/stories/:slug" element={<StoryDetail />} />
-      <Route path="/share-story" element={<ShareStory />} />
+      <Route path="/stories" element={L(Stories)} />
+      <Route path="/stories/:slug" element={L(StoryDetail)} />
+      <Route path="/share-story" element={L(ShareStory)} />
+
+      {/* Music */}
+      <Route path="/music" element={L(MusicRoute)} />
 
       {/* US Hospital Transparency Routes - Lazy loaded with Suspense */}
       <Route path="/us-hospitals" element={<Suspense fallback={<PageLoader />}><USHospitals /></Suspense>} />
@@ -84,23 +98,24 @@ const AppRoutes: React.FC = () => {
       <Route path="/price-comparison" element={<Suspense fallback={<PageLoader />}><PriceComparison /></Suspense>} />
 
       {/* Auth routes - Unified auth page */}
-      <Route path="/auth" element={<Auth />} />
+      <Route path="/auth" element={<EcoAuthPage />} />
+      <Route path="/settings" element={<EcoSettingsPage />} />
       <Route path="/login" element={<Navigate to="/auth" replace />} />
       <Route path="/signup" element={<Navigate to="/auth" replace />} />
       <Route path="/auth/confirm" element={<ConfirmEmail />} />
       <Route path="/early-access" element={<Navigate to="/auth" replace />} />
 
       {/* Admin Login */}
-      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/login" element={L(AdminLogin)} />
 
       {/* Admin Routes (Protected) */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="facilities" element={<FacilitiesList />} />
-        <Route path="facilities/new" element={<FacilityEditor />} />
-        <Route path="facilities/:id" element={<FacilityEditor />} />
-        <Route path="doctors" element={<DoctorsList />} />
-        <Route path="bounties" element={<FeedbackManagement />} />
+      <Route path="/admin" element={<Suspense fallback={<PageLoader />}><AdminLayout /></Suspense>}>
+        <Route index element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
+        <Route path="facilities" element={<Suspense fallback={<PageLoader />}><FacilitiesList /></Suspense>} />
+        <Route path="facilities/new" element={<Suspense fallback={<PageLoader />}><FacilityEditor /></Suspense>} />
+        <Route path="facilities/:id" element={<Suspense fallback={<PageLoader />}><FacilityEditor /></Suspense>} />
+        <Route path="doctors" element={<Suspense fallback={<PageLoader />}><DoctorsList /></Suspense>} />
+        <Route path="bounties" element={<Suspense fallback={<PageLoader />}><FeedbackManagement /></Suspense>} />
         <Route path="testimonials" element={
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center max-w-md">
