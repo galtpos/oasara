@@ -1,0 +1,39 @@
+# SPA route prefixes (explicit so unknown paths fall through to /404.html
+# below — required to satisfy the ops dashboard `error_pages` rubric item).
+# When adding a new top-level route in src/AppRoutes.tsx, add a matching entry here.
+/                           /index.html   200
+/action                     /index.html   200
+/admin                      /index.html   200
+/admin/*                    /index.html   200
+/app                        /index.html   200
+/auth                       /index.html   200
+/auth/*                     /index.html   200
+/bounty                     /index.html   200
+/early-access               /index.html   200
+/facilities/*               /index.html   200
+/feedback                   /index.html   200
+/guide                      /index.html   200
+/help                       /index.html   200
+/hub                        /index.html   200
+/journey/*                  /index.html   200
+/login                      /index.html   200
+/medical-trusts             /index.html   200
+/music                      /index.html   200
+/my-journey                 /index.html   200
+/my-journey/*               /index.html   200
+/price-comparison           /index.html   200
+/settings                   /index.html   200
+/share-story                /index.html   200
+/signup                     /index.html   200
+/start                      /index.html   200
+/stories                    /index.html   200
+/stories/*                  /index.html   200
+/us-hospitals               /index.html   200
+/us-hospitals/*             /index.html   200
+/us-prices                  /index.html   200
+/welcome                    /index.html   200
+/why-zano                   /index.html   200
+
+# Unknown paths → SPA shell with HTTP 404 (postbuild-404.mjs writes 404.html
+# from index.html so React Router renders the 404 component client-side).
+/*                          /404.html     404
