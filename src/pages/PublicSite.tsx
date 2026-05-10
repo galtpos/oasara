@@ -247,6 +247,7 @@ const PublicSite: React.FC = () => {
     <div className="min-h-screen bg-white">
       <SiteHeader />
 
+      <main>
       {/* Hero Section - Chatbot First */}
       <ChatHero />
 
@@ -353,8 +354,8 @@ const PublicSite: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <main id="main-content" className="max-w-7xl mx-auto px-6 py-8" tabIndex={-1}>
+      {/* Facility List */}
+      <section id="main-content" aria-label="Facilities" className="max-w-7xl mx-auto px-6 py-8" tabIndex={-1}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" style={{ height: 'calc(100vh - 480px)', minHeight: '500px' }}>
           {/* Map - DESKTOP ONLY for performance (saves 700KB on mobile) */}
           {!isMobile && (
@@ -414,7 +415,7 @@ const PublicSite: React.FC = () => {
           )}
           </div>
         </div>
-      </main>
+      </section>
 
       {/* Savings Calculator - Moved from hero, now below facilities */}
       <Suspense fallback={
@@ -453,6 +454,7 @@ const PublicSite: React.FC = () => {
       <Suspense fallback={<div className="py-12 bg-ocean-50 text-center"><p className="text-ocean-600">Loading tutorials...</p></div>}>
         <ZanoTutorials />
       </Suspense>
+      </main>
 
       {/* Footer - Comprehensive with moved nav links */}
       <footer className="mt-16 py-16 border-t border-sage-200 bg-sage-50">
