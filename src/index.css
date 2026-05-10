@@ -154,3 +154,13 @@ button.bg-accent {
 .bg-gold-500 > .text-white {
   color: #1a1a1a !important;  /* AA 8.1:1 on #f59e0b */
 }
+
+/* Typography tokens (ops dashboard typography_tokens probe). */
+:root {
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: source-code-pro, Menlo, Monaco, monospace;
+}
+body { font-family: var(--font-sans); }
+h1, h2, h3, h4 { font-family: var(--font-display); }
+code, pre, kbd, samp { font-family: var(--font-mono); }
