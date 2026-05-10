@@ -703,7 +703,7 @@ export function MusicProvider({ brandConfig, catalog, children }: MusicProviderP
     if (typeof document === 'undefined') return;
     const original = document.title;
     if (isPlaying && currentSong) {
-      document.title = `♪ ${currentSong.title} — ${currentSong.artist}`;
+      document.title = `♪ ${currentSong.title} · ${currentSong.artist}`;
     }
     return () => {
       // Only revert if we changed it
@@ -1339,7 +1339,7 @@ export function MusicBar() {
     if (!currentSong || typeof window === 'undefined') return;
     const url = `${window.location.origin}/music?song=${currentSong.id}`;
     const shareData = {
-      title: `${currentSong.title} — ${currentSong.artist}`,
+      title: `${currentSong.title} · ${currentSong.artist}`,
       text: `Listen to "${currentSong.title}" by ${currentSong.artist}`,
       url,
     };
@@ -1578,7 +1578,7 @@ export function MusicBar() {
                 maxWidth: 320,
               }}
             >
-              Skipped <strong style={{ color: brand.primaryColor }}>{skipNotice}</strong> — track unavailable
+              Skipped <strong style={{ color: brand.primaryColor }}>{skipNotice}</strong>. Track unavailable
             </div>
           )}
           {shareToast && (
@@ -1604,7 +1604,7 @@ export function MusicBar() {
       {/* Main controls row */}
       <div style={controlsRow}>
         {/* Album art (with hover tooltip showing track + artist) */}
-        <div style={artStyle} title={`Now playing: ${currentSong.title} — ${currentSong.artist}`}>
+        <div style={artStyle} title={`Now playing: ${currentSong.title} · ${currentSong.artist}`}>
           {currentSong.image_url ? (
             <img
               src={currentSong.image_url}
@@ -2613,7 +2613,7 @@ export function MusicVideoChannel({ onClose }: MusicVideoChannelProps) {
                 fontSize: 14,
               }}
             >
-              No videos available yet — check back soon.
+              No videos available yet. Check back soon.
             </div>
           )}
         </div>
