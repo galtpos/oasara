@@ -164,3 +164,19 @@ button.bg-accent {
 body { font-family: var(--font-sans); }
 h1, h2, h3, h4 { font-family: var(--font-display); }
 code, pre, kbd, samp { font-family: var(--font-mono); }
+
+/* Dark mode preference handling.
+   Per past attempt that broke contrast (2026-05-09): the site is intentionally
+   served in its light theme regardless of UA preference because every text-on-
+   color contrast pair was tuned for the light palette. We do NOT flip body
+   colors here.
+   What this block DOES do: tells the browser to render UI chrome (scrollbars,
+   form controls, etc.) in a dark variant when the user has a dark preference.
+   No risk to text contrast. Honest minimum dark-mode handling.
+   Full dark-variant pass would require Tailwind dark: utilities across all
+   text/bg pairs and is tracked separately. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: light dark;
+  }
+}
