@@ -309,7 +309,7 @@ function injectGlobalStyles() {
 
     /* Photosensitivity / migraine accessibility (Khan, 2026-05-03).
        Kills the glow pulse and bar height transitions for users with
-       prefers-reduced-motion. WCAG 2.3 — no exceptions. */
+       prefers-reduced-motion. WCAG 2.3, no exceptions. */
     @media (prefers-reduced-motion: reduce) {
       [data-admp-bar] {
         animation: none !important;
