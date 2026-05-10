@@ -34,18 +34,18 @@ const FacilityCard: React.FC<FacilityCardProps> = memo(({ facility, onClick }) =
       className="card cursor-pointer"
     >
       {/* Header */}
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
-          <h3 className="font-display text-xl text-sage-800 font-bold mb-1">
+      <div className="flex justify-between items-start gap-2 mb-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display text-xl text-sage-800 font-bold mb-1 break-words">
             {facility.name}
           </h3>
-          <p className="text-sm text-sage-500 font-medium">
+          <p className="text-sm text-sage-500 font-medium break-words">
             {facility.city}, {facility.country}
           </p>
         </div>
 
         {/* Rating */}
-        <div className="px-3 py-1.5 rounded bg-gold-100 border border-gold-200">
+        <div className="flex-shrink-0 px-3 py-1.5 rounded bg-gold-100 border border-gold-200">
           <span className="text-gold-700 font-bold text-sm">
             {facility.google_rating}
           </span>
