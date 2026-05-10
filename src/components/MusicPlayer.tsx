@@ -1311,23 +1311,25 @@ export function MusicBar() {
     channelActive,
   } = useMusicContext();
 
-  // Self-hide while the Music Video Channel is open — its iframe carries its
-  // own audio + controls; the bar would only confuse things (Aaron 2026-05-04).
-  if (channelActive) return null;
-
-  // Per-brand bar overrides — Day2026 sets barSurfaceColor=Granite +
-  // barTextColor=Cream so the bar reads as a dark module patch on the cream
-  // page ground. Other sites fall back to surfaceColor / textColor.
-  const barSurface = (brand as any).barSurfaceColor || brand.surfaceColor;
-  const barText    = (brand as any).barTextColor    || brand.textColor;
-
+  // ALL hooks must be at the top before any conditional return (react-hooks/rules-of-hooks).
+  // The early returns below are safe because every hook above them runs unconditionally.
   const isMobile = useIsMobile();
   const [expanded, setExpanded] = useState(false);
   const [progressHover, setProgressHover] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
   const touchStartY = useRef<number>(0);
 
+  // Self-hide while the Music Video Channel is open — its iframe carries its
+  // own audio + controls; the bar would only confuse things (Aaron 2026-05-04).
+  if (channelActive) return null;
+
   if (!currentSong) return null;
+
+  // Per-brand bar overrides — Day2026 sets barSurfaceColor=Granite +
+  // barTextColor=Cream so the bar reads as a dark module patch on the cream
+  // page ground. Other sites fall back to surfaceColor / textColor.
+  const barSurface = (brand as any).barSurfaceColor || brand.surfaceColor;
+  const barText    = (brand as any).barTextColor    || brand.textColor;
 
   // Share handler (Aaron 2026-05-04): native share API on mobile, clipboard
   // fallback on desktop. Deep-links to THIS site's /music page with ?song=<id>
