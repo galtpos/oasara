@@ -68,6 +68,17 @@ code {
   text-fill-color: transparent;
 }
 
+/* Header nav links — Ocean deep teal on white, gold on hover (Oasara brand). */
+.nav-link {
+  color: #1F5862;       /* ocean-700, AA 7+:1 on white */
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.nav-link:hover {
+  color: #B45309;       /* gold-700, AA on white */
+}
+
 /* Accessibility: Skip link - hidden by default, visible on keyboard focus */
 .skip-link {
   position: absolute;
