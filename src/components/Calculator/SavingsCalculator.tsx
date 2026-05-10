@@ -133,7 +133,7 @@ export default function SavingsCalculator() {
                   setShowResults(false);
                 }}
                 placeholder="e.g., hip replacement, dental implants, LASIK"
-                className="w-full px-4 py-3 text-gray-900 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none text-lg"
+                className="w-full px-4 py-3 bg-white text-gray-900 border-2 border-gray-300 rounded-lg focus:border-emerald-500 focus:outline-none text-lg"
               />
 
               {/* Autocomplete Dropdown */}
