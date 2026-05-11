@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { getPricingForCountry, formatPriceRange } from '../../data/procedurePricing';
+import { renderChatMarkdown } from '../../lib/chatMarkdown';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -104,23 +105,6 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
   }, [messages, journey.id]);
 
   // Simple markdown-to-HTML renderer (handles bold, bullet lists, line breaks)
-  const renderMarkdown = (text: string) => {
-    let html = text;
-
-    // Bold: **text** -> <strong>text</strong>
-    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-    // Bullet lists: lines starting with - or *
-    html = html.replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>');
-
-    // Wrap consecutive <li> in <ul>
-    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul class="list-disc list-inside my-2 space-y-1">$&</ul>');
-
-    // Line breaks
-    html = html.replace(/\n/g, '<br/>');
-
-    return html;
-  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -295,7 +279,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
       console.error('Chat error:', error);
       const errorMessage: Message = {
         role: 'assistant',
-        content: "I'm really sorry—I'm having a technical hiccup right now. Can you give me a moment and try asking again? I'm here and want to help.",
+        content: "I'm having a technical hiccup. Give me a moment and try again, or [email a human](mailto:hello@oasara.com) and we'll get back to you within 24 hours.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -386,7 +370,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
       console.error('Chat error:', error);
       const errorMessage: Message = {
         role: 'assistant',
-        content: "I'm really sorry—I'm having a technical hiccup right now. Can you give me a moment and try asking again? I'm here and want to help.",
+        content: "I'm having a technical hiccup. Give me a moment and try again, or [email a human](mailto:hello@oasara.com) and we'll get back to you within 24 hours.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
@@ -462,7 +446,7 @@ const JourneyChatbot: React.FC<JourneyChatbotProps> = ({ journey, shortlistedFac
                   >
                     <div
                       className="text-sm prose prose-sm max-w-none prose-strong:font-semibold"
-                      dangerouslySetInnerHTML={{ __html: renderMarkdown(message.content) }}
+                      dangerouslySetInnerHTML={{ __html: renderChatMarkdown(message.content) }}
                     />
 
                     {/* Facility Recommendations */}

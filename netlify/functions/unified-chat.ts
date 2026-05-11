@@ -3,9 +3,115 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@supabase/supabase-js';
 import { HfInference } from '@huggingface/inference';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || ''
-});
+// DeepSeek V4 Pro via DeepSeek's OpenAI-compatible API.
+// Anthropic SDK types are still used for tool definitions (Anthropic.Tool[]);
+// the wrapper below translates them to OpenAI format on the wire.
+const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY || '';
+const DEEPSEEK_MODEL = 'deepseek-v4-pro';
+
+interface AnthropicCreateOpts {
+  model: string;
+  max_tokens: number;
+  system: string | Array<{ type: string; text: string; cache_control?: any }>;
+  tools?: Anthropic.Tool[];
+  messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+}
+
+interface AnthropicCompatResponse {
+  content: Array<
+    | { type: 'text'; text: string }
+    | { type: 'tool_use'; id: string; name: string; input: any }
+  >;
+  stop_reason: 'end_turn' | 'tool_use';
+  role: 'assistant';
+  model: string;
+}
+
+/**
+ * Anthropic-shaped wrapper over DeepSeek's OpenAI-compatible API.
+ * Lets the rest of this file keep using Anthropic-format tool defs + response
+ * processing while the wire calls DeepSeek.
+ */
+async function chatCreate(opts: AnthropicCreateOpts): Promise<AnthropicCompatResponse> {
+  if (!DEEPSEEK_API_KEY) {
+    throw new Error('DEEPSEEK_API_KEY not set in Netlify env');
+  }
+
+  const systemText = typeof opts.system === 'string'
+    ? opts.system
+    : opts.system.map((s) => s.text).join('\n\n');
+
+  const openaiTools = (opts.tools || []).map((t) => ({
+    type: 'function' as const,
+    function: {
+      name: t.name,
+      description: t.description,
+      parameters: t.input_schema,
+    },
+  }));
+
+  const body: any = {
+    model: opts.model,
+    max_tokens: opts.max_tokens,
+    messages: [
+      { role: 'system', content: systemText },
+      ...opts.messages,
+    ],
+  };
+  if (openaiTools.length > 0) {
+    body.tools = openaiTools;
+    body.tool_choice = 'auto';
+  }
+
+  const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${DEEPSEEK_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error(`DeepSeek API ${resp.status}: ${errText.slice(0, 200)}`);
+  }
+
+  const data = await resp.json();
+  const msg = data?.choices?.[0]?.message;
+  if (!msg) {
+    throw new Error('DeepSeek returned no message in response');
+  }
+
+  const content: AnthropicCompatResponse['content'] = [];
+  if (msg.content && typeof msg.content === 'string') {
+    content.push({ type: 'text', text: msg.content });
+  }
+  if (Array.isArray(msg.tool_calls)) {
+    for (const tc of msg.tool_calls) {
+      let input: any = {};
+      try {
+        const args = tc.function?.arguments;
+        input = typeof args === 'string' ? JSON.parse(args) : (args || {});
+      } catch (e) {
+        console.error('[chatCreate] failed to parse tool args:', tc.function?.arguments);
+      }
+      content.push({
+        type: 'tool_use',
+        id: tc.id,
+        name: tc.function?.name || '',
+        input,
+      });
+    }
+  }
+
+  return {
+    content,
+    stop_reason: msg.tool_calls?.length > 0 ? 'tool_use' : 'end_turn',
+    role: 'assistant',
+    model: opts.model,
+  };
+}
 
 // Qdrant config for trust law data
 const QDRANT_URL = process.env.QDRANT_URL || '';
@@ -177,10 +283,6 @@ ${context.extracted_so_far ? `\nAlready extracted: ${JSON.stringify(context.extr
         }
       ];
 
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY || '',
-      });
-
       const storyMessages = messages.map(m => ({
         role: m.role as 'user' | 'assistant',
         content: m.content
@@ -191,8 +293,8 @@ ${context.extracted_so_far ? `\nAlready extracted: ${JSON.stringify(context.extr
         storyMessages.push({ role: 'user', content: userMessage });
       }
 
-      const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
+      const response = await chatCreate({
+        model: DEEPSEEK_MODEL,
         max_tokens: 1000,
         system: storyCollectionPrompt,
         messages: storyMessages,
@@ -677,9 +779,9 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
       }
     ];
 
-    // Call Claude API
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+    // Call DeepSeek V4 Pro (Anthropic-shaped wrapper)
+    const response = await chatCreate({
+      model: DEEPSEEK_MODEL,
       max_tokens: 1024,
       system: [
         {
