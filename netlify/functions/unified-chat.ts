@@ -352,12 +352,12 @@ ${context.extracted_so_far ? `\nAlready extracted: ${JSON.stringify(context.extr
 3. **Medical Tourism** - Access global healthcare at 40-80% savings
 
 ## YOUR OPENING (if no prior messages)
-"Hey! I'm here to help you take control of your healthcare. Whether you're looking to protect your savings, cut insurance costs, or explore care options abroad — just tell me what's on your mind."
+"Hey! I'm here to help you take control of your healthcare. Whether you're looking to protect your savings, cut insurance costs, or explore care options abroad. Just tell me what's on your mind."
 
 ## STAGE 5 LANGUAGE - "WE" FRAMING
 - Use "we" framing: "Let's find facilities for your knee replacement"
 - Assume positive outcome: "You WILL find excellent care" (not "might")
-- Empathy & reassurance: "Medical decisions feel overwhelming—that's completely normal"
+- Empathy & reassurance: "Medical decisions feel overwhelming, and that's completely normal"
 - NO AI SLOP: Never say "Based on the context provided..." - get straight to the answer
 - Medical trust: Always mention JCI accreditation, show US cost savings, name surgeons with credentials
 
@@ -366,7 +366,7 @@ Listen for keywords and gently surface relevant pillars:
 
 **Medical Trust triggers:**
 - "worried about costs", "protect myself", "what if", "bankruptcy", "debt", "assets", "savings"
-→ "By the way, have you thought about protecting your assets with a Medical Trust? Medical debt is the #1 cause of bankruptcy—even for people WITH insurance."
+→ "By the way, have you thought about protecting your assets with a Medical Trust? Medical debt is the #1 cause of bankruptcy, even for people WITH insurance."
 
 **Insurance Exit triggers:**
 - "insurance", "premiums", "deductible", "denied claim", "co-pay", "coverage"
@@ -378,10 +378,10 @@ Listen for keywords and gently surface relevant pillars:
 
 ## CONVERSATION STYLE
 - Short, digestible paragraphs (2-4 sentences max)
-- Use "you" and "your"—this is deeply personal
+- Use "you" and "your". This is deeply personal
 - Warmth over formality: "Hey, let me help you with that" not "I can assist you with"
 - If you sense hesitation, acknowledge it: "I get it, this is a big decision"
-- Celebrate progress: "You're taking control of your health—that takes courage"
+- Celebrate progress: "You're taking control of your health. That takes courage"
 
 ## BUDGET HANDLING - EDUCATE FIRST
 DON'T ask users for budget numbers - they don't know what things cost!
@@ -1508,7 +1508,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
           case 'explain_medical_trust':
             {
               assistantMessage += `\n\n**What is a Medical Trust?**\n\n`;
-              assistantMessage += `A Medical Trust is a legal structure that protects your assets from medical debt—the #1 cause of bankruptcy in America.\n\n`;
+              assistantMessage += `A Medical Trust is a legal structure that protects your assets from medical debt, the #1 cause of bankruptcy in America.\n\n`;
               assistantMessage += `**How it works:**\n`;
               assistantMessage += `• You transfer assets (home, savings, investments) into a trust\n`;
               assistantMessage += `• The trust owns the assets, not you personally\n`;
@@ -1540,7 +1540,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
           case 'explain_insurance_exit':
             {
               assistantMessage += `\n\n**Alternatives to Traditional Insurance**\n\n`;
-              assistantMessage += `The average family pays **$24,000/year** in premiums + a **$3,000 deductible**—and still gets **18% of claims denied**.\n\n`;
+              assistantMessage += `The average family pays **$24,000/year** in premiums + a **$3,000 deductible**, and still gets **18% of claims denied**.\n\n`;
               assistantMessage += `**Your alternatives:**\n\n`;
               assistantMessage += `**Health Shares**\n`;
               assistantMessage += `• Members share medical costs directly\n`;
@@ -1636,7 +1636,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
               const pledgeInfo: Record<string, { title: string; why: string }> = {
                 medical_trust: {
                   title: 'Medical Trust',
-                  why: 'Medical debt is the #1 cause of bankruptcy in America—even for people WITH insurance.'
+                  why: 'Medical debt is the #1 cause of bankruptcy in America, even for people WITH insurance.'
                 },
                 cancel_insurance: {
                   title: 'Cancel Insurance',
@@ -1761,7 +1761,7 @@ Never be pushy about pledges. They're personal commitments. Use prompt_pledge at
               const suggestions: Record<string, { title: string; prompt: string }> = {
                 horror: {
                   title: '💔 Share Your Healthcare Horror Story',
-                  prompt: 'Many people have had frustrating or unfair experiences with the US healthcare system. Sharing your story can help others feel less alone—and push for change.'
+                  prompt: 'Many people have had frustrating or unfair experiences with the US healthcare system. Sharing your story can help others feel less alone, and push for change.'
                 },
                 success: {
                   title: '🎉 Share Your Success Story',

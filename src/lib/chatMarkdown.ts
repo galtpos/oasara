@@ -9,8 +9,9 @@
 export function renderChatMarkdown(text: string): string {
   let html = text || '';
 
-  // Strip em-dashes (replace with comma + space). Catches both U+2014 and U+2013.
-  html = html.replace(/[—–]/g, ', ');
+  // Strip em-dashes (replace with comma). Collapse surrounding whitespace
+  // so " — " doesn't become " ,  ". Catches both U+2014 and U+2013.
+  html = html.replace(/\s*[—–]\s*/g, ', ');
 
   // Escape any raw HTML the model emits, so dangerouslySetInnerHTML doesn't
   // execute it. We re-inject our own tags below.
