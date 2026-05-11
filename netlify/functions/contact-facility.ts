@@ -203,19 +203,28 @@ const handler: Handler = async (event: HandlerEvent) => {
       };
     }
 
-    // Update contact request status to 'contacted' (use admin client if available)
-    const updateClient = supabaseAdmin || supabase;
-    const { error: updateError } = await updateClient
-      .from('contact_requests')
-      .update({
-        status: 'contacted',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', contactRequestId);
+    // Update contact request status to 'contacted'. Service role required —
+    // anon falls back to RLS, which rejects this update path. Surface failures
+    // in the response so we can detect future regressions instead of silently
+    // leaving rows stuck at 'pending'.
+    let dbUpdated = false;
+    let dbUpdateError = '';
 
-    if (updateError) {
-      console.error('Error updating contact request:', updateError);
-      // Don't fail the request if update fails - email was already sent
+    if (!supabaseAdmin) {
+      dbUpdateError = 'SUPABASE_SERVICE_ROLE_KEY not configured; cannot update contact_requests';
+      console.error('[contact-facility] ' + dbUpdateError);
+    } else {
+      const { error: updateError } = await supabaseAdmin
+        .from('contact_requests')
+        .update({ status: 'contacted' })
+        .eq('id', contactRequestId);
+
+      if (updateError) {
+        dbUpdateError = updateError.message || JSON.stringify(updateError);
+        console.error('[contact-facility] contact_requests UPDATE failed:', updateError);
+      } else {
+        dbUpdated = true;
+      }
     }
 
     return {
@@ -224,6 +233,8 @@ const handler: Handler = async (event: HandlerEvent) => {
       body: JSON.stringify({
         success: true,
         emailSent,
+        dbUpdated,
+        dbUpdateError: dbUpdateError || undefined,
         message: emailSent ? 'Contact request sent successfully' : 'Contact request recorded (email delivery pending)',
         contactRequestId
       })
