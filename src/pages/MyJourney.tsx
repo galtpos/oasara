@@ -169,10 +169,10 @@ const MyJourney: React.FC = () => {
         .eq('journey_id', journey.id);
       if (notesError) console.error('Error deleting notes:', notesError);
 
-      const { error: collabError } = await supabase
-        .from('journey_collaborators')
-        .delete()
-        .eq('journey_id', journey.id);
+      // Owner-scoped delete of all collaborators for this journey through bridge.
+      const { error: collabError } = await callBridge('delete_collaborators_for_journey', 'journey_collaborators', {
+        journey_id: journey.id,
+      });
       if (collabError) console.error('Error deleting collaborators:', collabError);
 
       // Delete the journey itself through federated bridge

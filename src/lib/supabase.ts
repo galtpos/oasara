@@ -63,8 +63,16 @@ function __readEcoSession(): any {
   } catch { return null; }
 }
 
+// Generic ops apply to any table; the collaborator-* ops are journey_collaborators-only
+// (proxy verifies journey ownership or invitation token server-side).
+type BridgeOp =
+  | 'insert' | 'select' | 'update' | 'delete' | 'upsert' | 'list'
+  | 'list_collaborators' | 'invite_collaborator' | 'update_collaborator'
+  | 'delete_collaborators_for_journey' | 'get_invitation_by_token'
+  | 'accept_invitation' | 'decline_invitation';
+
 export async function callBridge(
-  op: 'insert' | 'select' | 'update' | 'delete' | 'upsert' | 'list',
+  op: BridgeOp,
   table: string,
   payload: Record<string, any> = {},
 ): Promise<{ data: any; error: { message: string; detail?: string } | null }> {

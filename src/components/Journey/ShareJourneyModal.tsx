@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../lib/supabase';
+import { supabase, callBridge } from '../../lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 
 interface ShareJourneyModalProps {
@@ -38,14 +38,12 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
   const { data: collaborators, refetch: refetchCollaborators } = useQuery({
     queryKey: ['journey-collaborators', journeyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('journey_collaborators')
-        .select('*')
-        .eq('journey_id', journeyId)
-        .order('invited_at', { ascending: false });
-
-      if (error) throw error;
-      return data as Collaborator[];
+      // Owner-scoped list via federated bridge.
+      const { data, error } = await callBridge('list_collaborators', 'journey_collaborators', {
+        journey_id: journeyId,
+      });
+      if (error) throw new Error(error.message);
+      return (data || []) as Collaborator[];
     },
     enabled: isOpen
   });
@@ -94,37 +92,30 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
       let invitation;
 
       if (existingRevoked) {
-        // Update existing record - reset it to pending with new token
-        const { data, error: updateError } = await supabase
-          .from('journey_collaborators')
-          .update({
+        // Reset revoked invite to pending with a new token (owner-scoped).
+        const { data, error: updateError } = await callBridge('update_collaborator', 'journey_collaborators', {
+          collaborator_id: existingRevoked.id,
+          set: {
             status: 'pending',
             invitation_token: crypto.randomUUID(),
             token_expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
             invited_at: new Date().toISOString(),
             accepted_at: null,
-            user_id: null
-          })
-          .eq('id', existingRevoked.id)
-          .select()
-          .single();
+            user_id: null,
+          },
+        });
 
-        if (updateError) throw updateError;
+        if (updateError) throw new Error(updateError.message);
         invitation = data;
       } else {
-        // Create new invitation
-        const { data, error: inviteError } = await supabase
-          .from('journey_collaborators')
-          .insert({
-            journey_id: journeyId,
-            email: normalizedEmail,
-            role: role,
-            invited_by: user.id
-          })
-          .select()
-          .single();
+        // Create new invitation through owner-scoped bridge op.
+        const { data, error: inviteError } = await callBridge('invite_collaborator', 'journey_collaborators', {
+          journey_id: journeyId,
+          email: normalizedEmail,
+          role,
+        });
 
-        if (inviteError) throw inviteError;
+        if (inviteError) throw new Error(inviteError.message);
         invitation = data;
       }
 
@@ -182,12 +173,12 @@ const ShareJourneyModal: React.FC<ShareJourneyModalProps> = ({
     if (!window.confirm(`Revoke access for ${collaboratorEmail}?`)) return;
 
     try {
-      const { error } = await supabase
-        .from('journey_collaborators')
-        .update({ status: 'revoked' })
-        .eq('id', collaboratorId);
+      const { error } = await callBridge('update_collaborator', 'journey_collaborators', {
+        collaborator_id: collaboratorId,
+        set: { status: 'revoked' },
+      });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
       // Log the revocation - use getSession (cached)
       const { data: { session } } = await supabase.auth.getSession();

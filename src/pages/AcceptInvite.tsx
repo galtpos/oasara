@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { supabase } from '../lib/supabase';
+import { supabase, callBridge } from '../lib/supabase';
 
 const AcceptInvite: React.FC = () => {
   const { token } = useParams<{ token: string }>();
@@ -23,23 +23,13 @@ const AcceptInvite: React.FC = () => {
           throw new Error('Invalid invitation link');
         }
 
-        // Fetch invitation details
-        const { data: inviteData, error: inviteError } = await supabase
-          .from('journey_collaborators')
-          .select(`
-            *,
-            patient_journeys (
-              id,
-              procedure_type,
-              budget_min,
-              budget_max,
-              timeline
-            )
-          `)
-          .eq('invitation_token', token)
-          .single();
+        // Token-based lookup via federated bridge — invitee doesn't need to
+        // be the JWT user yet (link is the credential).
+        const { data: inviteData, error: inviteError } = await callBridge('get_invitation_by_token', 'journey_collaborators', {
+          token,
+        });
 
-        if (inviteError) throw inviteError;
+        if (inviteError) throw new Error(inviteError.message);
 
         if (!inviteData) {
           throw new Error('Invitation not found');
@@ -90,17 +80,13 @@ const AcceptInvite: React.FC = () => {
         return;
       }
 
-      // Update invitation status
-      const { error: updateError } = await supabase
-        .from('journey_collaborators')
-        .update({
-          user_id: effectiveUserId,
-          status: 'accepted',
-          accepted_at: new Date().toISOString()
-        })
-        .eq('invitation_token', token);
+      // Accept via federated bridge — proxy verifies token + stamps
+      // user_id = JWT.sub server-side.
+      const { error: updateError } = await callBridge('accept_invitation', 'journey_collaborators', {
+        token,
+      });
 
-      if (updateError) throw updateError;
+      if (updateError) throw new Error(updateError.message);
 
       // Log acceptance
       await supabase.rpc('log_journey_access', {
@@ -123,15 +109,12 @@ const AcceptInvite: React.FC = () => {
     try {
       setLoading(true);
 
-      // Update invitation status
-      const { error: updateError } = await supabase
-        .from('journey_collaborators')
-        .update({
-          status: 'declined'
-        })
-        .eq('invitation_token', token);
+      // Decline via federated bridge.
+      const { error: updateError } = await callBridge('decline_invitation', 'journey_collaborators', {
+        token,
+      });
 
-      if (updateError) throw updateError;
+      if (updateError) throw new Error(updateError.message);
 
       // Show success message and redirect
       alert('Invitation declined');
