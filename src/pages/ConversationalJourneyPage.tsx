@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ConversationalJourney from '../components/Journey/ConversationalJourney';
-import { supabase } from '../lib/supabase';
+import { supabase, callBridge } from '../lib/supabase';
 import { getGuestJourney } from '../lib/guestJourney';
 
 const ConversationalJourneyPage: React.FC = () => {
@@ -38,22 +38,24 @@ const ConversationalJourneyPage: React.FC = () => {
         if (session?.user) {
           console.log('[Auth] Valid session found:', session.user.email);
 
-          // Check if user has an active journey (any active status)
-          const { data: journeys, error: journeyError } = await supabase
-            .from('patient_journeys')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .in('status', ['researching', 'comparing', 'decided'])
-            .order('created_at', { ascending: false })
-            .limit(1);
+          // Check if user has an active journey via federated bridge.
+          const { data: rawJourneys, error: journeyError } = await callBridge('select', 'patient_journeys', {
+            columns: 'id, status, created_at',
+          });
 
           if (journeyError) {
-            console.error('[Journey] Error fetching journey:', journeyError);
+            console.error('[Journey] Error fetching journey:', journeyError.message);
           }
 
-          if (journeys && journeys.length > 0) {
-            console.log('[Journey] Found existing journey:', journeys[0].id);
-            setJourneyId(journeys[0].id);
+          const active = Array.isArray(rawJourneys)
+            ? rawJourneys
+                .filter((j: any) => ['researching', 'comparing', 'decided'].includes(j.status))
+                .sort((a: any, b: any) => (b.created_at || '').localeCompare(a.created_at || ''))
+            : [];
+
+          if (active.length > 0) {
+            console.log('[Journey] Found existing journey:', active[0].id);
+            setJourneyId(active[0].id);
           } else {
             console.log('[Journey] No existing journey found, starting fresh');
           }

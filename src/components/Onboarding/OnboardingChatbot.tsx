@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { supabase } from '../../lib/supabase';
+import { supabase, callBridge } from '../../lib/supabase';
 
 // Simple markdown renderer for chat messages (matches JourneyChatbot pattern)
 const renderMarkdown = (text: string): string => {
@@ -151,24 +151,21 @@ const OnboardingChatbot: React.FC<OnboardingChatbotProps> = ({ onJourneyCreated 
 
     const user = session.user;
 
-    // Save journey to Supabase for authenticated user
+    // Save journey through federated bridge (user_id stamped from FF JWT).
     try {
-      const { data: journey, error } = await supabase
-        .from('patient_journeys')
-        .insert({
-          user_id: user.id,
+      const { data: journey, error } = await callBridge('insert', 'patient_journeys', {
+        data: {
           procedure_type: journeyData.procedure,
           budget_min: journeyData.budgetMin,
           budget_max: journeyData.budgetMax,
           timeline: journeyData.timeline,
           status: 'researching'
-        })
-        .select()
-        .single();
+        }
+      });
 
       if (error) {
-        console.error('Supabase insert error:', error);
-        throw error;
+        console.error('Bridge insert error:', error);
+        throw new Error(error.message);
       }
 
       setJourneyCreated(true);

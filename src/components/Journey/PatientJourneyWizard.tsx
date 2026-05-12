@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../../lib/supabase';
+import { supabase, callBridge } from '../../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { searchProcedures, getCommonProcedures } from '../../data/procedures';
 
@@ -106,11 +106,11 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
 
       const user = session.user;
 
-      // Create journey in database
-      const { data, error } = await supabase
-        .from('patient_journeys')
-        .insert({
-          user_id: user.id,
+      // Create journey through federated bridge — Oasara's per-site RLS can't
+      // validate FF JWTs, so writes route through federated-data-proxy which
+      // stamps user_id from the verified JWT.
+      const { data, error } = await callBridge('insert', 'patient_journeys', {
+        data: {
           procedure_type: wizardData.procedure_type,
           budget_min: wizardData.budget_min,
           budget_max: wizardData.budget_max,
@@ -119,11 +119,10 @@ const PatientJourneyWizard: React.FC<PatientJourneyWizardProps> = ({ onComplete 
           priority_factors: wizardData.priority_factors,
           wizard_responses: wizardData,
           status: 'researching'
-        })
-        .select()
-        .single();
+        }
+      });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
       // Call onComplete callback
       onComplete(data.id);

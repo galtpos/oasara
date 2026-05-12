@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase, callBridge } from '../lib/supabase';
 import { useAuthState } from '../hooks/useAuth';
 import JourneyDashboard from '../components/Journey/JourneyDashboard';
 import SiteHeader from '../components/Layout/SiteHeader';
@@ -74,13 +74,15 @@ const MyJourney: React.FC = () => {
         })();
       }
 
-      // Get journeys
-      const { data: journeys, error: journeyError } = await supabase
-        .from('patient_journeys')
-        .select('*')
-        .eq('user_id', user.id)
-        .in('status', ['researching', 'comparing', 'decided'])
-        .order('created_at', { ascending: false });
+      // Get journeys through federated bridge — RLS-scoped on per-site project
+      // would reject FF-issued JWTs, so own-row reads route through the proxy
+      // which scopes to verified user_id.
+      const { data: rawJourneys, error: journeyError } = await callBridge('select', 'patient_journeys', {});
+      const journeys = Array.isArray(rawJourneys)
+        ? rawJourneys
+            .filter((j: any) => ['researching', 'comparing', 'decided'].includes(j.status))
+            .sort((a: any, b: any) => (b.created_at || '').localeCompare(a.created_at || ''))
+        : [];
 
       console.log('[MyJourney] Journeys result:', journeys?.length || 0, 'journeys');
 
@@ -123,13 +125,13 @@ const MyJourney: React.FC = () => {
   const handleRenameJourney = async () => {
     if (!journey || !newJourneyName.trim()) return;
 
-    const { error } = await supabase
-      .from('patient_journeys')
-      .update({ name: newJourneyName.trim() })
-      .eq('id', journey.id);
+    const { error } = await callBridge('update', 'patient_journeys', {
+      set: { name: newJourneyName.trim() },
+      match: { id: journey.id },
+    });
 
     if (error) {
-      console.error('Error renaming journey:', error);
+      console.error('Error renaming journey:', error.message);
       return;
     }
 
@@ -173,11 +175,10 @@ const MyJourney: React.FC = () => {
         .eq('journey_id', journey.id);
       if (collabError) console.error('Error deleting collaborators:', collabError);
 
-      // Delete the journey itself
-      const { error } = await supabase
-        .from('patient_journeys')
-        .delete()
-        .eq('id', journey.id);
+      // Delete the journey itself through federated bridge
+      const { error } = await callBridge('delete', 'patient_journeys', {
+        match: { id: journey.id },
+      });
 
       if (error) {
         console.error('Error deleting journey:', error);

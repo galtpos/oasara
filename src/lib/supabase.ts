@@ -26,11 +26,18 @@ function getSupabaseClient(): SupabaseClient {
     console.warn('[OASARA] Supabase client initialized with missing credentials - API calls will fail');
   }
 
+  // storageKey namespaces this client's localStorage away from the ecosystem
+  // auth client (uefznzzkrzqxgxxwslox). detectSessionInUrl: false because only
+  // the ecosystem auth client should consume the URL hash on /auth/confirm —
+  // otherwise this client races, grabs the FreedomForge JWT first, and stores
+  // it under the wrong storageKey so the ecosystem hook never sees a session.
+  // Unified Auth Board 2026-05-11.
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true,
+      detectSessionInUrl: false,
+      storageKey: 'sb-oasara-per-site-auth',
     }
   });
 
@@ -38,6 +45,51 @@ function getSupabaseClient(): SupabaseClient {
 }
 
 export const supabase = getSupabaseClient();
+
+// Federated CRUD helper. Routes through Oasara's federated-data-proxy Edge
+// Function, which validates the FF JWT and forces user_id to the verified
+// subject. Ops: insert | select | update | delete | upsert | list. Per
+// Unified Auth Board Session 2 (2026-05-12) Option C contract.
+const __ECO_AUTH_KEY = 'sb-uefznzzkrzqxgxxwslox-auth-token';
+function __readEcoSession(): any {
+  try {
+    if (typeof window === 'undefined') return null;
+    const raw = window.localStorage.getItem(__ECO_AUTH_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (!s?.access_token || !s?.user) return null;
+    if (s.expires_at && s.expires_at * 1000 < Date.now()) return null;
+    return s;
+  } catch { return null; }
+}
+
+export async function callBridge(
+  op: 'insert' | 'select' | 'update' | 'delete' | 'upsert' | 'list',
+  table: string,
+  payload: Record<string, any> = {},
+): Promise<{ data: any; error: { message: string; detail?: string } | null }> {
+  const sess = __readEcoSession();
+  if (!sess?.access_token) {
+    return { data: null, error: { message: 'Must be authenticated' } };
+  }
+  try {
+    const resp = await fetch(`${supabaseUrl}/functions/v1/federated-data-proxy`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${sess.access_token}`,
+      },
+      body: JSON.stringify({ table, op, ...payload }),
+    });
+    const body = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      return { data: null, error: { message: body.error || `Bridge ${resp.status}`, detail: body.detail } };
+    }
+    return { data: body, error: null };
+  } catch (e: any) {
+    return { data: null, error: { message: e?.message || 'Bridge fetch failed' } };
+  }
+}
 
 // Enriched data types
 export interface Doctor {
@@ -123,6 +175,26 @@ export interface Facility {
   doctors?: Doctor[]
   procedure_pricing?: ProcedurePricing[]
   testimonials?: Testimonial[]
+  intel?: FacilityIntel
+}
+
+// Facility intel (oasara_facility_intel table)
+// Admin-only fields (coordinator_name, coordinator_email, coordinator_role,
+// whatsapp, outreach_draft) MUST NOT be rendered on patient-facing surfaces.
+export interface FacilityIntel {
+  facility_id: string
+  coordinator_name?: string
+  coordinator_email?: string
+  coordinator_role?: string
+  whatsapp?: string
+  languages?: string[]
+  international_program_summary?: string
+  published_pricing?: string[]
+  response_signal?: string
+  outreach_draft?: string
+  intel_quality_score?: number
+  created_at?: string
+  updated_at?: string
 }
 
 export interface ZanoRequest {
@@ -225,6 +297,25 @@ export async function getFacility(id: string) {
   return data as Facility
 }
 
+// Get a facility plus its enrichment intel row (oasara_facility_intel).
+// Returns the same Facility shape with an optional `intel` field. Absent intel
+// rows degrade silently so the facility page renders normally.
+export async function getFacilityWithIntel(id: string): Promise<Facility> {
+  const facility = await getFacility(id)
+
+  const { data: intelData, error: intelError } = await supabase
+    .from('oasara_facility_intel')
+    .select('*')
+    .eq('facility_id', id)
+    .maybeSingle()
+
+  if (intelError || !intelData) {
+    return facility
+  }
+
+  return { ...facility, intel: intelData as FacilityIntel }
+}
+
 // Get enriched data counts for a facility
 export async function getFacilityEnrichmentCounts(id: string) {
   try {
@@ -312,27 +403,27 @@ export async function getVideoProgress(userId: string) {
   return data as WalletEducationProgress[]
 }
 
-// Update video progress
+// Update video progress through federated bridge — composite (user_id,video_id)
+// conflict resolution is passed explicitly to the proxy.
 export async function updateVideoProgress(
-  userId: string,
+  _userId: string,
   videoId: string,
   watchedSeconds: number,
   totalSeconds: number,
   completed: boolean
 ) {
-  const { data, error } = await supabase
-    .from('wallet_education_progress')
-    .upsert({
-      user_id: userId,
+  const { data, error } = await callBridge('upsert', 'wallet_education_progress', {
+    data: {
       video_id: videoId,
       watched_seconds: watchedSeconds,
       total_seconds: totalSeconds,
       completed,
-      completed_at: completed ? new Date().toISOString() : null
-    }, { onConflict: 'user_id,video_id' })
-    .select()
+      completed_at: completed ? new Date().toISOString() : null,
+    },
+    onConflict: 'user_id,video_id',
+  });
 
-  if (error) throw error
+  if (error) throw new Error(error.message);
   return data
 }
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { supabase } from '../../lib/supabase';
+import { supabase, callBridge } from '../../lib/supabase';
 import ComparisonTable from './ComparisonTable';
 import FacilityShortlist from './FacilityShortlist';
 import PersonalNotes from './PersonalNotes';
@@ -121,12 +121,12 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
     }
 
     try {
-      const { error } = await supabase
-        .from('patient_journeys')
-        .update({ procedure_type: editedProcedure.trim() })
-        .eq('id', journey.id);
+      const { error } = await callBridge('update', 'patient_journeys', {
+        set: { procedure_type: editedProcedure.trim() },
+        match: { id: journey.id },
+      });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
       journey.procedure_type = editedProcedure.trim();
       setIsEditingProcedure(false);
@@ -143,12 +143,12 @@ const JourneyDashboard: React.FC<JourneyDashboardProps> = ({ journey }) => {
     }
 
     try {
-      const { error } = await supabase
-        .from('patient_journeys')
-        .update({ procedure_type: '' })
-        .eq('id', journey.id);
+      const { error } = await callBridge('update', 'patient_journeys', {
+        set: { procedure_type: '' },
+        match: { id: journey.id },
+      });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message);
 
       window.location.reload();
     } catch (error) {
