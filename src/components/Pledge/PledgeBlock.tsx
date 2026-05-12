@@ -174,7 +174,7 @@ const PledgeBlock: React.FC<PledgeBlockProps> = ({ variant = 'full' }) => {
               </div>
             </div>
 
-            <h1 className="font-display text-5xl md:text-7xl text-white mb-6 leading-tight">
+            <h1 className="font-display text-3xl sm:text-5xl md:text-7xl text-white mb-6 leading-tight">
               JOIN THE<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 to-gold-600">HEALTHCARE EXIT</span>
             </h1>
@@ -263,7 +263,7 @@ const PledgeBlock: React.FC<PledgeBlockProps> = ({ variant = 'full' }) => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-1 flex-wrap">
                         <h3 className="font-bold text-white text-xl">{pledge.title}</h3>
-                        <span className="text-xs px-2 py-1 rounded-full bg-gold-500/20 text-gold-400 font-medium">
+                        <span className="text-xs px-2 py-1 rounded-full bg-gold-500/30 text-gold-100 font-medium">
                           {pledgeCounts[pledge.id as keyof PledgeCounts]} pledged
                         </span>
                       </div>
@@ -498,7 +498,7 @@ const PledgeBlock: React.FC<PledgeBlockProps> = ({ variant = 'full' }) => {
                 {loading ? 'Joining...' : selectedPledges.length === 0 ? 'Select Pledges Above' : `JOIN THE REVOLUTION (${selectedPledges.length} pledge${selectedPledges.length !== 1 ? 's' : ''})`}
               </button>
 
-              <p className="text-center text-slate-500 text-xs mt-4">
+              <p className="text-center text-slate-400 text-xs mt-4">
                 Your data stays sovereign. We never share your information.
               </p>
             </form>
