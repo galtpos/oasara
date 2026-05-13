@@ -2,14 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAuthState } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { useOasaraAuth } from '../hooks/useEcosystemAuthInit';
 
+// Magic-link routes through the ecosystem (FreedomForge) Supabase. Per-site
+// signInWithOtp would send the email to oasara's per-site Auth → wrong
+// redirect URL + wrong session storage key (would not match the eco shim).
+// Unified Auth Board Option C — fix 2026-05-13.
 const LandingGate: React.FC = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const { user } = useAuthState();
+  const ecoAuth = useOasaraAuth();
+  const supabase = ecoAuth.supabase;
   const navigate = useNavigate();
 
   // If user is already logged in, redirect to main site
