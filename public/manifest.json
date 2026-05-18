@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Oasara",
+  "name": "OASARA - Join the Healthcare Exit",
+  "description": "Exit the US healthcare system. Browse 518 JCI-accredited hospitals worldwide. Save 60-90% on care. Privacy-preserving, crypto-payable, sovereignty-first.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -10,16 +11,21 @@
     {
       "src": "logo192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "orientation": "portrait",
+  "theme_color": "#0D2A2E",
+  "background_color": "#0D2A2E",
+  "categories": ["health", "medical", "travel"],
+  "lang": "en-US"
 }
