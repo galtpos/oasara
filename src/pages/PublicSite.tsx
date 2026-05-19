@@ -13,7 +13,6 @@ import { getUSStats } from '../lib/usHospitalApi';
 // LAZY LOAD ALL HEAVY COMPONENTS - fixes Chrome freeze on low-RAM PCs
 // Mapbox GL JS is ~700KB, video components have Framer Motion
 const GlobalFacilityMap = lazy(() => import('../components/Map/GlobalFacilityMap'));
-const ZanoTutorials = lazy(() => import('../components/Zano/ZanoTutorials'));
 const MedicalTourismVideos = lazy(() => import('../components/Videos/MedicalTourismVideos'));
 const USHealthcareCrisis = lazy(() => import('../components/Videos/USHealthcareCrisis'));
 const TestimonialsSection = lazy(() => import('../components/Trust/TestimonialsSection'));
@@ -367,10 +366,6 @@ const PublicSite: React.FC = () => {
         <TestimonialsSection />
       </Suspense>
 
-      {/* Zano Tutorials Section - Intersection Observer lazy loads videos on demand */}
-      <Suspense fallback={<div className="py-12 bg-ocean-50 text-center"><p className="text-ocean-600">Loading tutorials...</p></div>}>
-        <ZanoTutorials />
-      </Suspense>
       </main>
 
       {/* Footer - Comprehensive with moved nav links */}
