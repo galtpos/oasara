@@ -427,9 +427,44 @@ interface MusicProviderProps {
   brandConfig: BrandConfig;
   catalog: Catalog;
   children: React.ReactNode;
+  // Injected Supabase client pointing at the ecosystem (FreedomForge) project.
+  // Required for rating + comment functionality. If absent, music plays but
+  // rating/comment UI silently disables. Killing the player's own GoTrueClient
+  // ends the cross-site "Multiple GoTrueClient" race condition per
+  // Unified Auth Board Round 3 mandate + Ecosystem Player Board Option B.
+  ecosystemClient?: any;
 }
 
-export function MusicProvider({ brandConfig, catalog, children }: MusicProviderProps) {
+export function MusicProvider({ brandConfig, catalog, children, ecosystemClient }: MusicProviderProps) {
+  // Adopt the injected ecosystem client into the module-scoped _sbClient so
+  // useMusicAuth / signInToEcosystem / StarRating / SongCommentSection all
+  // share the host site's existing GoTrueClient instead of creating a second.
+  // Done SYNCHRONOUSLY via useMemo (not useEffect) so descendant useMusicAuth
+  // effects (which fire bottom-up before parent effects) read a populated
+  // _sbClient. URL validator per Khan: refuses any client not pointing at the
+  // ecosystem project ref. Unified Auth Board Round 3 mandate + Ecosystem
+  // Player Board Option B (2026-05-11).
+  useMemo(() => {
+    if (!ecosystemClient || _sbClient === ecosystemClient) return;
+    try {
+      const u =
+        (ecosystemClient as any)?.supabaseUrl ||
+        (ecosystemClient as any)?.rest?.url ||
+        (ecosystemClient as any)?.restUrl ||
+        '';
+      if (typeof u === 'string' && u.indexOf(ECOSYSTEM_PROJECT_REF) !== -1) {
+        _sbClient = ecosystemClient;
+      } else {
+        console.error(
+          '[MusicPlayer] ecosystemClient does not point at ecosystem project ref ' +
+          ECOSYSTEM_PROJECT_REF + ' — rejecting; ratings/comments disabled. Got URL: ' + String(u)
+        );
+      }
+    } catch (e) {
+      console.error('[MusicPlayer] failed to validate ecosystemClient:', e);
+    }
+  }, [ecosystemClient]);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const consecutiveErrorsRef = useRef(0);
   // Mirrors `audioSourceSong` so the onError handler (registered once at mount)
@@ -2895,21 +2930,45 @@ function MusicSignInPrompt({ brand, onClose }: { brand: BrandConfig; onClose?: (
     }
   };
 
-  return (
+  // Portal-rendered overlay so the sign-in card escapes SongCard's
+  // `overflow: hidden` (vote path) AND clears the fixed MusicBar (comment
+  // path inside the detail modal). Backdrop click + close button both
+  // dismiss. Ecosystem Player Board mobile-UX fix.
+  const overlay = (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 10001,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+        fontFamily: brand.bodyFont,
+        // @ts-ignore vendor prefix
+        WebkitOverflowScrolling: 'touch',
+      }}
+      onClick={onClose}
+    >
     <div
       style={{
         backgroundColor: brand.surfaceColor,
         border: `1px solid ${brand.primaryColor}66`,
         borderRadius: 8,
-        padding: 12,
+        padding: 16,
         display: 'flex',
         flexDirection: 'column',
-        gap: 8,
+        gap: 10,
         maxWidth: 420,
+        width: '100%',
+        maxHeight: 'calc(100dvh - 120px)',
+        overflowY: 'auto',
+        boxShadow: `0 8px 32px rgba(0,0,0,0.5)`,
       }}
       onClick={(e) => e.stopPropagation()}
     >
-      <div style={{ fontSize: 13, color: brand.textColor, fontWeight: 600 }}>
+      <div style={{ fontSize: 14, color: brand.textColor, fontWeight: 700 }}>
         Sign in to vote and comment
       </div>
       <div style={{ fontSize: 11, color: brand.textColor + 'AA' }}>
@@ -2980,7 +3039,11 @@ function MusicSignInPrompt({ brand, onClose }: { brand: BrandConfig; onClose?: (
         </button>
       )}
     </div>
+    </div>
   );
+  return typeof document !== 'undefined'
+    ? createPortal(overlay, document.body)
+    : overlay;
 }
 
 // ─── Star Rating Icons ─────────────────────────────────────────────────────
@@ -3036,11 +3099,12 @@ function StarRating({
     const sb = getMusicSupabase();
     if (!sb) return;
 
-    // Get average
+    // Get average. .maybeSingle() — songs with zero ratings yet return 0 rows;
+    // .single() would throw 406. Ecosystem Player Board fix 2026-05-11.
     sb.from('song_rating_stats')
       .select('*')
       .eq('song_id', songId)
-      .single()
+      .maybeSingle()
       .then(({ data }: any) => {
         if (data) {
           setAvgRating(parseFloat(data.avg_rating) || 0);
@@ -3077,12 +3141,13 @@ function StarRating({
 
     if (!error) {
       setUserRating(rating);
-      // Re-fetch average
+      // Re-fetch average. .maybeSingle() handles the just-rated-but-view-not-yet-refreshed
+      // edge case without throwing 406. Ecosystem Player Board fix 2026-05-11.
       const { data } = await sb
         .from('song_rating_stats')
         .select('*')
         .eq('song_id', songId)
-        .single();
+        .maybeSingle();
       if (data) {
         setAvgRating(parseFloat(data.avg_rating) || 0);
         setTotalRatings(data.total_ratings || 0);
@@ -3124,9 +3189,7 @@ function StarRating({
         ))}
       </div>
       {showSignIn && !user && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 10 }}>
-          <MusicSignInPrompt brand={brand} onClose={() => setShowSignIn(false)} />
-        </div>
+        <MusicSignInPrompt brand={brand} onClose={() => setShowSignIn(false)} />
       )}
       {!compact && totalRatings > 0 && (
         <span style={{ fontSize: 12, color: brand.textColor + '88' }}>
@@ -3390,9 +3453,10 @@ function SongCommentSection({
         </div>
       ) : (
         <div style={{ marginTop: 12 }}>
-          {showSignIn ? (
+          {showSignIn && (
             <MusicSignInPrompt brand={brand} onClose={() => setShowSignIn(false)} />
-          ) : (
+          )}
+          {!showSignIn && (
             <button
               onClick={(e) => { e.stopPropagation(); setShowSignIn(true); }}
               style={{
@@ -3423,10 +3487,12 @@ function CommentCountBadge({ songId, brand }: { songId: string; brand: BrandConf
   useEffect(() => {
     const sb = getMusicSupabase();
     if (!sb) return;
+    // .maybeSingle() — songs with zero comments yet return 0 rows;
+    // .single() would throw 406. Ecosystem Player Board fix 2026-05-11.
     sb.from('song_comment_counts')
       .select('total_comments')
       .eq('song_id', songId)
-      .single()
+      .maybeSingle()
       .then(({ data }: any) => {
         if (data) setCount(data.total_comments || 0);
       });
@@ -3499,8 +3565,13 @@ function MusicDetailPanel({
           borderRadius: 16,
           maxWidth: 640,
           width: '100%',
-          maxHeight: '90vh',
+          // dvh handles iOS dynamic viewport (URL bar collapse); reserved
+          // 96px clears the fixed MusicBar so the bottom of the modal
+          // (comments + sign-in) isn't hidden behind it on mobile.
+          maxHeight: 'min(90vh, calc(100dvh - 96px))',
           overflowY: 'auto',
+          // @ts-ignore vendor prefix for iOS momentum scroll
+          WebkitOverflowScrolling: 'touch',
           border: `1px solid ${brand.primaryColor}33`,
           boxShadow: `0 0 60px ${brand.primaryColor}22`,
         }}
