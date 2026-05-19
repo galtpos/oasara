@@ -410,12 +410,6 @@ const PublicSite: React.FC = () => {
                   </a>
                 </li>
                 <li>
-                  <a href="/bounty" className="text-sage-600 hover:text-ocean-600 transition-colors flex items-center gap-1">
-                    Referral Bounty
-                    <span className="text-xs bg-gold-500 text-white px-1.5 py-0.5 rounded-full font-bold">$50</span>
-                  </a>
-                </li>
-                <li>
                   <a href="/auth" className="text-sage-600 hover:text-ocean-600 transition-colors">
                     Create Account
                   </a>

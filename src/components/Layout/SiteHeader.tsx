@@ -1,33 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabase';
+import { useOasaraAuth } from '../../hooks/useEcosystemAuthInit';
 
 const SiteHeader: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  // Read auth state from the ecosystem client (FreedomForge) where sign-in
+  // actually happens. Reading from the per-site `lib/supabase` produces a
+  // permanent "Sign In" button in the nav even after the user signs in,
+  // because the per-site client has no session of its own. Unified Auth
+  // Board 2026-05-11.
+  const ecoAuth = useOasaraAuth();
+  const user = ecoAuth.user;
+  const ecoSupabase = ecoAuth.supabase;
+  const [loading, setLoading] = useState(!ecoAuth.initialized);
+
+  useEffect(() => {
+    setLoading(!ecoAuth.initialized);
+  }, [ecoAuth.initialized]);
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Check auth state - use getSession (cached) not getUser (network call)
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await ecoSupabase.auth.signOut();
     navigate('/');
   };
 
@@ -115,15 +111,6 @@ const SiteHeader: React.FC = () => {
                 className={`nav-link ${location.pathname.startsWith('/stories') || isActive('/share-story') ? 'text-gold-500' : ''}`}
               >
                 Stories
-              </Link>
-
-              {/* Bounty Board */}
-              <Link
-                to="/bounty"
-                className={`nav-link flex items-center gap-1 ${isActive('/bounty') ? 'text-gold-500' : ''}`}
-              >
-                <span className="text-gold-500 font-bold">$</span>
-                Bounty
               </Link>
 
               {/* Music */}
@@ -226,18 +213,6 @@ const SiteHeader: React.FC = () => {
                   }`}
                 >
                   Stories
-                </Link>
-
-                {/* Bounty Board */}
-                <Link
-                  to="/bounty"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${
-                    isActive('/bounty') ? 'bg-gold-100 text-gold-700 font-semibold' : 'text-ocean-700 hover:bg-sage-50'
-                  }`}
-                >
-                  <span className="text-gold-500 font-bold">$</span>
-                  Bounty Board
                 </Link>
 
                 {/* Music */}
