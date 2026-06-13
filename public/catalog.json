@@ -1231,7 +1231,7 @@
   ],
   "playlists": {
     "master": {
-      "name": "Enemies of the State by @kaurma | Suno",
+      "name": "Enemies of the State",
       "song_ids": [
         "5ebadf32-5861-4aed-99d0-74b135e59e1a",
         "596e6d24-5442-4449-b107-86b20fc8463c",
@@ -1340,17 +1340,17 @@
       "playlist_key": "aaron_day_music_videos"
     },
     {
-      "id": "2iBMfeyvISc",
-      "title": "Live Free or Die (We Fan the Flame) | Aaron Day for U.S. Senate 2026",
-      "youtube_url": "https://www.youtube.com/watch?v=2iBMfeyvISc",
-      "thumbnail_url": "https://i.ytimg.com/vi/2iBMfeyvISc/mqdefault.jpg",
-      "playlist_key": "aaron_day_music_videos"
-    },
-    {
       "id": "605EACU9Aj0",
       "title": "The Land Don't Breathe - When Freedom Dies | Official Music Video",
       "youtube_url": "https://www.youtube.com/watch?v=605EACU9Aj0",
       "thumbnail_url": "https://i.ytimg.com/vi/605EACU9Aj0/mqdefault.jpg",
+      "playlist_key": "aaron_day_music_videos"
+    },
+    {
+      "id": "2iBMfeyvISc",
+      "title": "Live Free or Die (We Fan the Flame) | Aaron Day for U.S. Senate 2026",
+      "youtube_url": "https://www.youtube.com/watch?v=2iBMfeyvISc",
+      "thumbnail_url": "https://i.ytimg.com/vi/2iBMfeyvISc/mqdefault.jpg",
       "playlist_key": "aaron_day_music_videos"
     },
     {
