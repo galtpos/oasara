@@ -1278,7 +1278,7 @@
       ]
     },
     "technocracyatlas": {
-      "name": "Technocracy Atlas",
+      "name": "Technocracy Atlas by @kaurma | Suno",
       "song_ids": [
         "ea039d0e-b485-4a24-b0d7-cdf8cdea2f81",
         "a1d46048-e692-44a1-be25-022c2b9435d0",
@@ -1305,7 +1305,7 @@
       ]
     },
     "day2026": {
-      "name": "Day2026 by @kaurma | Suno",
+      "name": "Day2026",
       "song_ids": [
         "2ed97eb8-0b6c-43b9-8832-95800c90f2e7",
         "596e6d24-5442-4449-b107-86b20fc8463c",
@@ -1340,10 +1340,10 @@
       "playlist_key": "aaron_day_music_videos"
     },
     {
-      "id": "wrmmLfb4zA0",
-      "title": "TURNING THE PAGE - The Old World Is Over | Official Music Video 4K",
-      "youtube_url": "https://www.youtube.com/watch?v=wrmmLfb4zA0",
-      "thumbnail_url": "https://i.ytimg.com/vi/wrmmLfb4zA0/mqdefault.jpg",
+      "id": "Npv-2j595VA",
+      "title": "DITCH THE DOLLAR - The Anthem They Don't Want You to Hear | AI-Generated Music Video 4K",
+      "youtube_url": "https://www.youtube.com/watch?v=Npv-2j595VA",
+      "thumbnail_url": "https://i.ytimg.com/vi/Npv-2j595VA/mqdefault.jpg",
       "playlist_key": "aaron_day_music_videos"
     },
     {
@@ -1382,6 +1382,13 @@
       "playlist_key": "aaron_day_music_videos"
     },
     {
+      "id": "wrmmLfb4zA0",
+      "title": "TURNING THE PAGE - The Old World Is Over | Official Music Video 4K",
+      "youtube_url": "https://www.youtube.com/watch?v=wrmmLfb4zA0",
+      "thumbnail_url": "https://i.ytimg.com/vi/wrmmLfb4zA0/mqdefault.jpg",
+      "playlist_key": "aaron_day_music_videos"
+    },
+    {
       "id": "p1GoAHPDrPc",
       "title": "DAY 2026 - Fan the Flame | Official Campaign Video 4K",
       "youtube_url": "https://www.youtube.com/watch?v=p1GoAHPDrPc",
@@ -1407,13 +1414,6 @@
       "title": "Move Your Money | The Cantor Counter | 4K AI Music Video",
       "youtube_url": "https://www.youtube.com/watch?v=Wo68MNCqm6o",
       "thumbnail_url": "https://i.ytimg.com/vi/Wo68MNCqm6o/mqdefault.jpg",
-      "playlist_key": "aaron_day_music_videos"
-    },
-    {
-      "id": "Npv-2j595VA",
-      "title": "DITCH THE DOLLAR - The Anthem They Don't Want You to Hear | AI-Generated Music Video 4K",
-      "youtube_url": "https://www.youtube.com/watch?v=Npv-2j595VA",
-      "thumbnail_url": "https://i.ytimg.com/vi/Npv-2j595VA/mqdefault.jpg",
       "playlist_key": "aaron_day_music_videos"
     }
   ],
