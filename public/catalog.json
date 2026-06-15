@@ -1250,7 +1250,7 @@
       ]
     },
     "aarondayshow": {
-      "name": "The Aaron Day Show",
+      "name": "The Aaron Day Show by @kaurma | Suno",
       "song_ids": [
         "e3e98bc9-24e6-4624-acde-4b7dcb66644f",
         "5c37203d-15bf-4e08-9fa5-61e244ff7ed6",
@@ -1278,7 +1278,7 @@
       ]
     },
     "technocracyatlas": {
-      "name": "Technocracy Atlas by @kaurma | Suno",
+      "name": "Technocracy Atlas",
       "song_ids": [
         "ea039d0e-b485-4a24-b0d7-cdf8cdea2f81",
         "a1d46048-e692-44a1-be25-022c2b9435d0",
@@ -1340,6 +1340,13 @@
       "playlist_key": "aaron_day_music_videos"
     },
     {
+      "id": "wrmmLfb4zA0",
+      "title": "TURNING THE PAGE - The Old World Is Over | Official Music Video 4K",
+      "youtube_url": "https://www.youtube.com/watch?v=wrmmLfb4zA0",
+      "thumbnail_url": "https://i.ytimg.com/vi/wrmmLfb4zA0/mqdefault.jpg",
+      "playlist_key": "aaron_day_music_videos"
+    },
+    {
       "id": "605EACU9Aj0",
       "title": "The Land Don't Breathe - When Freedom Dies | Official Music Video",
       "youtube_url": "https://www.youtube.com/watch?v=605EACU9Aj0",
@@ -1372,13 +1379,6 @@
       "title": "THE FINAL COUNTDOWN - Liberty's Last Stand | Official Music Video",
       "youtube_url": "https://www.youtube.com/watch?v=euxLwDBwVVE",
       "thumbnail_url": "https://i.ytimg.com/vi/euxLwDBwVVE/mqdefault.jpg",
-      "playlist_key": "aaron_day_music_videos"
-    },
-    {
-      "id": "wrmmLfb4zA0",
-      "title": "TURNING THE PAGE - The Old World Is Over | Official Music Video 4K",
-      "youtube_url": "https://www.youtube.com/watch?v=wrmmLfb4zA0",
-      "thumbnail_url": "https://i.ytimg.com/vi/wrmmLfb4zA0/mqdefault.jpg",
       "playlist_key": "aaron_day_music_videos"
     },
     {
